@@ -1,0 +1,63 @@
+#
+# poiss.S.R.txt
+#
+
+respdir="/home/morii/work/maeda/data/20170428b/model"
+datafile="../data/20170428b/flat.img"
+
+/home/morii/work/github/moriiism/srt/script/poiss.S.R \
+${respdir} \
+${datafile}
+
+
+################
+by R prompt
+
+respdir = "/home/morii/work/maeda/data/20170428b/model"
+datafile = "../data/crab_gmodel_his_100000_sel1.img"
+
+datafile = "../data/20170428b/flat.img"
+datafile = "../data/20170428b/doublestar_gimage_029_031_plus_gimage_029_029.img"
+
+
+
+mitooldir = "/home/morii/work/github/moriiism/mitool"
+srtdir    = "/home/morii/work/github/moriiism/srt"
+source( paste(mitooldir, "script/mirlib/iolib.R", sep="/") )
+source( paste(srtdir, "script/rlib/em.R", sep="/") )
+
+R.mat = LoadModel(respdir)
+printf("ncol(R.mat) = %d\n", ncol(R.mat))
+printf("nrow(R.mat) = %d\n", nrow(R.mat))
+
+D.vec = LoadData(datafile)
+printf("length(D.vec) = %d\n", length(D.vec))
+
+
+ncol = 60
+nrow = 60
+nx.vec = ncol * nrow
+x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
+lin.or.log = "lin"
+mu = 0.0
+beta = 1.0
+x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, nrow, ncol, lin.or.log)
+
+array = array(x.vec, dim=c(ncol, nrow))
+writeFITSim(array, file="temp.fits")
+
+
+
+##################
+
+
+gimage_xxx_yyy.img
+(example: gimage_025_044.img)
+です。xxx,yyy はそれぞれ１ずつincliment するようになっていて
+
+-8.822604e+04
+-8.822611e+04
+-8.822611e+04
+-8.822612e+04
+-8.822605e+04
+-8.822612e+04,
