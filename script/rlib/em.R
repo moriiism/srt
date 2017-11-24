@@ -79,7 +79,7 @@ LoadData <- function(file)
 
 SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, nrow, ncol, lin.or.log){
     eta = 1.2
-    L = 1
+    L = 1.0e-2
     L.pre = L
     y.vec = x.vec
     x.pre.vec = x.vec
@@ -94,15 +94,22 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, nrow, ncol, lin.or.log
     
     for(k in 1 : k.max){
         printf("SolveByProxMap: k = %d\n", k)
+
+        array = array(y.vec, dim=c(ncol, nrow))
+        file.tmp = sprintf("temp%3.3d.fits", k)
+        writeFITSim(array, file=file.tmp)
+        
         ik = FindIk(y.vec, L.pre, eta, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         printf("ik = %d\n", ik)
         L = eta**ik * L.pre
-        L.pre = eta**(ik - 1) * L.pre
+        # L.pre = eta**(ik - 1) * L.pre
+        L.pre = L 
         x.vec = ProxMap(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         t.new = (1.0 + sqrt(1.0 + 4.0 * t**2)) / 2.0
         y.new.vec = x.vec + (t - 1.0) / t.new * (x.vec - x.pre.vec)
-
-        cost = FuncFG(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+        y.new.vec = mapply(max, y.new.vec, 0.0)
+        
+        ## cost = FuncFG(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         printf("SolveByProxMap:k = %d, cost = %e, L = %e\n", k, cost, L)
         #if(k > 1 && abs(cost.pre - cost) / cost < tol){
         #    break
@@ -132,8 +139,7 @@ FuncF <- function(y.vec, mu, nrow, ncol, lin.or.log)
 
 FuncG <- function(y.vec, R.mat, D.vec, beta)
 {
-    ans = -1 * sum( D.vec * log( R.mat %*% y.vec ) )
-    + (1.0 - beta) * sum( log(y.vec) )
+    ans = -1 * sum( D.vec * log( R.mat %*% y.vec ) ) + (1.0 - beta) * sum( log(y.vec) )
     return(ans)
 }
 
@@ -156,27 +162,45 @@ FindIk <- function(y.vec, L, eta, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log
 
 QMinusF <- function(y.new.vec, y.vec, L, mu, nrow, ncol, lin.or.log)
 {
-    ans = sum(y.new.vec - y.vec)
-    + mu * (TermV(y.new.vec, nrow, ncol, lin.or.log) - TermV(y.vec, nrow, ncol, lin.or.log))
-    + sum( (y.new.vec - y.vec) * DiffF(y.vec, mu, nrow, ncol, lin.or.log) )
-    + L / 2.0 * sum( (y.new.vec - y.vec) * (y.new.vec - y.vec) )
+    term1 = sum(y.new.vec - y.vec)
+    term2 = mu * (TermV(y.new.vec, nrow, ncol, lin.or.log) - TermV(y.vec, nrow, ncol, lin.or.log))
+    term3 = sum( (y.new.vec - y.vec) * DiffF(y.vec, mu, nrow, ncol, lin.or.log) )
+    term4 = L / 2.0 * sum( (y.new.vec - y.vec) * (y.new.vec - y.vec) )
+    ans = term1 + term2 + term3 + term4
     return (ans)
 }
 
+Mfunc <- function(mval, yval){
+    ans = 0.0
+    if(mval >= 0){
+        ans = max(yval, 0.0)
+    }
+    else{
+        ans = 0.0
+    }
+    return(ans)
+}
 
 # y.vec ---> y.new.vec
 ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 {
+    printf("ProxMap: max(y.vec), min(y.vec) = %e, %e\n", max(y.vec), min(y.vec))
+    
     y.new.vec = y.vec
     y.pre.vec = y.vec
     nem.step = 500
-    tol = 1.0e-10
+    tol = 1.0e-8
     for(iem.step in 1:nem.step){
         sigma.vec = y.new.vec - 1.0 / L * DiffF(y.new.vec, mu, nrow, ncol, lin.or.log)
         num.vec = R.mat %*% y.new.vec
         m.vec = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec - (1.0 - beta)
-        y.new.vec = mapply(max, ( sigma.vec + sqrt( sigma.vec * sigma.vec + 4 * m.vec / L) ) / 2.0, 0.0)
+
+#        printf("ProxMap: min(m.vec) = %e\n", min(m.vec))
+        
+        y.new.vec = mapply(Mfunc, m.vec, ( sigma.vec + sqrt( sigma.vec * sigma.vec + 4 * m.vec / L) ) / 2.0 )
         kldiv = KLDiv(y.pre.vec, y.new.vec, R.mat)
+#        printf("KL divergence = %e\n", kldiv)
+#        printf("iem.step = %d\n", iem.step)
         if(kldiv < tol){
             printf("KL divergence = %e\n", kldiv)
             printf("iem.step = %d\n", iem.step)
@@ -194,6 +218,11 @@ KLDiv <- function(y.vec, y.new.vec, R.mat)
 
     q.vec = q.vec / sum(q.vec)
     q.new.vec = q.new.vec / sum(q.new.vec)
+
+#    printf("KLDiv: max(y.vec), max(y.new.vec) = %e, %e\n", max(y.vec), max(y.new.vec))
+#    printf("KLDiv: max(q.vec), max(q.new.vec) = %e, %e\n", max(q.vec), max(q.new.vec))
+#    printf("KLDiv: min(y.vec), min(y.new.vec) = %e, %e\n", min(y.vec), min(y.new.vec))
+#    printf("KLDiv: min(q.vec), min(q.new.vec) = %e, %e\n", min(q.vec), min(q.new.vec))
     ans = sum( q.new.vec * log( q.new.vec / q.vec ) )
     return (ans)
 }
@@ -226,8 +255,8 @@ DiffTermVlog <- function(y.vec, nrow, ncol)
     
     mat.p.0 = mat.aug.p[2:(nrow+1),1:ncol]
     mat.0.p = mat.aug.p[1:nrow,2:(ncol+1)]
-    mat.m.0 = mat.aug.m[1:nrow,1:ncol]
-    mat.0.m = mat.aug.m[1:nrow,1:ncol]
+    mat.m.0 = mat.aug.m[1:nrow,2:(ncol+1)]
+    mat.0.m = mat.aug.m[2:(nrow+1),1:ncol]
 
     mat.diff = 2.0 / mat * ( 4 * log(mat) - log(mat.m.0) - log(mat.p.0) - log(mat.0.m) - log(mat.0.p) )
     y.diff.vec = as.vector(mat.diff)
@@ -244,8 +273,8 @@ DiffTermVlin <- function(y.vec, nrow, ncol)
     
     mat.p.0 = mat.aug.p[2:(nrow+1),1:ncol]
     mat.0.p = mat.aug.p[1:nrow,2:(ncol+1)]
-    mat.m.0 = mat.aug.m[1:nrow,1:ncol]
-    mat.0.m = mat.aug.m[1:nrow,1:ncol]
+    mat.m.0 = mat.aug.m[1:nrow,2:(ncol+1)]
+    mat.0.m = mat.aug.m[2:(nrow+1),1:ncol]
 
     mat.diff = 2.0 / mat * ( 4 * mat - mat.m.0 - mat.p.0 - mat.0.m - mat.0.p )
     y.diff.vec = as.vector(mat.diff)
