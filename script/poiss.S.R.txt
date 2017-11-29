@@ -14,11 +14,19 @@ ${datafile}
 by R prompt
 
 respdir = "/home/morii/work/maeda/data/20170428b/model"
-datafile = "../data/crab_gmodel_his_100000_sel1.img"
 
-datafile = "../data/20170428b/flat.img"
-datafile = "../data/20170428b/doublestar_gimage_029_031_plus_gimage_029_029.img"
+# crab_171030
+# datafile = "../data/crab_171030/crab_gmodel_his_1000000_sel1.img"
+# datafile = "../data/crab_171030/crab_gmodel_his_100000_sel1.img"
+datafile = "../data/crab_171030/crab_gmodel_his_1000_sel1.img"
 
+
+# CasA
+# datafile = "../data/casa/crab_gmodel_his_1000000_sel1.img"
+# datafile = "../data/casa/crab_gmodel_his_1000_sel1.img"
+
+# datafile = "../data/20170428b/flat.img"
+# datafile = "../data/20170428b/doublestar_gimage_029_031_plus_gimage_029_029.img"
 
 
 mitooldir = "/home/morii/work/github/moriiism/mitool"
@@ -39,9 +47,11 @@ nrow = 60
 nx.vec = ncol * nrow
 x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
 lin.or.log = "lin"
+
 mu = 0.0
 beta = 1.0
-x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, nrow, ncol, lin.or.log)
+L = 1e-10
+x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.log)
 
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file="temp.fits")
@@ -55,9 +65,25 @@ gimage_xxx_yyy.img
 (example: gimage_025_044.img)
 です。xxx,yyy はそれぞれ１ずつincliment するようになっていて
 
--8.822604e+04
--8.822611e+04
--8.822611e+04
--8.822612e+04
--8.822605e+04
--8.822612e+04,
+
+cat << EOF > temp.qdp
+skip sing
+ 2.000000e-07 -1.204774e+03
+ 4.000000e-07 -1.201653e+03
+ 8.000000e-07 -1.195412e+03
+ 1.600000e-06 -1.182933e+03
+ 3.200000e-06 -1.157983e+03
+ 6.400000e-06 -1.108113e+03
+
+EOF
+
+
+1: In sqrt(sigma.vec * sigma.vec + 4 * m.vec/L) : NaNs produced
+2: In sqrt(sigma.vec * sigma.vec + 4 * m.vec/L) : NaNs produced
+3: In sqrt(sigma.vec * sigma.vec + 4 * m.vec/L) : NaNs produced
+4: In sqrt(sigma.vec * sigma.vec + 4 * m.vec/L) : NaNs produced
+
+
+FindL: L1, qminusf1 = 1.000000e-07, -1.267247e+02
+FindL: L2, qminusf2 = 2.000000e-07, -9.317336e+01
+L.out = 4.777039e-07
