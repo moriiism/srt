@@ -106,8 +106,8 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         printf("SolveByProxMap: k = %d\n", k)
 
         array = array(y.vec, dim=c(ncol, nrow))
-        file.tmp = sprintf("temp%3.3d.fits", k)
-        writeFITSim(array, file=file.tmp)
+        # file.tmp = sprintf("temp%3.3d.fits", k)
+        # writeFITSim(array, file=file.tmp)
         
         ik = FindIk(y.vec, L.pre, eta, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         printf("SolveByProxMap: ik = %d\n", ik)
@@ -134,7 +134,6 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         y.vec = y.new.vec
         x.pre.vec = x.vec
         cost.pre = cost
-
     }
     x.vec = y.vec
     return (x.vec)

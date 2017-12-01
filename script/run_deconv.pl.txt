@@ -1,0 +1,35 @@
+#
+# run_deconv.pl.txt
+#
+
+
+source ~/work/github/moriiism/mitool/setup/setup.sh
+
+cd /home/morii/work/maeda/17120100
+mkdir setup
+
+cat << EOF > setup/data.list
+../data/crab_171030/crab_gmodel_his_10000_sel1.img                      crab_171030_1e4
+../data/20170428b/doublestar_gimage_029_031_plus_gimage_029_029.img     double_star
+EOF
+
+cat << EOF > setup/mu.list
+0.0
+1e-4
+EOF
+
+cat << EOF > setup/beta.list
+1.0
+0.0
+EOF
+
+datalist=setup/data.list
+mulist=setup/mu.list
+betalist=setup/beta.list
+outdir="out"
+
+/home/morii/work/github/moriiism/srt/script/run_deconv.pl \
+${datalist} \
+${mulist} \
+${betalist} \
+${outdir}
