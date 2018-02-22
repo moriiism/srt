@@ -1,8 +1,9 @@
 ###
-### em.R
+### empm.R
 ###
-### 2017.10.10 M.Morii
-###  
+### 2018.01.26 M.Morii
+###   EM + prox-map
+### 
 
 GetFitsHeader <- function(file)
 {
@@ -116,8 +117,17 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         L.pre = L 
         x.vec = ProxMap(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         t.new = (1.0 + sqrt(1.0 + 4.0 * t**2)) / 2.0
-        y.new.vec = x.vec + (t - 1.0) / t.new * (x.vec - x.pre.vec)
-        y.new.vec = mapply(max, y.new.vec, 0.0)
+	y.new.vec = x.vec + (t - 1.0) / t.new * (x.vec - x.pre.vec)
+	if(0 > prod(sign(y.new.vec))){
+	     printf("***** sign minus ****\n")
+	      y.new.vec = x.vec
+	      t.new = t
+ 	}
+        else{
+             printf("#### sign plus ####\n")
+        }
+
+        ## y.new.vec = mapply(max, y.new.vec, 0.0)
         
         ## cost = FuncFG(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         printf("SolveByProxMap:k = %d, L = %e\n", k, L)
@@ -288,7 +298,7 @@ ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 }
 
 
-FilterEplison <- function(xval){
+FilterEpsilon <- function(xval){
     ans = xval
     epsilon = 1.0e-10
     if(xval < epsilon){
@@ -306,20 +316,24 @@ KLDiv <- function(y.vec, y.new.vec, R.mat)
     q.vec = q.vec / sum(q.vec)
     q.new.vec = q.new.vec / sum(q.new.vec)
 
+### debug
 ##    printf("KLDiv: max(y.vec), max(y.new.vec) = %e, %e\n", max(y.vec), max(y.new.vec))
 ##    printf("KLDiv: max(q.vec), max(q.new.vec) = %e, %e\n", max(q.vec), max(q.new.vec))
 ##    printf("KLDiv: min(y.vec), min(y.new.vec) = %e, %e\n", min(y.vec), min(y.new.vec))
 ##    printf("KLDiv: min(q.vec), min(q.new.vec) = %e, %e\n", min(q.vec), min(q.new.vec))
 
-    q.filt.vec = mapply(FilterEplison, q.vec)
-    q.new.filt.vec = mapply(FilterEplison, q.new.vec)
+###    q.filt.vec = mapply(FilterEpsilon, q.vec)
+###    q.new.filt.vec = mapply(FilterEpsilon, q.new.vec)
+
 
 ##    printf("KLDiv: min(q.filt.vec), min(q.new.filt.vec) = %e, %e\n", min(q.filt.vec), min(q.new.filt.vec))
 
 ##    printf("KLDiv: min: log( q.new.filt.vec / q.filt.vec ) = %e\n", min(log( q.new.filt.vec / q.filt.vec )))
 ##    printf("KLDiv: max: log( q.new.filt.vec / q.filt.vec ) = %e\n", max(log( q.new.filt.vec / q.filt.vec )))
     
-    ans = sum( q.new.filt.vec * log( q.new.filt.vec / q.filt.vec ) )
+###     ans = sum( q.new.filt.vec * log( q.new.filt.vec / q.filt.vec ) )
+    ans = sum( q.new.vec * log( q.new.vec / q.vec ) )
+
     return (ans)
 }
 
