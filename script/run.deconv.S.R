@@ -50,6 +50,7 @@ x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
 lin.or.log = "lin"
 
 # L = 1e-10
+#L = 1e-3
 L = 1.0
 x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.log)
 

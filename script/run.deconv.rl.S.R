@@ -43,9 +43,6 @@ ncol = 60
 nrow = 60
 nx.vec = ncol * nrow
 x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
-
-x.vec = SolveByRL(x.vec, D.vec, R.mat, nrow, ncol)
-
+x.vec = SolveByRL(x.vec, D.vec, R.mat)
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file=outfile)
-
