@@ -88,8 +88,8 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
     tol = 1e-10
     k.max = 100
    
-    ## cost = FuncFG(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
-    ## printf("SolveByProxMap:k = 0, cost = %e\n", cost)
+    cost = FuncFG(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+    printf("SolveByProxMap:k = 0, cost = %e\n", cost)
 
 ###    ## find proper L
 ###    L1 = FindL1(x.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
@@ -108,8 +108,11 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         printf("SolveByProxMap: k = %d\n", k)
 
         array = array(y.vec, dim=c(ncol, nrow))
-        # file.tmp = sprintf("temp%3.3d.fits", k)
-        # writeFITSim(array, file=file.tmp)
+
+        ### dump
+        file.tmp = sprintf("temp%3.3d.fits", k)
+        writeFITSim(array, file=file.tmp)
+        ### dump
         
         ik = FindIk(y.vec, L.pre, eta, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         printf("SolveByProxMap: ik = %d\n", ik)
@@ -119,7 +122,7 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         x.vec = ProxMap(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
         t.new = (1.0 + sqrt(1.0 + 4.0 * t**2)) / 2.0
 	y.new.vec = x.vec + (t - 1.0) / t.new * (x.vec - x.pre.vec)
-	if(0 > prod(sign(y.new.vec))){
+	if(1 > prod( (sign(y.new.vec) + 1)/2. )){
 	     printf("***** sign minus ****\n")
 	      y.new.vec = x.vec
 	      t.new = t
@@ -127,6 +130,10 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
         else{
              printf("#### sign plus ####\n")
         }
+
+
+
+        
 
         ## y.new.vec = mapply(max, y.new.vec, 0.0)
         
@@ -270,29 +277,45 @@ Mfunc <- function(mval, sigma, L){
 ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 {
     printf("ProxMap: max(y.vec), min(y.vec) = %e, %e\n", max(y.vec), min(y.vec))
+
+    sum.y.vec = sum(y.vec)
     
     y.new.vec = y.vec
     y.pre.vec = y.vec
     nem.step = 300
     tol = 1.0e-10
     for(iem.step in 1:nem.step){
+
+       
         sigma.vec = y.new.vec - 1.0 / L * DiffF(y.new.vec, mu, nrow, ncol, lin.or.log)
         num.vec = R.mat %*% y.new.vec
         term1 = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec
         term2 = (1.0 - beta) * nrow * ncol * y.new.vec / sum(y.new.vec) - (1.0 - beta)
         m.vec = term1 + term2
+
+        ### printf("ProxMap: max(m.vec), min(m.vec), sum(m.vec) = %e, %e, %e\n", max(m.vec), min(m.vec), sum(m.vec))
+        
         ### if(min(num.vec) < 1.0e-10){
         ###    break
         ###}
         y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L)
+
+        printf("ProxMap: max(y.new.vec), min(y.new.vec), sum(y.new.vec) = %e, %e, %e\n", max(y.new.vec), min(y.new.vec), sum(y.new.vec))
+
         kldiv = KLDiv(y.pre.vec, y.new.vec, R.mat)
-##        printf("KL divergence = %e\n", kldiv)
+        printf("KL divergence = %e\n", kldiv)
 ##        printf("iem.step = %d\n", iem.step)
         if(kldiv < tol){
             printf("ProxMap: KL divergence = %e\n", kldiv)
             printf("ProxMap: iem.step = %d\n", iem.step)
             break
         }
+
+        if(sum.y.vec * 1.e3 < sum(y.new.vec)){
+            printf("ProxMap: large sum(y.new.vec)\n")
+            break
+        }
+        
         y.pre.vec = y.new.vec
     }
     return(y.new.vec)
@@ -401,8 +424,7 @@ TermVlog <- function(y.vec, nrow, ncol)
     mat.aug = cbind(mat.aug.tmp, mat.aug.tmp[,ncol])
     mat.p1.p0 = mat.aug[2:(nrow+1),1:ncol]
     mat.p0.p1 = mat.aug[1:nrow,2:(ncol+1)]
-    ans = sum( (log(mat) - log(mat.p1.p0)) * (log(mat) - log(mat.p1.p0)) )
-    + sum( (log(mat) - log(mat.p0.p1)) * (log(mat) - log(mat.p0.p1)) )
+    ans = sum( (log(mat) - log(mat.p1.p0)) * (log(mat) - log(mat.p1.p0)) ) + sum( (log(mat) - log(mat.p0.p1)) * (log(mat) - log(mat.p0.p1)) )
     return (ans)
 }
 
@@ -413,8 +435,7 @@ TermVlin <- function(y.vec, nrow, ncol)
     mat.aug = cbind(mat.aug.tmp, mat.aug.tmp[,ncol])
     mat.p1.p0 = mat.aug[2:(nrow+1),1:ncol]
     mat.p0.p1 = mat.aug[1:nrow,2:(ncol+1)]
-    ans = sum( (mat - mat.p1.p0) * (mat - mat.p1.p0) )
-    + sum( (mat - mat.p0.p1) * (mat - mat.p0.p1) )
+    ans = sum( (mat - mat.p1.p0) * (mat - mat.p1.p0) ) + sum( (mat - mat.p0.p1) * (mat - mat.p0.p1) )
     return (ans)
 }
 
