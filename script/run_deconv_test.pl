@@ -83,7 +83,7 @@ $mipllib::sevar{'progname'} = "run_deconv.pl";
 		my $outfile_this2 = sprintf("%s/%s/mu%1.1e/beta%1.1e/deconv.fits",
 					    $outdir, $outdir_this,
 					    $mu_arr[$imu], $beta_arr[$ibeta]);
-		$cmd = sprintf("/home/morii/work/github/moriiism/srt/script/run.deconv.S.R  " .
+		$cmd = sprintf("/home/morii/work/github/moriiism/srt/script/run.deconv.test.S.R  " .
 			       "%s  %s  " . 
 			       "%e  %e  %s  %s" ,
 			       $respdir, $datafile, 

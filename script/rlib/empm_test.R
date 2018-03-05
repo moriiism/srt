@@ -55,6 +55,13 @@ LoadModel <- function(respdir)
             mat[, kbin] = fits$imDat / sum(fits$imDat)
         }
     }
+
+#    for(index in 1 : nrow){
+#        if(sum(mat[index,]) < 1e-3){
+#            printf("%e, %e, %e\n", min(mat[index,]), max(mat[index,]), sum(mat[index,]))
+#        }
+#    }
+    
     return (mat)
 }
 
@@ -87,8 +94,9 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
     cost.pre = 0.0
     tol = 1e-10
     k.max = 100
-   
-    cost = FuncFG(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+
+    supp.vec = GetSuppVec(y.vec)
+    cost = FuncFGSupp(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
     printf("SolveByProxMap:k = 0, cost = %e\n", cost)
 
 ###    ## find proper L
@@ -102,18 +110,19 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
 ###    }
 ###    printf("SOlveByProxMap: find L = %e\n", L)
 
-    L = FindLByEM(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+    L.find = FindLByEM(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+    printf("SolveByProxMap: findLByEM: L.find = %e\n", L.find)
+    L = max(L.find, 1.0)
     printf("SolveByProxMap: findLByEM: L = %e\n", L)
     
     L.pre = L
     for(k in 1 : k.max){
         printf("SolveByProxMap: k = %d\n", k)
 
-        array = array(y.vec, dim=c(ncol, nrow))
-
         ### dump
-        #file.tmp = sprintf("temp%3.3d.fits", k)
-        #writeFITSim(array, file=file.tmp)
+        array = array(y.vec, dim=c(ncol, nrow))
+        file.tmp = sprintf("temp%3.3d.fits", k)
+        writeFITSim(array, file=file.tmp)
         ### dump
         
         ik = FindIk(y.vec, L.pre, eta, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
@@ -129,8 +138,9 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
 
              ## truncate
              y.new.trunc.vec = mapply(max, y.new.vec, 0.0)
-             cost.trunc = FuncFG(y.new.trunc.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
-             cost.org = FuncFG(x.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
+             supp.vec = GetSuppVec(y.new.trunc.vec)
+             cost.trunc = FuncFGSupp(y.new.trunc.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
+             cost.org   = FuncFGSupp(x.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
              printf("cost.trunc = %e, cost.org = %e\n", cost.trunc, cost.org)
              if(cost.trunc < cost.org){
                  printf("use truncated\n")
@@ -147,19 +157,22 @@ SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.
              printf("#### sign plus ####\n")
         }
 
-        ## y.new.vec = mapply(max, y.new.vec, 0.0)
-        
-        cost = FuncFG(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
-        printf("SolveByProxMap:k = %d, L = %e, cost = %e\n", k, L, cost)
-
+        nzero.pre = GetNZeroVec(y.vec)
+        nzero     = GetNZeroVec(y.new.vec)
+        supp.vec = GetSuppVec(y.new.vec)
+        cost.new = FuncFGSupp(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
+        cost     = FuncFGSupp(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
+        cost.diff = cost.new - cost
+        cost.diff.ratio = cost.diff / cost
         kldiv = KLDiv(y.vec, y.new.vec, R.mat)
-        printf("SolveByProxMap: KL divergence = %e\n", kldiv)
+        printf("SolveByProxMap:k = %d, L = %e, cost.diff.ratio = %e, KL divergence = %e, nzero.pre, nzero = %d, %d\n", k, L, cost.diff.ratio, kldiv, nzero.pre, nzero)
+        if(k > 1 && abs(cost.diff.ratio) < 1e-5){
+            break
+        }        
         if(k > 1 && kldiv < tol){
             break
         }
-        ##if(k > 1 && abs(cost.pre - cost) / cost < tol){
-        ##    break
-        ##}
+        
         t = t.new
         y.vec = y.new.vec
         x.pre.vec = x.vec
@@ -181,45 +194,53 @@ FindLByEM <- function(x.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log){
 
         y.new.vec = x.vec
         y.pre.vec = x.vec
-        nem.step = 50
+        nem.step = 100
         tol = 1.0e-10
 
         sum.y.vec = sum(x.vec)
         flag.good = 1
-        lval.pre = -1e10
+        lem.pre = -1e10
         for(iem.step in 1:nem.step){
             sigma.vec = y.new.vec - 1.0 / L.new * DiffF(y.new.vec, mu, nrow, ncol, lin.or.log)
             num.vec = R.mat %*% y.new.vec
-
             ## to avoid division of zero
             if(min(num.vec) < 1.0e-10){
-                printf("FindLByEM: iem.step = %d: min(num.vec) < 1.e-10, then break\n", iem.step)
-                flag.good = 0
-                break
+                num.vec = mapply(AddEpsilon, num.vec)
+                ## printf("FindLByEM: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
             }
-            
             term1 = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec
             term2 = (1.0 - beta) * nrow * ncol * y.new.vec / sum(y.new.vec) - (1.0 - beta)
             m.vec = term1 + term2
+            y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L.new)
+
 
             ## check the likelihood value
-            lval1 = sum(D.vec * log(num.vec))
-            lval2 = -1.0 * L.new / 2. * sum( (y.new.vec - sigma.vec) * (y.new.vec - sigma.vec) )
-            lval3 = -1 * (1.0 - beta) * SumLogPlus(y.new.vec)
-            lval4 = (1.0 - beta) * nrow * ncol * log(sum(y.new.vec))
-            lval5 = -1 * sum(y.new.vec)
-            lval = lval1 + lval2 + lval3 + lval4 + lval5
-            printf("FindLByEM: iem.step = %d: lval = %e, (%e, %e, %e, %e, %e) \n",
-                   iem.step, lval, lval1, lval2, lval3, lval4, lval5)
+            nzero.pre = GetNZeroVec(y.pre.vec)
+            nzero     = GetNZeroVec(y.new.vec)
+            supp.vec = GetSuppVec(y.new.vec)
+            lem.pre = FuncLemSupp(y.pre.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec, L.new)
+            lem     = FuncLemSupp(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec, L.new)
+            diff.lem = lem - lem.pre
+            ## printf("FindLByEM: iem.step = %d, diff.lem = %e: lem.pre = %e, lem = %e, nzero.pre, nzero = %d, %d\n",
+            ## iem.step, diff.lem, lem.pre, lem, nzero.pre, nzero)
+            
+            ##lval1 = sum(D.vec * log(num.vec))
+            ##lval2 = -1.0 * L.new / 2. * sum( (y.new.vec - sigma.vec) * (y.new.vec - sigma.vec) )
+            ##lval3 = -1 * (1.0 - beta) * SumLogPlus(y.new.vec)
+            ##lval4 = (1.0 - beta) * nrow * ncol * log(sum(y.new.vec))
+            ##lval5 = -1 * sum(y.new.vec)
+            ##lval = lval1 + lval2 + lval3 + lval4 + lval5
+            ##printf("FindLByEM: iem.step = %d: lval = %e, (%e, %e, %e, %e, %e) \n",
+            ##       iem.step, lval, lval1, lval2, lval3, lval4, lval5)
 
-            if(lval < lval.pre){
-                printf("FindLByEM: decreasing likelihood (lval(%e) < lval.pre(%e)\n", lval, lval.pre)
+            if(lem < lem.pre){
+                printf("FindLByEM: iem.step = %d, diff.lem = %e: lem.pre = %e, lem = %e, nzero.pre, nzero = %d, %d\n",
+                       iem.step, diff.lem, lem.pre, lem, nzero.pre, nzero)
+                printf("FindLByEM: decreasing likelihood (lem(%e) < lem.pre(%e)\n", lem, lem.pre)
                 flag.good = 0
                 break
             }
-            lval.pre = lval
-            
-            y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L.new)
+            lem.pre = lem
 
             kldiv = KLDiv(y.pre.vec, y.new.vec, R.mat)
             ##        printf("KL divergence = %e\n", kldiv)
@@ -299,6 +320,45 @@ FindL2 <- function(x.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log){
     return(L.out)
 }
 
+
+
+
+### supp
+
+FuncLemSupp <- function(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec, L)
+{
+    sigma.vec = y.vec - 1.0 / L * DiffF(y.vec, mu, nrow, ncol, lin.or.log)
+    term1 = -1.0 * L / 2. * sum( (y.vec - sigma.vec) * (y.vec - sigma.vec) * supp.vec)
+    term2 = -1 * FuncGSupp(y.vec, R.mat, D.vec, beta, nrow, ncol, supp.vec)
+    ans = term1 + term2
+    return(ans)
+}
+
+
+FuncFGSupp <- function(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec)
+{
+    ans = FuncF(y.vec, mu, nrow, ncol, lin.or.log) + FuncGSupp(y.vec, R.mat, D.vec, beta, nrow, ncol, supp.vec)
+    return(ans)
+}
+
+FuncGSupp <- function(y.vec, R.mat, D.vec, beta, nrow, ncol, supp.vec)
+{
+    y.supp.vec = y.vec * supp.vec
+    num.vec = R.mat %*% y.supp.vec
+    num.vec = mapply(AddEpsilon, num.vec)
+    
+    term1 = -1 * sum( D.vec * log( num.vec ) )
+    term2 = (1.0 - beta) * SumLogPlus(y.supp.vec)
+    term3 = -1 * (1.0 - beta) * nrow * ncol * log(sum(y.supp.vec))
+    term4 = sum(y.supp.vec)
+    ans = term1 + term2 + term3 + term4
+    ## printf("FuncGSupp = %e (%e, %e, %e, %e)\n", ans, term1, term2, term3, term4)
+    return(ans)
+}
+
+
+### 
+
 FuncFG <- function(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 {
     ans = FuncF(y.vec, mu, nrow, ncol, lin.or.log) + FuncG(y.vec, R.mat, D.vec, beta, nrow, ncol)
@@ -308,13 +368,16 @@ FuncFG <- function(y.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 FuncF <- function(y.vec, mu, nrow, ncol, lin.or.log)
 {
     ans = mu * TermV(y.vec, nrow, ncol, lin.or.log)
-    printf("FuncF = %e\n", ans)
+    ## printf("FuncF = %e\n", ans)
     return(ans)
 }
 
 FuncG <- function(y.vec, R.mat, D.vec, beta, nrow, ncol)
 {
-    term1 = -1 * sum( D.vec * log( R.mat %*% y.vec ) )
+    num.vec = R.mat %*% y.vec
+    num.vec = mapply(AddEpsilon, num.vec)
+    
+    term1 = -1 * sum( D.vec * log( num.vec ) )
     term2 = (1.0 - beta) * SumLogPlus(y.vec)
     term3 = -1 * (1.0 - beta) * nrow * ncol * log(sum(y.vec))
     term4 = sum(y.vec)
@@ -381,84 +444,62 @@ GetSuppVec <- function(vec){
     return(supp.vec)
 }
 
+GetNZeroVec <- function(vec){
+    nzero = 0
+    for(index in 1 : length(vec)){
+        if(abs(vec[index]) < 1e-20){
+            nzero = nzero + 1
+        }
+    }
+    return(nzero)
+}
+
+
+
+
 
 
 # y.vec ---> y.new.vec
 ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
 {
-    printf("ProxMap: max(y.vec), min(y.vec), sum(y.vec) = %e, %e, %e\n", max(y.vec), min(y.vec), sum(y.vec))
-
     sum.y.vec = sum(y.vec)
     
     y.new.vec = y.vec
     y.pre.vec = y.vec
-    nem.step = 300
+    nem.step = 200
     tol = 1.0e-10
     for(iem.step in 1:nem.step){
        
         sigma.vec = y.new.vec - 1.0 / L * DiffF(y.new.vec, mu, nrow, ncol, lin.or.log)
         num.vec = R.mat %*% y.new.vec
-
-        ### to avoid division of zero
+        ## to avoid division of zero
         if(min(num.vec) < 1.0e-10){
-            printf("ProxMap: iem.step = %d: min(num.vec) < 1.e-10, then break\n", iem.step)
-            break
+            num.vec = mapply(AddEpsilon, num.vec)
+            ## printf("ProxMap: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
         }
         
         term1 = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec
         term2 = (1.0 - beta) * nrow * ncol * y.new.vec / sum(y.new.vec) - (1.0 - beta)
         m.vec = term1 + term2
-
-        ### printf("ProxMap: max(m.vec), min(m.vec), sum(m.vec) = %e, %e, %e\n", max(m.vec), min(m.vec), sum(m.vec))
-
-        ## check the likelihood value
-        lval1 = sum(D.vec * log(num.vec))
-        lval2 = -1.0 * L / 2. * sum( (y.new.vec - sigma.vec) * (y.new.vec - sigma.vec) )
-        lval = lval1 + lval2
-        ## printf("ProxMap: iem.step = %d: lval = %e, lval1 = %e, lval2 = %e\n", iem.step, lval, lval1, lval2)
-        
-
-##        tmp.vec = (D.vec / num.vec)
-##        array = array(tmp.vec, dim=c(ncol, nrow))
-##        file.tmp = sprintf("norm%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##        
-##        array = array(num.vec, dim=c(ncol, nrow))
-##        file.tmp = sprintf("num%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##
-##        array = array(sigma.vec, dim=c(ncol, nrow))
-##        file.tmp = sprintf("sigma%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##
-##        array = array(term1, dim=c(ncol, nrow))
-##        file.tmp = sprintf("term1%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##
-##        array = array(term2, dim=c(ncol, nrow))
-##        file.tmp = sprintf("term2%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##        
-##        array = array(m.vec, dim=c(ncol, nrow))
-##        file.tmp = sprintf("mvec%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-##
-##        tmp.vec = (sigma.vec - 1./L) * (sigma.vec - 1./L) + 4 * m.vec / L
-##        array = array(tmp.vec, dim=c(ncol, nrow))
-##        file.tmp = sprintf("sqrt%3.3d.fits", iem.step)
-##        writeFITSim(array, file=file.tmp)
-
-        
         y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L)
 
-##        printf("ProxMap: max(y.new.vec), min(y.new.vec), sum(y.new.vec) = %e, %e, %e\n", max(y.new.vec), min(y.new.vec), sum(y.new.vec))
 
+        nzero.pre = GetNZeroVec(y.pre.vec)
+        nzero     = GetNZeroVec(y.new.vec)
+        supp.vec = GetSuppVec(y.new.vec)
+        lem.pre = FuncLemSupp(y.pre.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec, L)
+        lem     = FuncLemSupp(y.new.vec, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log, supp.vec, L)
+        diff.lem = lem - lem.pre
+        ##printf("ProxMap: iem.step = %d, diff.lem = %e: lem.pre = %e, lem = %e, nzero.pre, nzero = %d, %d\n",
+        ##       iem.step, diff.lem, lem.pre, lem, nzero.pre, nzero)
+        if(lem < lem.pre){
+            printf("ProxMap: decreasing likelihood (lem(%e) < lem.pre(%e))\n", lem, lem.pre)
+            break
+        }
+        
         kldiv = KLDiv(y.pre.vec, y.new.vec, R.mat)
-##        printf("KL divergence = %e\n", kldiv)
-##        printf("iem.step = %d\n", iem.step)
         if(kldiv < tol){
-            printf("ProxMap: KL divergence = %e\n", kldiv)
-            printf("ProxMap: iem.step = %d\n", iem.step)
+            printf("ProxMap: iem.step = %d, KL divergence = %e\n", iem.step, kldiv)
             break
         }
 
@@ -472,8 +513,7 @@ ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol, lin.or.log)
     return(y.new.vec)
 }
 
-
-FilterEpsilon <- function(xval){
+AddEpsilon <- function(xval){
     ans = xval
     epsilon = 1.0e-10
     if(xval < epsilon){
@@ -481,7 +521,6 @@ FilterEpsilon <- function(xval){
     }
     return(ans)
 }
-
 
 KLDiv <- function(y.vec, y.new.vec, R.mat)
 {

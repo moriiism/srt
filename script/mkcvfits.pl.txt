@@ -1,0 +1,47 @@
+#
+# mkcvfits.pl.txt
+#
+
+source ~/work/github/moriiism/mitool/setup/setup.sh 
+
+cd /home/morii/work/maeda/data/20180228
+
+/home/morii/work/github/moriiism/srt/script/mkcvfits.pl \
+data.list
+
+
+
+
+
+
+
+
+
+
+
+####################################
+#
+#
+#
+#infile="doublestar_off_axis/doublestar_gimage_029_031_plus_gimage_029_029/doublestar_gimage_029_031_plus_gimage_029_029.fits"
+#outfile_tmp="doublestar_off_axis/doublestar_gimage_029_031_plus_gimage_029_029/cv_1e4_tr_1of5.fits"
+#outfile="doublestar_off_axis/doublestar_gimage_029_031_plus_gimage_029_029/cv_1e4_tr_1of5.img"
+#
+#ftselect infile=${infile} outfile=${outfile_tmp} expression="1<= #row && #row<=8000"
+#
+#f2dhisto clobber=yes ${outfile_tmp} ${outfile} \
+#1 1 sudarexpos sudareypos "-30,30" "-30,30"
+#
+#
+###############
+#
+#                
+#ftselect infile=doublestar_gimage_029_031_plus_gimage_029_029.fits  \
+#outfile=doublestar_gimage_029_031_plus_gimage_029_029_1000.fits \
+#expression="#row<=1000"
+#
+#f2dhisto clobber=yes doublestar_gimage_029_031_plus_gimage_029_029_1000.fits \
+#doublestar_gimage_029_031_plus_gimage_029_029_1000.img \
+#1 1 sudarexpos sudareypos "-30,30" "-30,30"
+#
+

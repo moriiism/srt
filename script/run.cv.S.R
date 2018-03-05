@@ -1,11 +1,9 @@
 #!/usr/bin/Rscript
 
-## #!/usr/local/bin/Rscript
-
 ###
-### run.deconv.S.R
+### run.cv.S.R
 ###
-### 2017.12.01 M.Morii
+### 2018.03.05 M.Morii
 ###
 ###
 
@@ -14,7 +12,7 @@ srtdir    = "/home/morii/work/github/moriiism/srt"
 
 ###
 source( paste(mitooldir, "script/mirlib/iolib.R", sep="/") )
-source( paste(srtdir, "script/rlib/empm.R", sep="/") )
+source( paste(srtdir, "script/rlib/cv.R", sep="/") )
 
 ###
 ###
@@ -22,16 +20,13 @@ source( paste(srtdir, "script/rlib/empm.R", sep="/") )
 
 args <- commandArgs(TRUE)
 respdir     = args[1]
-datafile    = args[2]
-mu          = as.numeric(args[3])
-beta        = as.numeric(args[4])
+cvdir       = args[2]
+
 outfile     = args[5]
 initfile    = args[6]
 
 printf("respdir = %s", respdir)
-printf("datafile = %s\n", datafile)
-printf("mu = %e\n", mu)
-printf("beta = %e\n", beta)
+printf("dvdir   = %s\n", dvdir)
 printf("outfile = %s\n", outfile)
 printf("initfile = %s\n", initfile)
 
@@ -60,11 +55,9 @@ if(initfile == "no"){
 }
 
 
-# L = 1e-10
-L = 1e-3
-# L = 1.0
-# L = 1.0e1
-x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.log)
+
+
+
 
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file=outfile)

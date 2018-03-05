@@ -14,7 +14,7 @@ srtdir    = "/home/morii/work/github/moriiism/srt"
 
 ###
 source( paste(mitooldir, "script/mirlib/iolib.R", sep="/") )
-source( paste(srtdir, "script/rlib/empm.R", sep="/") )
+source( paste(srtdir, "script/rlib/empm_test.R", sep="/") )
 
 ###
 ###
@@ -61,11 +61,12 @@ if(initfile == "no"){
 
 
 # L = 1e-10
-L = 1e-3
-# L = 1.0
+# L = 1e-3
+L = 1.0
 # L = 1.0e1
 x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.log)
 
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file=outfile)
 
+warnings()
