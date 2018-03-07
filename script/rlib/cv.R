@@ -1,8 +1,8 @@
 ###
-### rl.R
+### cv.R
 ###
-### 2018.01.27 M.Morii
-###   simple R-L method
+### 2018.03.06 M.Morii
+###   CV
 ### 
 
 GetFitsHeader <- function(file)
@@ -78,19 +78,62 @@ LoadData <- function(file)
     return (D.vec)
 }
 
-KLDiv <- function(x.vec, x.new.vec, R.mat)
+KLDiv <- function(re.vec, vl.vec, R.mat)
 {
-    q.vec = R.mat %*% x.vec
-    q.new.vec = R.mat %*% x.new.vec
-    q.vec = q.vec / sum(q.vec)
-    q.new.vec = q.new.vec / sum(q.new.vec)
+    q.re.vec = R.mat %*% re.vec
+    q.re.vec = q.re.vec / sum(q.re.vec)
+    q.vl.vec = vl.vec / sum(vl.vec)
 
-    ### avoid zero component
+    ## avoid zero component 
     ans = 0.0
-    for( index in 1 : length(q.new.vec) ){
-        if(q.new.vec[index] > 0.0){
-            ans = ans + q.new.vec[index] * log( q.new.vec[index] / q.vec[index] )
+    for( index in 1 : length(q.re.vec) ){
+        if(q.re.vec[index] > 0.0){
+            ans = ans + q.vl.vec[index] * log( q.vl.vec[index] / q.re.vec[index] )
         }
     }
     return (ans)
 }
+
+
+EvalSqErr <- function(cvfile.list, nfold, R.mat)
+{
+    df.cvfile = read.table(cvfile.list)
+    sum = 0.0
+    sum2 = 0.0
+    for( ifold in 1 : nfold){
+        printf("refile = %s\n", df.cvfile[ifold, 1])
+        printf("vlfile = %s\n", df.cvfile[ifold, 2])
+        re.img = as.character(df.cvfile[ifold, 1])
+        vl.img = as.character(df.cvfile[ifold, 2])
+    
+        re.vec = LoadData(re.img)
+        printf("length(re.vec) = %d\n", length(re.vec))
+        vl.vec = LoadData(vl.img)
+        printf("length(vl.vec) = %d\n", length(vl.vec))
+
+        sqerr = SqErr(re.vec, vl.vec, R.mat)
+        printf("sqerr = %e\n", sqerr)
+        sum = sum + sqerr
+        sum2 = sum2 + sqerr * sqerr
+    }
+    ave = sum / nfold
+    sigma = (sum2 - nfold * ave*ave)/(nfold - 1)
+    printf("ave = %e, sigma = %e\n", ave, sigma)
+    ans = list(ave, sigma)
+    return (ans)
+}
+
+
+SqErr <- function(re.vec, vl.vec, R.mat)
+{
+    q.re.vec = R.mat %*% re.vec
+    q.re.vec = q.re.vec / sum(q.re.vec)
+    q.vl.vec = vl.vec / sum(vl.vec)
+
+    ans = sqrt( sum((q.vl.vec - q.re.vec) * (q.vl.vec - q.re.vec)) )
+    return (ans)
+}
+
+
+
+

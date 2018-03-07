@@ -38,7 +38,7 @@ $mipllib::sevar{'progname'} = "mkcvfits.pl";
     printf("%s: %s: datalist  = %s\n", $mipllib::sevar{'progname'}, $prompt_arg, $datalist);
     # == argument
 
-    my @nevt_arr = (1.0e3, 1.0e4);
+    my @nevt_arr = (1.0e3, 1.0e4, 1.0e5, 1.0e6);
     my $nfold = 5;
 
     my $iline = 0;

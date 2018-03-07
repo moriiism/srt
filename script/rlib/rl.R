@@ -89,11 +89,11 @@ SolveByRL <- function(x.vec, D.vec, R.mat){
             break
         }
         ## temp
-        ncol = 60
-        nrow = 60
-        array = array(x.new.vec, dim=c(ncol, nrow))
-        outfile = sprintf("out/temp_%2.2d.fits", k)
-        writeFITSim(array, file=outfile)
+        ##ncol = 60
+        ##nrow = 60
+        ##array = array(x.new.vec, dim=c(ncol, nrow))
+        ##outfile = sprintf("out/temp_%2.2d.fits", k)
+        ##writeFITSim(array, file=outfile)
         ## temp
 
         ## for next
