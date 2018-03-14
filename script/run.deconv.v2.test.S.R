@@ -1,9 +1,11 @@
 #!/usr/bin/Rscript
 
+## #!/usr/local/bin/Rscript
+
 ###
-### run.cv.S.R
+### run.deconv.v2.test.S.R
 ###
-### 2018.03.05 M.Morii
+### 2018.03.07 M.Morii
 ###
 ###
 
@@ -12,7 +14,7 @@ srtdir    = "/home/morii/work/github/moriiism/srt"
 
 ###
 source( paste(mitooldir, "script/mirlib/iolib.R", sep="/") )
-source( paste(srtdir, "script/rlib/cv.R", sep="/") )
+source( paste(srtdir, "script/rlib/empm_v2_test.R", sep="/") )
 
 ###
 ###
@@ -20,15 +22,20 @@ source( paste(srtdir, "script/rlib/cv.R", sep="/") )
 
 args <- commandArgs(TRUE)
 respdir     = args[1]
-cvdir       = args[2]
-
+datafile    = args[2]
+mu          = as.numeric(args[3])
+beta        = as.numeric(args[4])
 outfile     = args[5]
 initfile    = args[6]
+L           = as.numeric(args[7])
 
 printf("respdir = %s", respdir)
-printf("dvdir   = %s\n", dvdir)
+printf("datafile = %s\n", datafile)
+printf("mu = %e\n", mu)
+printf("beta = %e\n", beta)
 printf("outfile = %s\n", outfile)
 printf("initfile = %s\n", initfile)
+printf("L = %e\n", L)
 
 dirname = dirname(outfile)
 dir.create(dirname, recursive = TRUE)
@@ -44,8 +51,6 @@ ncol = 60
 nrow = 60
 nx.vec = ncol * nrow
 
-lin.or.log = "lin"
-
 if(initfile == "no"){
     printf("no load file\n")
     x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
@@ -54,11 +59,9 @@ if(initfile == "no"){
     x.vec = LoadData(initfile)
 }
 
-
-
-
-
+x.vec = SolveByProxMap(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
 
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file=outfile)
 
+warnings()
