@@ -6,7 +6,7 @@
 ### run.deconv.rl.S.R
 ###
 ### 2018.01.27 M.Morii
-###  R-L method
+###
 ###
 
 mitooldir = "/home/morii/work/github/moriiism/mitool"
@@ -14,7 +14,7 @@ srtdir    = "/home/morii/work/github/moriiism/srt"
 
 ###
 source( paste(mitooldir, "script/mirlib/iolib.R", sep="/") )
-source( paste(srtdir, "script/rlib/rl.R", sep="/") )
+source( paste(srtdir, "script/rlib/rl.test.R", sep="/") )
 
 ###
 ###
@@ -26,14 +26,12 @@ datafile    = args[2]
 outfile     = args[3]
 logfile     = args[4]
 tol         = as.numeric(args[5])
-nstep       = as.integer(args[6])
 
 printf("respdir  = %s\n", respdir)
 printf("datafile = %s\n", datafile)
 printf("outfile  = %s\n", outfile)
 printf("logfile  = %s\n", logfile)
 printf("tol      = %e\n", tol)
-printf("nstep    = %d\n", nstep)
 
 dirname = dirname(outfile)
 dir.create(dirname, recursive = TRUE)
@@ -49,6 +47,6 @@ ncol = 60
 nrow = 60
 nx.vec = ncol * nrow
 x.vec = rep( sum(D.vec) / nx.vec, nx.vec)
-x.vec = SolveByRL(x.vec, D.vec, R.mat,logfile, tol, nstep)
+x.vec = SolveByRL(x.vec, D.vec, R.mat, logfile, tol)
 array = array(x.vec, dim=c(ncol, nrow))
 writeFITSim(array, file=outfile)

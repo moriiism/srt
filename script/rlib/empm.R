@@ -77,6 +77,36 @@ LoadData <- function(file)
     return (D.vec)
 }
 
+LoadDataWithSize <- function(file, nx, ny)
+{
+    printf("--- LoadData --- \n")
+    library(FITSio)
+
+    fits <- readFITS(file)
+    bitpix = as.integer(fits$hdr[which(fits$hdr=="BITPIX")+1])
+    naxis  = as.integer(fits$hdr[which(fits$hdr=="NAXIS")+1])
+    naxis1 = as.integer(fits$hdr[which(fits$hdr=="NAXIS1")+1])
+    naxis2 = as.integer(fits$hdr[which(fits$hdr=="NAXIS2")+1])
+
+    printf("bitpix = %d\n", bitpix)
+    printf("naxis  = %d\n", naxis)
+    printf("naxis1  = %d\n", naxis1)
+    printf("naxis2  = %d\n", naxis2)
+    D.org.vec = as.vector(fits$imDat)
+    D.vec = rep(0.0, nx * ny)
+    
+    for(jbin in 1:ny){
+        for(ibin in 1:nx){
+            index.org = (jbin - 1) * naxis1 + ibin
+            index = (jbin - 1) * nx + ibin
+            D.vec[index] = D.org.vec[index.org]
+        }
+    }
+    return (D.vec)
+}
+
+
+
 
 SolveByProxMap <- function(x.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, lin.or.log){
     eta = 1.2

@@ -5,6 +5,9 @@
 ###   EM + prox-map (V_rho)
 ### 
 
+### R> .Machine
+
+
 GetFitsHeader <- function(file)
 {
     printf("--- GetFitsHeader --- \n")
@@ -192,12 +195,13 @@ FindLByEM <- function(x.vec, L, R.mat, D.vec, beta, mu, nrow, ncol){
         for(iem.step in 1:nem.step){
             sigma.vec = y.new.vec - 1.0 / L.new * DiffF(y.new.vec, mu, nrow, ncol)
             num.vec = R.mat %*% y.new.vec
+
             ## to avoid division of zero
-            if(min(num.vec) < 1.0e-10){
-                num.vec = mapply(AddEpsilon, num.vec)
-                ## printf("FindLByEM: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
-            }
-            term1 = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec
+            ##if(min(num.vec) < 1.0e-10){
+            ##    num.vec = mapply(AddEpsilon, num.vec)
+            ##    ## printf("FindLByEM: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
+            ##}
+            term1 = (t(R.mat) %*% DivVect(D.vec, num.vec)) * y.new.vec
             term2 = (1.0 - beta) * nrow * ncol * y.new.vec / sum(y.new.vec) - (1.0 - beta)
             m.vec = term1 + term2
             y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L.new)
@@ -371,13 +375,32 @@ GetNZeroVec <- function(vec){
     return(nzero)
 }
 
+CheckNumVec <- function(num.vec, D.vec){
+    for(index in 1 : length(num.vec)){
+        if(abs(num.vec[index]) < 1.0e-10){
+            printf("num.vec[index], D.vec[index] = %e  %e\n", num.vec[index], D.vec[index])
+        }
+    }
+}
 
-
-
+DivVect <- function(num.vec, den.vec){
+    len = length(num.vec)
+    ans.vec = rep(0.0, len)
+    for(index in 1 : len){
+        if(abs(num.vec[index]) > 1.0e-15){
+            ans.vec[index] = num.vec[index] / den.vec[index]
+        }
+        else {
+            ans.vec[index] = 0.0
+        }
+    }
+    return(ans.vec)
+}
 
 
 # y.vec ---> y.new.vec
-ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol)
+
+    ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol)
 {
     sum.y.vec = sum(y.vec)
     
@@ -390,17 +413,19 @@ ProxMap <- function(y.vec, L, R.mat, D.vec, beta, mu, nrow, ncol)
        
         sigma.vec = y.new.vec - 1.0 / L * DiffF(y.new.vec, mu, nrow, ncol)
         num.vec = R.mat %*% y.new.vec
-        ## to avoid division of zero
-        if(min(num.vec) < 1.0e-10){
-            num.vec = mapply(AddEpsilon, num.vec)
-            ## printf("ProxMap: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
-        }
-        
-        term1 = (t(R.mat) %*% (D.vec / num.vec)) * y.new.vec
+
+        #### to avoid division of zero
+        ##if(min(num.vec) < 1.0e-10){
+         ##   CheckNumVec(num.vec, D.vec)
+        ##    
+        ##    num.vec = mapply(AddEpsilon, num.vec)
+        ##    printf("ProxMap: iem.step = %d: min(num.vec) < 1.e-10, then add epsilon\n", iem.step)
+        ##}
+
+        term1 = (t(R.mat) %*% DivVect(D.vec, num.vec)) * y.new.vec
         term2 = (1.0 - beta) * nrow * ncol * y.new.vec / sum(y.new.vec) - (1.0 - beta)
         m.vec = term1 + term2
         y.new.vec = mapply(Mfunc, m.vec, sigma.vec, L)
-
 
         nzero.pre = GetNZeroVec(y.pre.vec)
         nzero     = GetNZeroVec(y.new.vec)
