@@ -89,7 +89,7 @@ LineSearch <- function(x.vec, x.new.vec, R.mat, D.vec, beta, mu, nrow, ncol){
     theta.vec = log( x2.vec / (1 - x1))
     theta.new.vec = log( x2.new.vec / (1 - x1.new))
     nstep = 100
-    logl.init = -1 * FuncF(x.vec, D.vec, R.mat, beta, mu, nrow, ncol)
+    logl.init = FuncF(x.vec, D.vec, R.mat, beta, mu, nrow, ncol)
     logl.pre  = logl.init
     x.pre.vec = x.vec
 
@@ -111,13 +111,13 @@ LineSearch <- function(x.vec, x.new.vec, R.mat, D.vec, beta, mu, nrow, ncol){
         x2.this.vec = (1 - x1.this) * exp(theta.this.vec) / alpha
         x.this.vec = c(x1.this, x2.this.vec)
 
-        logl = -1 * FuncF(x.this.vec, D.vec, R.mat, beta, mu, nrow, ncol)
+        logl = FuncF(x.this.vec, D.vec, R.mat, beta, mu, nrow, ncol)
 
         fprintf(outfile, "%d  %e\n", istep, logl - logl.init)
 
         printf("logl = %e\n", logl)
 
-        if(logl.pre > logl){
+        if(logl.pre < logl){
             printf("factor(istep) = %e (%d)\n", factor, istep)
             if(istep != 1){
                 x.new.vec = x.pre.vec
@@ -129,7 +129,6 @@ LineSearch <- function(x.vec, x.new.vec, R.mat, D.vec, beta, mu, nrow, ncol){
     }
     return(x.new.vec)
 }
-
 
 SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep, outdir, outfile.head, nrow, ncol, epsilon){
     outfile = sprintf("%s/%s_moni.dat", outdir, outfile.head)
@@ -168,6 +167,13 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
         fprintf(outfile, "%d  %e  %.10e  %e  %e  %e\n",
                 istep, kldiv, logl, logl.inc, delta.logl, tdiff)
         fprintf(outfile.time.logl, "%e  %e\n", tdiff, logl.inc)
+
+        ## save
+##        if(istep %% 100 == 0){
+            outimg = sprintf("%s/outimg_%d.fits", outdir, istep)
+            array = array(rho.new.vec * Nph, dim=c(ncol, nrow))
+            writeFITSim(array, file=outimg)
+##        }
         
         if(kldiv < tol){
             break
@@ -177,12 +183,6 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
         rho.pre.vec = rho.new.vec
         logl.pre = logl
 
-        ## save
-##        if(istep %% 100 == 0){
-            outimg = sprintf("%s/outimg_%d.fits", outdir, istep)
-            array = array(rho.new.vec * Nph, dim=c(ncol, nrow))
-            writeFITSim(array, file=outimg)
-##        }
     }
     return (rho.new.vec)
 }
@@ -192,12 +192,25 @@ FindIk <- function(rho.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol){
     ik.max = 1000
     ik = 0
     L.org = L
+
+    logl.init = FuncF(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol)
     while(ik <= ik.max){
         L = eta**ik * L.org
         pLy = ProxMap(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
         qminusf = QMinusF(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
         printf("FindIk: (ik, L, qminusf) = (%d, %e, %e)\n", ik, L, qminusf)
+        logl = FuncF(pLy, D.vec, R.mat, beta, mu, nrow, ncol)
+        printf("logl, logl.init = %e, %e \n", logl, logl.init)
+        
+        if(logl > logl.init){
+            printf("logl(%e) > logl.init(%e), then next \n", logl, logl.init)
+            ik = ik + 1
+            next
+        }
         if(qminusf >= 0){
+            outimg = sprintf("findik_%d.fits", ik)
+            array = array(pLy, dim=c(ncol, nrow))
+            writeFITSim(array, file=outimg)
             break
         }
         ik = ik + 1
