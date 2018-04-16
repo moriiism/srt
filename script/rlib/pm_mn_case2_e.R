@@ -91,7 +91,8 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
     fprintf(outfile.time.logl, "# tdiff logl.inc\n")
 
     time.st = Sys.time()
-    logl.init = FuncL(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol)
+    rho.supp.vec = GetSuppVec(rho.vec, epsilon)
+    logl.init = FuncL(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.supp.vec)
     logl.pre = logl.init
     fprintf(outfile, "0  0  %.10e  0.0  0.0  0.0\n", logl.init)
     
@@ -99,20 +100,20 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
     rho.new.vec = rho.vec
     rho.pre.vec = rho.vec
     for(istep in 1 : nstep){
+
+        rho.new.supp.vec = GetSuppVec(rho.new.vec, epsilon)
         
-        ik = FindIk(rho.new.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon)
+        ik = FindIk(rho.new.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon, rho.new.supp.vec)
         L.pre = L
         L = eta**ik * L
         printf("SolveByProxMap: ik = %d, L = %e, L.pre = %e\n", ik, L, L.pre)
-        ans.proxmap = ProxMap(rho.new.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
+        ans.proxmap = ProxMap(rho.new.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon, rho.new.supp.vec)
         rho.new.vec = ans.proxmap[[1]]
         
-        kldiv = KLDiv(rho.pre.vec, rho.new.vec, R.mat)
-
-        rho.pre.supp.vec = GetSuppVec(rho.pre.vec, epsilon)
         rho.new.supp.vec = GetSuppVec(rho.new.vec, epsilon)
-        logl.pre = FuncL.supp(rho.pre.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
-        logl     = FuncL.supp(rho.new.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
+        kldiv = KLDiv(rho.pre.vec, rho.new.vec, R.mat)
+        logl.pre = FuncL(rho.pre.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
+        logl     = FuncL(rho.new.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
         delta.logl = logl - logl.pre
         logl.inc   = logl - logl.init
         time = Sys.time()
@@ -130,7 +131,7 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
             writeFITSim(array, file=outimg)
 ##        }
 
-        if( -1.0e-3 < delta.logl && delta.logl < 0.0){
+        if( -1.0e-4 < delta.logl && delta.logl < 0.0){
             break
         }
         if(kldiv < tol){
@@ -146,18 +147,33 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
 }
 
 
-FindIk <- function(rho.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon){
+FindIk <- function(rho.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon, rho.supp.vec){
     ik.max = 1000
     ik = 0
     L.org = L
+    logl.init = FuncL(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.supp.vec)
     while(ik <= ik.max){
         L = eta**ik * L.org
-        ans.proxmap = ProxMap(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
+        ans.proxmap = ProxMap(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon, rho.supp.vec)
         pLy = ans.proxmap[[1]]
         ans.proxmap.flag.good = ans.proxmap[[2]]
+        pLy.supp.vec = GetSuppVec(pLy, epsilon)
+
+        printf("FindIK: nzero(rho.vec) = %d\n", GetNZeroVec(rho.vec, epsilon))
+        printf("FindIk: nzero(pLy.supp.vec) = %d\n", GetNZeroVec(pLy, epsilon))
         
-        qminusf = QMinusF.supp(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
+        qminusf = QMinusF(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, pLy.supp.vec)
         printf("FindIk: (ik, L, qminusf) = (%d, %e, %e)\n", ik, L, qminusf)
+
+##        logl.supp.init = FuncL(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol, pLy.supp.vec)
+##        logl.supp = FuncL(pLy, D.vec, R.mat, beta, mu, nrow, ncol, pLy.supp.vec)
+##        printf("logl.supp, logl.supp.init = %e, %e \n", logl.supp, logl.supp.init)
+        
+##        if(logl.supp > logl.supp.init){
+##            printf("logl.supp(%e) > logl.supp.init(%e), then next \n", logl.supp, logl.supp.init)
+##            ik = ik + 1
+##            next
+##        }
         if(qminusf >= 0 && ans.proxmap.flag.good == 1){
             break
         }
@@ -166,39 +182,36 @@ FindIk <- function(rho.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon)
     return(ik)
 }
 
-ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
+ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon, rho.supp.vec){
     npix = nrow * ncol
-    sigma.vec = FuncSigma(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
-
-    printf("proxmap: sigma.vec.min = %e, sigma.vec.max = %e\n", min(sigma.vec), max(sigma.vec))
-    
+    sigma.vec = FuncSigma(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, rho.supp.vec)
     rho.new.vec = rho.vec
     nem = 1000
     flag.good = 1
     for(iem in 1 : nem){
-        lem = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L)
-        m.vec = FuncM(rho.new.vec, D.vec, R.mat)
-
-        ## printf("em: m.vec.min = %e, m.vec.max = %e\n", min(m.vec), max(m.vec))
-
+        lem = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L, rho.supp.vec)
+        m.vec = FuncM(rho.new.vec, D.vec, R.mat, epsilon, rho.supp.vec)
         nnewton = 100
         tol.newton = 1.0e-3
         tau = 1.0
         for(inewton in 1 : nnewton){
             tau = tau - FuncS(tau, sigma.vec, m.vec, L, epsilon) / FuncDiffS(tau, sigma.vec, m.vec, L, epsilon)
+
+##            printf("newton: tau = %e, S = %e\n", tau, FuncS(tau, sigma.vec, m.vec, L))
+            
             if( abs(FuncS(tau, sigma.vec, m.vec, L, epsilon) ) < tol.newton){
                 break
             }
         }
         rho.tmp.vec = rho.new.vec
         rho.new.vec = FuncRho(tau, sigma.vec, m.vec, L, epsilon)
-        ## rho.new.vec = LineSearch(rho.tmp.vec, rho.new.vec, D.vec, R.mat, sigma.vec, L)
+        rho.new.vec = LineSearch(rho.tmp.vec, rho.new.vec, D.vec, R.mat, sigma.vec, L, epsilon, rho.supp.vec)
 
-        lem.new = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L)
+        lem.new = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L, rho.supp.vec)
         diff.lem = lem.new - lem
         kldiv = KLDiv(rho.tmp.vec, rho.new.vec, R.mat)
 
-        printf("iem = %d, kldiv = %e, diff.lem = %e, lem = %e, lem.new = %e \n", iem, kldiv, diff.lem, lem, lem.new)
+        printf("iem = %d, kldiv = %e, diff.lem = %e\n", iem, kldiv, diff.lem)
         if(diff.lem > 0){
             flag.good = 0
             break
@@ -207,9 +220,9 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
             flag.good = 0
             break
         }
-        ##if(abs(diff.lem) < 1.e-3){
-        ##    break
-        ##}
+        if(abs(diff.lem) < 1.e-3){
+            break
+        }
         if(kldiv < 1.e-10){
             break
         }
@@ -219,7 +232,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
 }
 
 
-LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L){
+LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L, epsilon, rho.supp.vec){
     x1     = x.vec[1]
     x1.new = x.new.vec[1]
     x2.vec = x.vec[2:length(x.vec)]
@@ -228,7 +241,7 @@ LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L){
     theta.vec = log( x2.vec / (1 - x1))
     theta.new.vec = log( x2.new.vec / (1 - x1.new))
     nstep = 100
-    lem.init = FuncLem(x.vec, D.vec, R.mat, sigma.vec, L)
+    lem.init = FuncLem(x.vec, D.vec, R.mat, sigma.vec, L, rho.supp.vec)
     lem.pre  = lem.init
     x.pre.vec = x.vec
 
@@ -246,8 +259,9 @@ LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L){
         alpha = sum(exp(theta.this.vec))
         x2.this.vec = (1 - x1.this) * exp(theta.this.vec) / alpha
         x.this.vec = c(x1.this, x2.this.vec)
+        x.this.vec = mapply(ThresEpsilon, x.this.vec, epsilon)
 
-        lem = FuncLem(x.this.vec, D.vec, R.mat, sigma.vec, L)
+        lem = FuncLem(x.this.vec, D.vec, R.mat, sigma.vec, L, rho.supp.vec)
 
         ##printf("linesearch: min(x.this.vec) = %e\n", min(x.this.vec))
         ##printf("linesearch: max(x.this.vec) = %e\n", max(x.this.vec))
@@ -290,9 +304,9 @@ KLDiv <- function(y.vec, y.new.vec, R.mat)
 ###
 ###
 
-FuncM <- function(rho.vec, D.vec, R.mat){
-    num.vec = R.mat %*% rho.vec
-    ans.vec = t(R.mat) %*% (D.vec / num.vec) * rho.vec
+FuncM <- function(rho.vec, D.vec, R.mat, epsilon, rho.supp.vec){
+    num.vec = R.mat %*% (rho.vec * rho.supp.vec)
+    ans.vec = t(R.mat) %*% DivVect(D.vec, num.vec, epsilon) * (rho.vec * rho.supp.vec)
     return(ans.vec)
 }
 
@@ -319,77 +333,41 @@ FuncDiffS <- function(tau, sigma.vec, m.vec, L, epsilon){
 
 ##################
 
-FuncLem <- function(rho.vec, D.vec, R.mat, sigma.vec, L){
-    term1 = L * sum( (rho.vec - sigma.vec) * (rho.vec - sigma.vec) ) / 2.0
-    term2 = FuncG(rho.vec, D.vec, R.mat)
+FuncLem <- function(rho.vec, D.vec, R.mat, sigma.vec, L, rho.supp.vec){
+    term1 = L * sum( (rho.vec - sigma.vec) * (rho.vec - sigma.vec) * rho.supp.vec) / 2.0
+    term2 = FuncG(rho.vec, D.vec, R.mat, rho.supp.vec)
     ans = term1 + term2
     return(ans)
 }
 
-FuncL <- function(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol){
-    term1 = FuncF(rho.vec, beta, mu, nrow, ncol)
-    term2 = FuncG(rho.vec, D.vec, R.mat)
+FuncL <- function(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.supp.vec){
+    term1 = FuncF(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
+    term2 = FuncG(rho.vec, D.vec, R.mat, rho.supp.vec)
+    printf("FuncL : funcf = %e\n", term1)
+    printf("FuncL : funcg = %e\n", term2)
+    
     ans = term1 + term2
     return(ans)
 }
 
-FuncL.supp <- function(rho.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.supp.vec){
-    term1 = FuncF.supp(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
-    term2 = FuncG(rho.vec, D.vec, R.mat)
-    ans = term1 + term2
-    return(ans)
-}
-
-QMinusF <- function(rho.new.vec, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
+QMinusF <- function(rho.new.vec, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, rho.new.supp.vec)
 {
-    term1 =      FuncF(rho.vec, beta, mu, nrow, ncol)
-    term2 = -1 * FuncF(rho.new.vec, beta, mu, nrow, ncol)
-    term3 = sum( (rho.new.vec - rho.vec) * DiffF(rho.vec, beta, mu, nrow, ncol) )
-    term4 = L / 2.0 * sum( (rho.new.vec - rho.vec) * (rho.new.vec - rho.vec) )
+    term1 =      FuncF(rho.vec, beta, mu, nrow, ncol, rho.new.supp.vec)
+    term2 = -1 * FuncF(rho.new.vec, beta, mu, nrow, ncol, rho.new.supp.vec)
+    term3 = sum( (rho.new.vec - rho.vec) * DiffF(rho.vec, beta, mu, nrow, ncol, rho.new.supp.vec) * rho.new.supp.vec)
+    term4 = L / 2.0 * sum( (rho.new.vec - rho.vec) * (rho.new.vec - rho.vec) * rho.new.supp.vec)
     ans = term1 + term2 + term3 + term4
     return (ans)
 }
 
-QMinusF.supp <- function(rho.new.vec, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
-{
-    rho.supp.vec = GetSuppVec(rho.vec, epsilon)
-    rho.new.supp.vec = GetSuppVec(rho.new.vec, epsilon)
-    printf("Q-F: nzero = %d, nzero.new = %d\n", GetNZeroVec(rho.vec, epsilon), GetNZeroVec(rho.new.vec, epsilon))
-    ## term1 =      FuncF(rho.vec, beta, mu, nrow, ncol)
-    ## term2 = -1 * FuncF(rho.new.vec, beta, mu, nrow, ncol)
-    term1 =      FuncF.supp(rho.vec, beta, mu, nrow, ncol, rho.new.supp.vec)
-    term2 = -1 * FuncF.supp(rho.new.vec, beta, mu, nrow, ncol, rho.new.supp.vec)
-    term3 = sum( (rho.new.vec - rho.vec) * DiffF.supp(rho.vec, beta, mu, nrow, ncol, rho.new.supp.vec) )
-    term4 = L / 2.0 * sum( (rho.new.vec - rho.vec) * (rho.new.vec - rho.vec) )
-    ans = term1 + term2 + term3 + term4
-    return (ans)
-}
-
-
-FuncSigma <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol){
+FuncSigma <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, rho.supp.vec){
     term1 = rho.vec
-    term2 = -1.0 / L * DiffF(rho.vec, beta, mu, nrow, ncol)
+    term2 = -1.0 / L * DiffF(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
     ans.vec = term1 + term2
     return(ans.vec)
 }
 
-FuncSigma.supp <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, rho.supp.vec){
-    term1 = rho.vec
-    term2 = -1.0 / L * DiffF.supp(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
-    ans.vec = term1 + term2
-    return(ans.vec)
-}
-
-
-FuncF <- function(rho.vec, beta, mu, nrow, ncol)
-{
-    term1 = (1.0 - beta) * sum(log(rho.vec))
-    term2 = mu * TermV(rho.vec, nrow, ncol)
-    ans = term1 + term2
-    return(ans)
-}
-
-FuncF.supp <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
+FuncF <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
 {
     term1 = (1.0 - beta) * SumLogPlus(rho.vec, rho.supp.vec)
     term2 = mu * TermV(rho.vec, nrow, ncol)
@@ -397,15 +375,7 @@ FuncF.supp <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
     return(ans)
 }
 
-DiffF <- function(rho.vec, beta, mu, nrow, ncol)
-{
-    term1 = (1 - beta) / rho.vec
-    term2 = mu * DiffTermV(rho.vec, nrow, ncol)
-    ans = term1 + term2
-    return (ans)
-}
-
-DiffF.supp <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
+DiffF <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
 {
     term1 = (1 - beta) * InvVect(rho.vec, rho.supp.vec)
     term2 = mu * DiffTermV(rho.vec, nrow, ncol)
@@ -413,11 +383,24 @@ DiffF.supp <- function(rho.vec, beta, mu, nrow, ncol, rho.supp.vec)
     return (ans)
 }
 
-
-FuncG <- function(rho.vec, D.vec, R.mat)
+FuncG <- function(rho.vec, D.vec, R.mat, rho.supp.vec)
 {
-    num.vec = R.mat %*% (rho.vec)
-    ans = -1 * sum( D.vec * log( num.vec ) )
+    num.vec = R.mat %*% (rho.vec * rho.supp.vec)
+    ans = -1 * SumInFuncG(D.vec, num.vec)
+    ## ans = -1 * sum( D.vec * log( num.vec ) )
+    return(ans)
+}
+
+SumInFuncG <- function(D.vec, num.vec){
+    ans = 0.0
+    len = length(D.vec)
+    for(index in 1 : len){
+        if(D.vec[index] > 0){
+            if(num.vec[index] > 1e-10){
+                ans = ans + D.vec[index] * log( num.vec[index] )
+            }
+        }
+    }
     return(ans)
 }
 
