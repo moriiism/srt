@@ -175,25 +175,40 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
     rho.new.vec = rho.vec
     nem = 1000
     flag.good = 1
+    tau.pre = 1e-10
     for(iem in 1 : nem){
         lem = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L)
         m.vec = FuncM(rho.new.vec, D.vec, R.mat)
 
         ## printf("em: m.vec.min = %e, m.vec.max = %e\n", min(m.vec), max(m.vec))
 
+        tau.thres.vec = FuncTauThres(sigma.vec, m.vec, L, epsilon)
+        tau.thres.min = min(tau.thres.vec)
+        tau.thres.max = max(tau.thres.vec)
+        printf("tau.thres.min = %e, tau.thres.max = %e\n", tau.thres.min, tau.thres.max)
+        
         nnewton = 100
         tol.newton = 1.0e-3
-        tau = 1.0
+        if(tau.pre > tau.thres.min){
+            tau = tau.pre
+        }
+        else {
+            tau = tau.thres.max
+        }
         for(inewton in 1 : nnewton){
             tau = tau - FuncS(tau, sigma.vec, m.vec, L, epsilon) / FuncDiffS(tau, sigma.vec, m.vec, L, epsilon)
             if( abs(FuncS(tau, sigma.vec, m.vec, L, epsilon) ) < tol.newton){
+                printf("inewton = %d, tau = %e\n", inewton, tau)
                 break
             }
         }
+        tau.pre = tau
+
+        
         rho.tmp.vec = rho.new.vec
         rho.new.vec = FuncRho(tau, sigma.vec, m.vec, L, epsilon)
-        ## rho.new.vec = LineSearch(rho.tmp.vec, rho.new.vec, D.vec, R.mat, sigma.vec, L)
-
+        rho.new.vec = LineSearch(rho.tmp.vec, rho.new.vec, D.vec, R.mat, sigma.vec, L, epsilon)
+        
         lem.new = FuncLem(rho.new.vec, D.vec, R.mat, sigma.vec, L)
         diff.lem = lem.new - lem
         kldiv = KLDiv(rho.tmp.vec, rho.new.vec, R.mat)
@@ -210,7 +225,10 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
         ##if(abs(diff.lem) < 1.e-3){
         ##    break
         ##}
-        if(kldiv < 1.e-10){
+
+        ## line search on: 1.e-8
+        ## line search off : 1.e-10
+        if(kldiv < 1.e-8){
             break
         }
     }
@@ -219,7 +237,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
 }
 
 
-LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L){
+LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L, epsilon){
     x1     = x.vec[1]
     x1.new = x.new.vec[1]
     x2.vec = x.vec[2:length(x.vec)]
@@ -246,6 +264,14 @@ LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L){
         alpha = sum(exp(theta.this.vec))
         x2.this.vec = (1 - x1.this) * exp(theta.this.vec) / alpha
         x.this.vec = c(x1.this, x2.this.vec)
+
+        if(min(x.this.vec) < epsilon){
+            printf("min(x.this.vec) < epsilon: factor(istep) = %e (%d)\n", factor, istep)
+            if(istep != 1){
+                x.new.vec = x.pre.vec
+            }
+            break
+        }
 
         lem = FuncLem(x.this.vec, D.vec, R.mat, sigma.vec, L)
 
@@ -303,16 +329,37 @@ FuncRho <- function(tau, sigma.vec, m.vec, L, epsilon){
     return(ans.vec)
 }
 
+FuncDiffRhoVec <- function(tau, sigma.vec, m.vec, L, epsilon){
+    tau.thres.vec = FuncTauThres(sigma.vec, m.vec, L, epsilon)
+    ans.vec = mapply(FuncDiffRho, tau, sigma.vec, m.vec, L, epsilon, tau.thres.vec)
+    return(ans.vec)
+}
+
+FuncDiffRho <- function(tau, sigma, m, L, epsilon, tau.thres){
+    ans = 0.0
+    if(tau <= tau.thres){
+        ans = 0.0
+    }
+    else {
+        termb = sigma + tau / L
+        root = sqrt( termb * termb + 4 * m / L )
+        ans = (termb + root) / (2 * L * root)
+    }
+    return(ans)
+}
+
+FuncTauThres <- function(sigma.vec, m.vec, L, epsilon){
+    tau.thres.vec = L * (epsilon - sigma.vec) - m.vec / epsilon
+    return(tau.thres.vec)
+}
+
 FuncS <- function(tau, sigma.vec, m.vec, L, epsilon){
     ans = sum( FuncRho(tau, sigma.vec, m.vec, L, epsilon) ) - 1
     return(ans)
 }
 
 FuncDiffS <- function(tau, sigma.vec, m.vec, L, epsilon){
-    termb.vec = sigma.vec + tau / L
-    den.vec = sqrt( termb.vec * termb.vec + 4 * m.vec / L )
-    num.vec = FuncRho(tau, sigma.vec, m.vec, L, epsilon)
-    ans = sum( num.vec / den.vec ) / L
+    ans = sum(FuncDiffRhoVec(tau, sigma.vec, m.vec, L, epsilon))
     return(ans)
 }
 
