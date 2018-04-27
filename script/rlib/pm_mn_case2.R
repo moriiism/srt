@@ -109,10 +109,14 @@ SolveByProxMapMN <- function(rho.vec, Nph, D.vec, R.mat, beta, mu, L, tol, nstep
         
         kldiv = KLDiv(rho.pre.vec, rho.new.vec, R.mat)
 
-        rho.pre.supp.vec = GetSuppVec(rho.pre.vec, epsilon)
-        rho.new.supp.vec = GetSuppVec(rho.new.vec, epsilon)
-        logl.pre = FuncL.supp(rho.pre.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
-        logl     = FuncL.supp(rho.new.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
+        ## rho.pre.supp.vec = GetSuppVec(rho.pre.vec, epsilon)
+        ## rho.new.supp.vec = GetSuppVec(rho.new.vec, epsilon)
+        ## logl.pre = FuncL.supp(rho.pre.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
+        ## logl     = FuncL.supp(rho.new.vec, D.vec, R.mat, beta, mu, nrow, ncol, rho.new.supp.vec)
+
+        logl.pre = FuncL(rho.pre.vec, D.vec, R.mat, beta, mu, nrow, ncol)
+        logl     = FuncL(rho.new.vec, D.vec, R.mat, beta, mu, nrow, ncol)
+        
         delta.logl = logl - logl.pre
         logl.inc   = logl - logl.init
         time = Sys.time()
@@ -156,7 +160,8 @@ FindIk <- function(rho.vec, D.vec, R.mat, beta, mu, L, eta, nrow, ncol, epsilon)
         pLy = ans.proxmap[[1]]
         ans.proxmap.flag.good = ans.proxmap[[2]]
         
-        qminusf = QMinusF.supp(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
+        ## qminusf = QMinusF.supp(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon)
+        qminusf = QMinusF(pLy, rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
         printf("FindIk: (ik, L, qminusf) = (%d, %e, %e)\n", ik, L, qminusf)
         if(qminusf >= 0 && ans.proxmap.flag.good == 1){
             break
@@ -170,7 +175,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
     npix = nrow * ncol
     sigma.vec = FuncSigma(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
 
-    printf("proxmap: sigma.vec.min = %e, sigma.vec.max = %e\n", min(sigma.vec), max(sigma.vec))
+    ## printf("proxmap: sigma.vec.min = %e, sigma.vec.max = %e\n", min(sigma.vec), max(sigma.vec))
     
     rho.new.vec = rho.vec
     nem = 1000
@@ -185,7 +190,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
         tau.thres.vec = FuncTauThres(sigma.vec, m.vec, L, epsilon)
         tau.thres.min = min(tau.thres.vec)
         tau.thres.max = max(tau.thres.vec)
-        printf("tau.thres.min = %e, tau.thres.max = %e\n", tau.thres.min, tau.thres.max)
+        ##        printf("tau.thres.min = %e, tau.thres.max = %e\n", tau.thres.min, tau.thres.max)
         
         nnewton = 100
         tol.newton = 1.0e-3
@@ -198,7 +203,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
         for(inewton in 1 : nnewton){
             tau = tau - FuncS(tau, sigma.vec, m.vec, L, epsilon) / FuncDiffS(tau, sigma.vec, m.vec, L, epsilon)
             if( abs(FuncS(tau, sigma.vec, m.vec, L, epsilon) ) < tol.newton){
-                printf("inewton = %d, tau = %e\n", inewton, tau)
+                ##printf("inewton = %d, tau = %e\n", inewton, tau)
                 break
             }
         }
@@ -228,7 +233,7 @@ ProxMap <- function(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol, epsilon){
 
         ## line search on: 1.e-8
         ## line search off : 1.e-10
-        if(kldiv < 1.e-8){
+        if(kldiv < 1.e-10){
             break
         }
     }
@@ -283,7 +288,7 @@ LineSearch <- function(x.vec, x.new.vec, D.vec, R.mat, sigma.vec, L, epsilon){
         fprintf(outfile, "%d  %e\n", istep, lem - lem.init)
 
         if(lem.pre < lem){
-            printf("factor(istep) = %e (%d)\n", factor, istep)
+            ## printf("factor(istep) = %e (%d)\n", factor, istep)
             if(istep != 1){
                 x.new.vec = x.pre.vec
             }
