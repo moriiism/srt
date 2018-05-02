@@ -7,25 +7,39 @@
 #include "mi_time.h"
 #include "mif_fits.h"
 
-void GetDetNpix(string respdir, int* npx_ptr, int* npy_ptr);
-void LoadModel(string respdir, double** mat_arr_ptr);
+void GetNdet(string respdir, int* const ndetx_ptr, int* const ndety_ptr);
+void LoadResp(string respdir, int nskyx, int nskyy,
+              double** const mat_arr_ptr,
+              int* const ndetx_ptr,
+              int* const ndety_ptr);
 void SolveByProxMapMN(const double* const rho_arr, int nph,
-                      const double* const data_arr, const double* const resp_mat_arr,
+                      const double* const data_arr,
+                      const double* const resp_mat_arr,
                       double beta, double mu, double lconst,
-                      double tol, int nstep,
+                      double tol, double tol_kldiv, int nstep,
                       string outdir, string outfile_head,
                       int ndet, int nskyx, int nskyy, double epsilon,
-                      double* const out_arr);
+                      int bitpix, double* const out_arr);
 int GetFindIk(const double* const rho_arr,
               const double* const data_arr,
               const double* const resp_mat_arr,
               double beta, double mu, double lconst, double eta,
+              double tol_kldiv,
               int ndet, int nskyx, int nskyy, double epsilon);
+
+double GetFindIkBisect(const double* const rho_arr,
+                       const double* const data_arr,
+                       const double* const resp_mat_arr,
+                       double beta, double mu, double lconst, double eta,
+                       double tol_kldiv,
+                       int ndet, int nskyx, int nskyy, double epsilon);
+
 void GetProxMap(const double* const rho_arr,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 double beta, double mu, double lconst,
                 int ndet, int nskyx, int nskyy, double epsilon,
+                double tol_kldiv,
                 double* const out_arr, int* flag_good_ptr);
 void GetLineSearch(const double* const xval_arr,
                    const double* const xval_new_arr,
