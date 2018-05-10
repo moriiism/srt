@@ -74,7 +74,7 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
                       const double* const data_arr,
                       const double* const resp_mat_arr,
                       double beta, double mu, double lconst,
-                      double tol, double tol_kldiv, int nstep,
+                      double tol, double tol_em, int nstep,
                       string outdir, string outfile_head,
                       int ndet, int nskyx, int nskyy, double epsilon,
                       int bitpix, double* const out_arr)
@@ -107,7 +107,7 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
         if(istep == 0){
             lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
                                      beta, mu, lconst, eta,
-                                     tol_kldiv,
+                                     tol_em,
                                      ndet, nskyx, nskyy, epsilon);
         } else {
             
@@ -116,7 +116,7 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
             GetProxMap(rho_new_arr, data_arr, resp_mat_arr,
                        beta, mu, lconst,
                        ndet, nskyx, nskyy, epsilon,
-                       tol_kldiv,
+                       tol_em,
                        pLy_arr, &flag_good);
             double qminusf = GetQMinusF(pLy_arr, rho_new_arr,
                                         beta, mu, lconst,
@@ -127,14 +127,14 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
             if(qminusf < 0){
                 lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
                                          beta, mu, lconst, eta,
-                                         tol_kldiv,
+                                         tol_em,
                                          ndet, nskyx, nskyy, epsilon);
             }
 
             lconst /= pow(eta, 1);            
             int ik = GetFindIk(rho_new_arr, data_arr, resp_mat_arr,
                                beta, mu, lconst, eta,
-                               tol_kldiv,
+                               tol_em,
                                ndet, nskyx, nskyy, epsilon);
             lconst = pow(eta, ik) * lconst;
         }
@@ -147,7 +147,7 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
         GetProxMap(rho_new_arr, data_arr, resp_mat_arr,
                    beta, mu, lconst,
                    ndet, nskyx, nskyy, epsilon,
-                   tol_kldiv,
+                   tol_em,
                    rho_pmout_arr, &flag_good);
 
         printf("SolveByProxMap: output of GetProxMap : flag_good = %d\n", flag_good);
@@ -185,11 +185,11 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
         }
         
         if( delta_logl > 0.0){
-            printf("bad\n");
+            printf("delta_logl (%e) > 0.0, then break.\n", delta_logl);
             break;
         }
         if(kldiv < tol){
-            printf("kldiv < tol\n");
+            printf("kldiv (%e) < tol (%e)\n", kldiv, tol);
             break;
         }
 
@@ -212,10 +212,10 @@ int GetFindIk(const double* const rho_arr,
               const double* const data_arr,
               const double* const resp_mat_arr,
               double beta, double mu, double lconst, double eta,
-              double tol_kldiv,
+              double tol_em,
               int ndet, int nskyx, int nskyy, double epsilon)
 {
-    int ik_max = 1000;
+    int ik_max = 100;
     double lconst_org = lconst;
     int nsky = nskyx * nskyy;
     int ik_new = 0;
@@ -226,7 +226,7 @@ int GetFindIk(const double* const rho_arr,
         GetProxMap(rho_arr, data_arr, resp_mat_arr,
                    beta, mu, lconst,
                    ndet, nskyx, nskyy, epsilon,
-                   tol_kldiv,
+                   tol_em,
                    pLy_arr, &flag_good);
         double qminusf = GetQMinusF(pLy_arr, rho_arr,
                                     beta, mu, lconst,
@@ -247,7 +247,7 @@ double GetFindIkBisect(const double* const rho_arr,
                        const double* const data_arr,
                        const double* const resp_mat_arr,
                        double beta, double mu, double lconst, double eta,
-                       double tol_kldiv,
+                       double tol_em,
                        int ndet, int nskyx, int nskyy, double epsilon)
 {
     int nsky = nskyx * nskyy;
@@ -255,8 +255,8 @@ double GetFindIkBisect(const double* const rho_arr,
     double log10_lconst_0 = -5;
     double log10_lconst_1 = +10;
     double log10_lconst = log10(lconst);
-    double lconst_good = log10_lconst;
-
+    double lconst_good = lconst;
+    
     int nstep = 20;
     for(int istep = 0; istep < nstep; istep ++){
         lconst = pow(10, log10_lconst);
@@ -265,37 +265,37 @@ double GetFindIkBisect(const double* const rho_arr,
         GetProxMap(rho_arr, data_arr, resp_mat_arr,
                    beta, mu, lconst,
                    ndet, nskyx, nskyy, epsilon,
-                   tol_kldiv,
+                   tol_em,
                    pLy_arr, &flag_good);
         double qminusf = GetQMinusF(pLy_arr, rho_arr,
                                     beta, mu, lconst,
                                     nskyx, nskyy);
         delete [] pLy_arr;
-        printf("FindIk: (L, log10_lconst_0 (lconst0), log10_lconst_1 (lconst1), qminusf, flag_good) "
-               " = (%e, %e(%e), %e(%e), %e, %d)\n",
-               lconst,
-               log10_lconst_0, pow(10, log10_lconst_0),
-               log10_lconst_1, pow(10, log10_lconst_1),
-               qminusf, flag_good);
+        //printf("FindIk: (L, log10_lconst_0 (lconst0), log10_lconst_1 (lconst1), qminusf, flag_good) "
+        //       " = (%e, %e(%e), %e(%e), %e, %d)\n",
+        //lconst,
+        //       log10_lconst_0, pow(10, log10_lconst_0),
+        //       log10_lconst_1, pow(10, log10_lconst_1),
+        //       qminusf, flag_good);
         
         if(qminusf > 1e-2){
             if(0 == flag_good){
-                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.05;
+                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.1;
             } else {
                 lconst_good = pow(10, log10_lconst);
                 log10_lconst_1 = log10_lconst;
                 log10_lconst -= (log10_lconst_1 - log10_lconst_0) * 0.5;
             }
-        } else if(qminusf < 0.0){
+        } else if(qminusf <= 0.0){
             if(0 == flag_good){
-                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.05;
+                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.1;
             } else {
                 log10_lconst_0 = log10_lconst;
                 log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.5;
             }
         } else {
             if(0 == flag_good){
-                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.05;
+                log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.1;
             } else {
                 lconst_good = pow(10, log10_lconst);
                 break;
@@ -314,7 +314,7 @@ void GetProxMap(const double* const rho_arr,
                 const double* const resp_mat_arr,
                 double beta, double mu, double lconst,
                 int ndet, int nskyx, int nskyy, double epsilon,
-                double tol_kldiv,
+                double tol_em,
                 double* const out_arr, int* flag_good_ptr)
 {
     // sigma.vec = FuncSigma(rho.vec, D.vec, R.mat, beta, mu, L, nrow, ncol)
@@ -328,6 +328,7 @@ void GetProxMap(const double* const rho_arr,
     int nem = 1000;
     int flag_good = 1;
     double tau_pre = 1.0e-10;
+    int flag_saturate = 0;
     for(int iem = 0; iem < nem; iem ++){
         double lem = GetFuncLem(out_arr, data_arr, resp_mat_arr, sigma_arr,
                                 ndet, nsky, lconst);
@@ -360,18 +361,24 @@ void GetProxMap(const double* const rho_arr,
         double* rho_tmp0_arr = new double[nsky];
         double* rho_tmp1_arr = new double[nsky];
         dcopy_(nsky, out_arr, 1, rho_tmp0_arr, 1);
-        GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, out_arr);
-        // GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, rho_tmp1_arr);
-        //GetLineSearch(rho_tmp0_arr, rho_tmp1_arr, data_arr, resp_mat_arr, sigma_arr,
-        //              ndet, nsky, lconst, epsilon, out_arr);
+        if(flag_saturate == 1){
+            GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, out_arr);
+        } else {
+            GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, rho_tmp1_arr);
+            GetLineSearch(rho_tmp0_arr, rho_tmp1_arr, data_arr, resp_mat_arr, sigma_arr,
+                          ndet, nsky, lconst, epsilon, out_arr, &flag_saturate);
+            if(flag_saturate == 1){
+                dcopy_(nsky, rho_tmp1_arr, 1, out_arr, 1);
+            }
+        }
 
         double lem_new = GetFuncLem(out_arr, data_arr, resp_mat_arr, sigma_arr,
                                     ndet, nsky, lconst);
         double diff_lem = lem_new - lem;
         double kldiv = GetKLDiv(rho_tmp0_arr, out_arr, resp_mat_arr, ndet, nsky);
 
-        //printf("iem = %d, kldiv = %e, diff.lem = %e, lem = %e, lem.new = %e \n",
-        //       iem, kldiv, diff_lem, lem, lem_new);
+        //        printf("iem = %d, kldiv = %e, diff.lem = %e, lem = %e, lem.new = %e \n",
+        //               iem, kldiv, diff_lem, lem, lem_new);
 
         delete [] rho_tmp0_arr;
         delete [] rho_tmp1_arr;
@@ -379,7 +386,7 @@ void GetProxMap(const double* const rho_arr,
         delete [] tau_thres_arr;
         
         
-        if(diff_lem > 0){
+        if(diff_lem > 1e-4){
             flag_good = 0;
             break;
         }
@@ -388,9 +395,9 @@ void GetProxMap(const double* const rho_arr,
             break;
         }
 
-        if(kldiv < tol_kldiv){
-            printf("iem = %d, kldiv = %e (%e), diff.lem = %e, lem = %e, lem.new = %e \n",
-                   iem, kldiv, tol_kldiv, diff_lem, lem, lem_new);
+        if(kldiv < tol_em){
+            //printf("iem = %d, kldiv = %e (%e), diff.lem = %e, lem = %e, lem.new = %e \n",
+            //       iem, kldiv, tol_em, diff_lem, lem, lem_new);
             break;
         }
     }
@@ -407,7 +414,8 @@ void GetLineSearch(const double* const xval_arr,
                    const double* const sigma_arr,
                    int ndet, int nsky, double lconst,
                    double epsilon,
-                   double* const out_arr)
+                   double* const out_arr,
+                   int* flag_saturate_ptr)
 {
     double xval0     = xval_arr[0];
     double xval0_new = xval_new_arr[0];
@@ -436,7 +444,8 @@ void GetLineSearch(const double* const xval_arr,
     FILE* fp_out = fopen(outfile, "w");
     fprintf(fp_out, "skip sing\n");
     fprintf(fp_out, "read\n");
-    
+
+    int flag_saturate = 0;
     double eta = 3.0;
     for(int istep = 1; istep < nstep; istep ++){
         double factor = pow(eta, istep);
@@ -469,10 +478,11 @@ void GetLineSearch(const double* const xval_arr,
         GetMinMax(xval_this_arr, nsky, &xval_this_min, &xval_this_max);
         
         if(xval_this_min < epsilon){
-            printf("xval_this_min < epsilon: factor(istep) = %e (%d)\n", factor, istep);
+            // printf("xval_this_min < epsilon: factor(istep) = %e (%d)\n", factor, istep);
             if(istep != 1){
                 dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
             }
+            flag_saturate = 1;
             break;
         }
 
@@ -497,7 +507,8 @@ void GetLineSearch(const double* const xval_arr,
     delete [] theta_new_arr;
     delete [] xval_pre_arr;
     fclose(fp_out);
-    
+
+    *flag_saturate_ptr = flag_saturate;
 }
 
 
@@ -741,7 +752,6 @@ double GetQMinusF(const double* const rho_new_arr,
     double term4 = lconst *
         ddot_(nsky, const_cast<double*>(diff_rho_arr), 1, const_cast<double*>(diff_rho_arr), 1) / 2.0;
     double ans = term1 + term2 + term3 + term4;
-
     delete [] diff_rho_arr;
     delete [] diff_f_arr;
     return(ans);

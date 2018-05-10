@@ -56,19 +56,33 @@ int main(int argc, char* argv[])
     printf("N photon = %d\n", nph);
     
     // sky image
-
     double* rho_arr = new double[nsky];
     double* rho_new_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
         rho_arr[isky] = 1.0 / nsky;
         rho_new_arr[isky] = 1.0 / nsky;
     }
+    if("none" != argval->GetSkyfile()){
+        // load
+        double* rho_ref_arr = new double[nsky];
+        MifImgInfo* img_info_sky = new MifImgInfo;
+        img_info_sky->InitSetImg(1, 1, nskyx, nskyy);
+        int bitpix_sky = 0;
+        MifFits::InFitsImageD(argval->GetSkyfile(), img_info_sky,
+                              &bitpix_sky, &rho_ref_arr);
+        for(int isky = 0; isky < nsky; isky ++){
+            // rho_arr[isky] = (rho_arr[isky] + rho_ref_arr[isky] / nph ) / 2.0;
+            rho_arr[isky] = rho_ref_arr[isky] / nph;
+            rho_new_arr[isky] = rho_arr[isky];
+        }
+        delete [] rho_ref_arr;
+        delete img_info_sky;
+    }
 
-    double tol_kldiv = 1.0e-10;
     SolveByProxMapMN(rho_arr, nph,
                      data_arr, resp_mat_arr,
                      argval->GetBeta(), argval->GetMu(), argval->GetLconst(),
-                     argval->GetTol(), tol_kldiv, argval->GetNstep(),
+                     argval->GetTol(), argval->GetTolEm(), argval->GetNstep(),
                      argval->GetOutdir(), argval->GetOutfileHead(),
                      ndet, nskyx, nskyy, argval->GetEpsilon(),
                      bitpix,
