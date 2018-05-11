@@ -13,7 +13,7 @@ LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LI
 	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = pmmn_case2_test_openblas  pmmn_case2
+TARGET = pmmn_case2_openblas  pmmn_case2
 
 all: $(TARGET) 
 

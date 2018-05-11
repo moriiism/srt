@@ -114,6 +114,8 @@ $mipllib::sevar{'progname'} = "pmmn_case2.pl";
 		    $exeprog = sprintf("pmmn_case2_openblas");
 		}
 
+		my $flag_line_search = 1;
+
 		my $outfile_head = "rec";
 		my $tol    = 1.0e-10;
 		my $tol_em = 1.0e-10;
@@ -124,13 +126,13 @@ $mipllib::sevar{'progname'} = "pmmn_case2.pl";
 			       "%s  %s  %s  " . 
 			       "%e  %e  " .
 			       "%s  %s  " .
-			       "%e  %e  %d  %e  %e " .
+			       "%e  %e  %d  %d  %e  %e " .
 			       "> %s 2>&1" ,
 			       $exeprog,
 			       $respdir, $datafile, $skyfile,
 			       $mu_arr[$imu], $beta_arr[$ibeta], 
 			       $outdir_this2, $outfile_head,
-			       $tol, $tol_em, $nstep, $lconst, $epsilon,
+			       $tol, $tol_em, $nstep, $flag_line_search, $lconst, $epsilon,
 			       $logfile);
 		printf("cmd = %s\n", $cmd);
 		system($cmd);

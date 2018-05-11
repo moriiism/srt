@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     SolveByProxMapMN(rho_arr, nph,
                      data_arr, resp_mat_arr,
                      argval->GetBeta(), argval->GetMu(), argval->GetLconst(),
-                     argval->GetTol(), argval->GetTolEm(), argval->GetNstep(),
+                     argval->GetTol(), argval->GetTolEm(), argval->GetNstep(), argval->GetFlagLineSearch(),
                      argval->GetOutdir(), argval->GetOutfileHead(),
                      ndet, nskyx, nskyy, argval->GetEpsilon(),
                      bitpix,
