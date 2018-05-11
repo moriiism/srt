@@ -371,6 +371,11 @@ void GetProxMap(const double* const rho_arr,
                               ndet, nsky, lconst, epsilon, out_arr, &flag_saturate);
                 if(flag_saturate == 1){
                     dcopy_(nsky, rho_tmp1_arr, 1, out_arr, 1);
+                } else {
+                    double kldiv = GetKLDiv(rho_tmp0_arr, out_arr, resp_mat_arr, ndet, nsky);
+                    if(kldiv < 1.0e-20){
+                        dcopy_(nsky, rho_tmp1_arr, 1, out_arr, 1);
+                    }
                 }
             }
         } else {

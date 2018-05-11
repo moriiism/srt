@@ -23,9 +23,6 @@ pmmn_case2: pmmn_case2.o  arg_pmmn_case2.o  sub_pmmn_case2.o
 pmmn_case2_openblas: pmmn_case2.o  arg_pmmn_case2.o  sub_pmmn_case2.o
 	$(CXXN_OPENBLAS) pmmn_case2.o arg_pmmn_case2.o sub_pmmn_case2.o ${LDLIBS_OPENBLAS} -o $@
 
-pmmn_case2_test_openblas: pmmn_case2.o  arg_pmmn_case2.o  sub_pmmn_case2.o
-	$(CXXN_OPENBLAS) pmmn_case2.o arg_pmmn_case2.o sub_pmmn_case2.o ${LDLIBS_OPENBLAS} -o $@
-
 
 .SUFFIXES:
 .SUFFIXES: .o .c .f .F .cc

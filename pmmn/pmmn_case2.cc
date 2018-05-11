@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
         delete img_info_sky;
     }
 
+    bitpix = -32;
     SolveByProxMapMN(rho_arr, nph,
                      data_arr, resp_mat_arr,
                      argval->GetBeta(), argval->GetMu(), argval->GetLconst(),
