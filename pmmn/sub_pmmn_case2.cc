@@ -87,14 +87,17 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
             outdir.c_str(), outfile_head.c_str());
     FILE* fp_moni = fopen(outfile_moni, "w");
     FILE* fp_timelog = fopen(outfile_timelog, "w");
-    fprintf(fp_moni, "# istep, kldiv, logl, logl.inc, delta.logl, tdiff, lconst\n");
+    setbuf(fp_moni, NULL);
+    setbuf(fp_timelog, NULL);
+    
+    fprintf(fp_moni, "# istep, kldiv, logl, logl.inc, delta.logl, tdiff, lconst, diff_l_var\n");
     fprintf(fp_timelog, "# tdiff logl.inc\n");
     
     double time_st = MiTime::GetTimeSec();
     double logl_init = GetFuncL(rho_arr, data_arr, resp_mat_arr, beta, mu,
                                 ndet, nskyx, nskyy);
     double logl_pre = logl_init;
-    fprintf(fp_moni, "0  0  %.10e  0.0  0.0  0.0  0.0\n", logl_init);
+    fprintf(fp_moni, "0  0  %.10e  0.0  0.0  0.0  0.0  0.0\n", logl_init);
     
     double eta = 1.2;
     int nsky = nskyx * nskyy;
@@ -105,10 +108,18 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
     for(int istep = 0; istep < nstep; istep ++){
 
         if(istep == 0){
-            lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
-                                     beta, mu, lconst, eta,
-                                     tol_em, flag_line_search,
-                                     ndet, nskyx, nskyy, epsilon);
+            int nfind = 3;
+            for(int ifind = 0; ifind < nfind; ifind ++){
+                int flag_find = 0;
+                lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
+                                         beta, mu, lconst, eta,
+                                         tol_em, flag_line_search,
+                                         ndet, nskyx, nskyy, epsilon,
+                                         &flag_find);
+                if(1 == flag_find){
+                    break;
+                }
+            }
         } else {
             
             double* pLy_arr = new double[nsky];
@@ -125,12 +136,20 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
             printf("(L, qminusf, flag_good) = (%e, %e, %d)\n",
                    lconst, qminusf, flag_good);
             if(qminusf < 0){
-                lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
-                                         beta, mu, lconst, eta,
-                                         tol_em, flag_line_search,
-                                         ndet, nskyx, nskyy, epsilon);
+                int nfind = 3;
+                for(int ifind = 0; ifind < nfind; ifind ++){
+                    int flag_find = 0;
+                    lconst = GetFindIkBisect(rho_new_arr, data_arr, resp_mat_arr,
+                                             beta, mu, lconst, eta,
+                                             tol_em, flag_line_search,
+                                             ndet, nskyx, nskyy, epsilon,
+                                             &flag_find);
+                    if(1 == flag_find){
+                        break;
+                    }
+                }
             }
-
+            
             lconst /= pow(eta, 1);            
             int ik = GetFindIk(rho_new_arr, data_arr, resp_mat_arr,
                                beta, mu, lconst, eta,
@@ -154,6 +173,42 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
         
         dcopy_(nsky, const_cast<double*>(rho_pmout_arr), 1, rho_new_arr, 1);
         delete [] rho_pmout_arr;
+
+
+        //
+        // image of differential
+        //
+        double* diff_l_arr = new double[nsky];
+        GetDiffL(rho_new_arr, data_arr, resp_mat_arr,
+                 beta, mu, ndet, nskyx, nskyy, diff_l_arr);
+        {
+            int naxis = 2;
+            long* naxes = new long[naxis];
+            naxes[0] = nskyx;
+            naxes[1] = nskyy;
+            char tag[kLineSize];
+            sprintf(tag, "%4.4d", istep);
+            MifFits::OutFitsImageD(outdir, outfile_head + "_diff",
+                                   tag, 2,
+                                   bitpix,
+                                   naxes, diff_l_arr);
+            delete [] naxes;
+        }
+        // delete for zero
+        vector<double> diff_l_vec;
+        for(int isky = 0; isky < nsky; isky++){
+            if(rho_new_arr[isky] > epsilon){
+                diff_l_vec.push_back(diff_l_arr[isky]);
+            }
+        }
+        delete [] diff_l_arr;
+        double diff_l_stddev = MirMath::GetStddev(diff_l_vec);
+        double diff_l_mean   = MirMath::GetAMean(diff_l_vec);
+        double diff_l_var = diff_l_stddev / diff_l_mean;
+        printf("diff_l_variability: stddev /mean = %e, (stddev, mean) = (%e, %e) \n",
+               diff_l_var, diff_l_stddev, diff_l_mean);
+
+    
         
         double kldiv = GetKLDiv(rho_pre_arr, rho_new_arr, resp_mat_arr, ndet, nsky);
         logl_pre    = GetFuncL(rho_pre_arr, data_arr, resp_mat_arr, beta, mu, ndet, nskyx, nskyy);
@@ -164,12 +219,14 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
         double time = MiTime::GetTimeSec();
         double tdiff = time - time_st;
         printf("%d  kldiv = %e  logl = %.10e  logl - logl_init = %e "
-               "delta_logl = %e  tdiff = %e  lconst = %e\n",
-               istep, kldiv, logl, logl_inc, delta_logl, tdiff, lconst);
-        fprintf(fp_moni, "%d  %e  %.10e  %e  %e  %e  %e\n",
-                istep, kldiv, logl, logl_inc, delta_logl, tdiff, lconst);
+               "delta_logl = %e  tdiff = %e  lconst = %e, diff_l_var = %e\n",
+               istep, kldiv, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var);
+        fprintf(fp_moni, "%d  %e  %.10e  %e  %e  %e  %e  %e\n",
+                istep, kldiv, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var);
         fprintf(fp_timelog, "%e  %e\n", tdiff, logl_inc);
 
+
+        
         if(istep % 10 == 0){
             int naxis = 2;
             long* naxes = new long[naxis];
@@ -184,15 +241,36 @@ void SolveByProxMapMN(const double* const rho_arr, int nph,
             delete [] naxes;
         }
         
-        if( delta_logl > 0.0){
+        if( delta_logl > 1.0e-1){
             printf("delta_logl (%e) > 0.0, then break.\n", delta_logl);
             break;
         }
         if(kldiv < tol){
-            printf("kldiv (%e) < tol (%e)\n", kldiv, tol);
-            dcopy_(nsky, rho_new_arr, 1, out_arr, 1);
-            break;
+            if(fabs(diff_l_var) > 1.0e-2){
+                double* rho_new2_arr = new double[nsky];
+                MinToDiffL(rho_new_arr, data_arr, resp_mat_arr,
+                           beta, mu, ndet, nskyx, nskyy, epsilon, rho_new2_arr);
+                dcopy_(nsky, rho_new2_arr, 1, rho_new_arr, 1);
+                
+                lconst = 1.0;
+                tol_em /= 2.0;
+                tol    /= 2.0;
+                if(tol_em < 1e-15){
+                    tol_em = 1e-15;
+                    tol    = 1e-15;
+                }
+                printf("L search again. tol_em = %e\n", tol_em);
+            } else {
+                printf("kldiv (%e) < tol (%e)\n", kldiv, tol);
+                dcopy_(nsky, rho_new_arr, 1, out_arr, 1);
+                break;
+            }
         }
+
+//        if(lconst > 1.0e+10){
+//            lconst = 1.0;
+//            printf("L > 1.0e+10, then L search again.\n");
+//        }
 
         // for next
         dcopy_(nsky, rho_new_arr, 1, rho_pre_arr, 1);
@@ -248,14 +326,57 @@ double GetFindIkBisect(const double* const rho_arr,
                        const double* const resp_mat_arr,
                        double beta, double mu, double lconst, double eta,
                        double tol_em, int flag_line_search,
-                       int ndet, int nskyx, int nskyy, double epsilon)
+                       int ndet, int nskyx, int nskyy, double epsilon,
+                       int* const flag_find_ptr)
 {
     int nsky = nskyx * nskyy;
 
-    double log10_lconst_0 = -5;
-    double log10_lconst_1 = +10;
+    double log10_lconst_0 = 0.0;
     double log10_lconst = log10(lconst);
-    double lconst_good = lconst;
+    double log10_lconst_1 = log10_lconst + 5;
+    double lconst_good = pow(10, log10_lconst_1);
+    int flag_find = 0;
+
+    // check small side
+    {
+        double lconst_0 = pow(10, log10_lconst_0);
+        double* pLy_arr = new double[nsky];
+        int flag_good = 0;
+        GetProxMap(rho_arr, data_arr, resp_mat_arr,
+                   beta, mu, lconst_0,
+                   ndet, nskyx, nskyy, epsilon,
+                   tol_em, flag_line_search,
+                   pLy_arr, &flag_good);
+        double qminusf = GetQMinusF(pLy_arr, rho_arr,
+                                    beta, mu, lconst,
+                                    nskyx, nskyy);
+        delete [] pLy_arr;
+        if(qminusf > 0.0){
+            flag_find = 1;
+            *flag_find_ptr = flag_find;
+            return(lconst_0);
+        }
+    }
+    
+    {
+        double lconst_1 = pow(10, log10_lconst_1);
+        double* pLy_arr = new double[nsky];
+        int flag_good = 0;
+        GetProxMap(rho_arr, data_arr, resp_mat_arr,
+                   beta, mu, lconst_1,
+                   ndet, nskyx, nskyy, epsilon,
+                   tol_em, flag_line_search,
+                   pLy_arr, &flag_good);
+        double qminusf = GetQMinusF(pLy_arr, rho_arr,
+                                    beta, mu, lconst,
+                                    nskyx, nskyy);
+        delete [] pLy_arr;
+        if(qminusf < 0.0){
+            flag_find = 0;
+            *flag_find_ptr = flag_find;
+            return(lconst_1);
+        }
+    }
     
     int nstep = 20;
     for(int istep = 0; istep < nstep; istep ++){
@@ -271,14 +392,14 @@ double GetFindIkBisect(const double* const rho_arr,
                                     beta, mu, lconst,
                                     nskyx, nskyy);
         delete [] pLy_arr;
-        //printf("FindIk: (L, log10_lconst_0 (lconst0), log10_lconst_1 (lconst1), qminusf, flag_good) "
-        //       " = (%e, %e(%e), %e(%e), %e, %d)\n",
-        //lconst,
-        //       log10_lconst_0, pow(10, log10_lconst_0),
-        //       log10_lconst_1, pow(10, log10_lconst_1),
-        //       qminusf, flag_good);
+        printf("FindIk: (L, log10_lconst_0 (lconst0), log10_lconst_1 (lconst1), qminusf, flag_good) "
+               " = (%e, %e(%e), %e(%e), %e, %d)\n",
+               lconst,
+               log10_lconst_0, pow(10, log10_lconst_0),
+               log10_lconst_1, pow(10, log10_lconst_1),
+               qminusf, flag_good);
         
-        if(qminusf > 1e-2){
+        if(qminusf > 1.0){
             if(0 == flag_good){
                 log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.1;
             } else {
@@ -298,10 +419,13 @@ double GetFindIkBisect(const double* const rho_arr,
                 log10_lconst += (log10_lconst_1 - log10_lconst_0) * 0.1;
             } else {
                 lconst_good = pow(10, log10_lconst);
+                flag_find = 1;
                 break;
             }
         }
     }
+
+    *flag_find_ptr = flag_find;
     return(lconst_good);
 }
 
@@ -452,6 +576,7 @@ void GetLineSearch(const double* const xval_arr,
     char outfile[kLineSize];
     sprintf(outfile, "temp.dat"); 
     FILE* fp_out = fopen(outfile, "w");
+    setbuf(fp_out, NULL);
     fprintf(fp_out, "skip sing\n");
     fprintf(fp_out, "read\n");
 
@@ -520,6 +645,77 @@ void GetLineSearch(const double* const xval_arr,
 
     *flag_saturate_ptr = flag_saturate;
 }
+
+
+void MinToDiffL(const double* const rho_arr,
+                const double* const data_arr,
+                const double* const resp_mat_arr,
+                double beta, double mu,
+                int ndet, int nskyx, int nskyy,
+                double epsilon,
+                double* const out_arr)
+{
+    int nsky = nskyx * nskyy;    
+    double* diff_l_arr = new double[nsky];
+    GetDiffL(rho_arr, data_arr, resp_mat_arr,
+             beta, mu, ndet, nskyx, nskyy, diff_l_arr);
+    double logl = GetFuncL(rho_arr, data_arr, resp_mat_arr,
+                           beta, mu, ndet, nskyx, nskyy);
+    double logl_min = logl;
+    double eta = 1.0e-10;
+    int nstep = 10;
+
+    double* rho_new_arr = new double[nsky];
+    for(int isky = 0; isky < nsky; isky++){
+        out_arr[isky] = rho_arr[isky];
+    }
+
+    
+    for(int istep = 0; istep < nstep; istep++){
+        double sum_active = 0.0;
+        for(int isky = 0; isky < nsky; isky++){
+            if(rho_arr[isky] > epsilon){
+                sum_active += rho_arr[isky];
+            }
+        }
+        double sum_active_new = 0.0;
+        for(int isky = 0; isky < nsky; isky++){
+            double factor = istep * eta;
+            if(rho_arr[isky] > epsilon){
+                rho_new_arr[isky] = rho_arr[isky] - factor * diff_l_arr[isky];
+                sum_active_new += rho_new_arr[isky];
+            } else {
+                rho_new_arr[isky] = epsilon;
+            }
+        }
+        for(int isky = 0; isky < nsky; isky++){
+            if(rho_arr[isky] > epsilon){
+                rho_new_arr[isky] *= (sum_active / sum_active_new);
+            }
+        }
+        int nzero = GetNZeroArr(rho_new_arr, nsky, epsilon);
+        double logl_new = GetFuncL(rho_new_arr, data_arr, resp_mat_arr,
+                                   beta, mu, ndet, nskyx, nskyy);
+        printf("MinToDiffL: nzero: %d, logl_new, logl, logl_new - logl = (%e, %e, %e)\n",
+               nzero, logl_new, logl, logl_new - logl);
+
+        if(logl_new < logl_min){
+            logl_min = logl_new;
+            for(int isky = 0; isky < nsky; isky++){
+                out_arr[isky] = rho_new_arr[isky];
+            }
+        }
+    }
+    delete [] diff_l_arr;
+    delete [] rho_new_arr;
+}
+
+
+
+
+
+
+
 
 
 double GetKLDiv(const double* const rho_arr,
@@ -739,6 +935,29 @@ double GetFuncLSupp(const double* const rho_arr,
     return(ans);
 }
 
+void GetDiffL(const double* const rho_arr,
+              const double* const data_arr,
+              const double* const resp_mat_arr,
+              double beta, double mu,
+              int ndet, int nskyx, int nskyy,
+              double* const out_arr)
+{
+    int nsky = nskyx * nskyy;
+    double* diff_f_arr = new double[nsky];
+    double* diff_g_arr = new double[nsky];
+    GetDiffF(rho_arr, beta, mu,
+             nskyx, nskyy,
+             diff_f_arr);
+    GetDiffG(rho_arr, data_arr, resp_mat_arr,
+             ndet, nsky, diff_g_arr);
+    for(int isky = 0; isky < nsky; isky++){
+        out_arr[isky] = diff_f_arr[isky] + diff_g_arr[isky];
+    }
+    delete [] diff_f_arr;
+    delete [] diff_g_arr;
+}
+
+
 double GetQMinusF(const double* const rho_new_arr,
                   const double* const rho_arr,
                   double beta, double mu, double lconst,
@@ -898,6 +1117,40 @@ double GetFuncG(const double* const rho_arr,
     delete [] transa;
     return(ans);
 }
+
+
+void GetDiffG(const double* const rho_arr,
+              const double* const data_arr,
+              const double* const resp_mat_arr,
+              int ndet, int nsky,
+              double* const out_arr)
+{
+    //    num.vec = R.mat %*% (rho.vec)
+    double* det_arr = new double[ndet];
+    char* transa = new char [1];
+    strcpy(transa, "N");
+    dgemv_(transa, ndet, nsky, 1.0, const_cast<double*>(resp_mat_arr), ndet,
+           const_cast<double*>(rho_arr), 1,
+           0.0, det_arr, 1);
+    
+    // ans.vec = t(R.mat) %*% (D.vec / num.vec)
+    double* div_arr = new double[ndet];
+    for(int idet = 0; idet < ndet; idet++){
+        div_arr[idet] = data_arr[idet] / det_arr[idet];
+    }
+    strcpy(transa, "T");    
+    dgemv_(transa, ndet, nsky, 1.0, const_cast<double*>(resp_mat_arr), ndet,
+           const_cast<double*>(div_arr), 1,
+           0.0, out_arr, 1);
+    for(int isky = 0; isky < nsky; isky++){
+        out_arr[isky] = -1 * out_arr[isky];
+    }
+
+    delete [] det_arr;
+    delete [] transa;
+    delete [] div_arr;
+}
+
 
 
 void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,

@@ -6,6 +6,7 @@
 #include "mi_sort.h"
 #include "mi_time.h"
 #include "mif_fits.h"
+#include "mir_math.h"
 
 void GetNdet(string respdir, int* const ndetx_ptr, int* const ndety_ptr);
 void LoadResp(string respdir, int nskyx, int nskyy,
@@ -32,7 +33,8 @@ double GetFindIkBisect(const double* const rho_arr,
                        const double* const resp_mat_arr,
                        double beta, double mu, double lconst, double eta,
                        double tol_em, int flag_line_search,
-                       int ndet, int nskyx, int nskyy, double epsilon);
+                       int ndet, int nskyx, int nskyy, double epsilon,
+                       int* const flag_find_ptr);
 
 void GetProxMap(const double* const rho_arr,
                 const double* const data_arr,
@@ -50,6 +52,22 @@ void GetLineSearch(const double* const xval_arr,
                    double epsilon,
                    double* const out_arr,
                    int* flag_saturate_ptr);
+
+void MinToDiffL(const double* const rho_arr,
+                const double* const data_arr,
+                const double* const resp_mat_arr,
+                double beta, double mu,
+                int ndet, int nskyx, int nskyy,
+                double epsilon);
+
+void MinToDiffL(const double* const rho_arr,
+                const double* const data_arr,
+                const double* const resp_mat_arr,
+                double beta, double mu,
+                int ndet, int nskyx, int nskyy,
+                double epsilon,
+                double* const out_arr);
+
 double GetKLDiv(const double* const rho_arr,
                 const double* const rho_new_arr,
                 const double* const resp_mat_arr,
@@ -104,6 +122,12 @@ double GetFuncLSupp(const double* const rho_arr,
                     const double* const resp_mat_arr,
                     double beta, double mu,
                     int ndet, int nskyx, int nskyy);
+void GetDiffL(const double* const rho_arr,
+              const double* const data_arr,
+              const double* const resp_mat_arr,
+              double beta, double mu,
+              int ndet, int nskyx, int nskyy,
+              double* const out_arr);
 double GetQMinusF(const double* const rho_new_arr,
                   const double* const rho_arr,
                   double beta, double mu, double lconst,
@@ -139,6 +163,11 @@ double GetFuncG(const double* const rho_arr,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 int ndet, int nsky);
+void GetDiffG(const double* const rho_arr,
+              const double* const data_arr,
+              const double* const resp_mat_arr,
+              int ndet, int nsky,
+              double* const out_arr);
 double GetTermV(const double* const rho_arr, int nskyx, int nskyy);
 void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
                   double* const rho_diff_arr);

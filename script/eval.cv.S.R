@@ -59,7 +59,7 @@ for( imu in 1 : nmu){
     for( ibeta in 1 : nbeta){
         mu   = as.numeric(df.mulist[imu, 1])
         beta = as.numeric(df.betalist[ibeta, 1])
-        cvfile.list = sprintf("setup/cvfile_mu%.1e_beta%.2e.list", mu, beta)
+        cvfile.list = sprintf("setup/%s/cvfile_mu%.1e_beta%.2e.list", outfile.head, mu, beta)
         ans = EvalSqErr(cvfile.list, nfold, R.mat)
         ave = as.numeric(ans[1])
         sigma = as.numeric(ans[2])
@@ -98,7 +98,7 @@ for( imu in 1 : nmu){
     for( ibeta in 1 : nbeta){
         mu   = as.numeric(df.mulist[imu, 1])
         beta = as.numeric(df.betalist[ibeta, 1])
-        cvfile.list = sprintf("setup/cvfile_mu%.1e_beta%.2e.list", mu, beta)
+        cvfile.list = sprintf("setup/%s/cvfile_mu%.1e_beta%.2e.list", outfile.head, mu, beta)
         ans = EvalSqErr(cvfile.list, nfold, R.mat)
         ave = as.numeric(ans[1])
         sigma = as.numeric(ans[2])
