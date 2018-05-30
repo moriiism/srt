@@ -106,30 +106,44 @@ void SolveByEM(const double* const rho_arr, int nph,
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_new_arr, 1);
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_pre_arr, 1);
 
+    int* is_rho_again_arr = new int[nsky];
+
     double* pLy_arr = new double[nsky];
     int nem = 1000;
     for(int iem = 0; iem < nem; iem ++){
         double* mval_arr = new double[nsky];
         GetFuncM(rho_new_arr, data_arr, resp_mat_arr, ndet, nsky, mval_arr);
 
+        double mval_min = 0.0;
+        double mval_max = 0.0;
+        GetMinMax(rho_new_arr, nsky, &mval_min, &mval_max);
+        printf("mval_min, mval_max = %e, %e\n", mval_min, mval_max);
+
         double lconst = 1.0e-5;
         int npm = 1000;
         for(int ipm = 0; ipm < npm; ipm ++){
             lconst /= 1.2;
             lconst = GetFindLconst(rho_new_arr, mval_arr, beta, mu,
-                                   nskyx, nskyy, epsilon, lconst, pLy_arr);
+                                   nskyx, nskyy, lconst, pLy_arr);
 
             double logl_sub_pre = GetFuncLsub(rho_new_arr, mval_arr, beta, mu, nskyx, nskyy);
             dcopy_(nsky, const_cast<double*>(pLy_arr), 1, rho_new_arr, 1);
             double logl_sub = GetFuncLsub(rho_new_arr, mval_arr, beta, mu, nskyx, nskyy);
 
             double diff_logl_sub = logl_sub - logl_sub_pre;
-            // printf("diff_logl_sub = %e\n", logl_sub - logl_sub_pre);
+            printf("diff_logl_sub = %e\n", logl_sub - logl_sub_pre);
             if(fabs(diff_logl_sub) < 3.0e-1){
                 break;
             }
         }
 
+        IsRhoAgainPlus(rho_new_arr, data_arr, resp_mat_arr, ndet, nsky, is_rho_again_arr);
+        for(int isky = 0; isky < nsky; isky++){
+            if(rho_new_arr[isky] < epsilon && 1 == is_rho_again_arr[isky]){
+                rho_new_arr[isky] = epsilon;
+            }
+        }
+        
         //
         // image of differential
         //
@@ -216,31 +230,36 @@ void SolveByEM(const double* const rho_arr, int nph,
 
 double GetTau(const double* const mval_arr,
               const double* const sigma_arr, int nsky,
-              double lconst, double epsilon,
+              double lconst, double beta,
               double tau_init)
 {
     double* tau_thres_arr = new double[nsky];
-    GetFuncTauThres(sigma_arr, mval_arr, nsky, lconst, epsilon, tau_thres_arr);
+    GetFuncTauThres(sigma_arr, nsky, lconst, tau_thres_arr);
     double tau_thres_min = 0.0;
     double tau_thres_max = 0.0;
     GetMinMax(tau_thres_arr, nsky, &tau_thres_min, &tau_thres_max);
 
+    printf("tau_thres_min, tau_thres_max = %e, %e\n", tau_thres_min, tau_thres_max);
+
     double tau = 0.0;    
-    if(tau_init > tau_thres_min){
+    if(tau_init < tau_thres_max){
         tau = tau_init;
     } else {
-        tau = tau_thres_max;
+        tau = tau_thres_min - 1;
     }
     
-    int nnewton = 100;
-    // double tol_newton = 1.0e-3;
-    double tol_newton = 1.0e-5;
+    int nnewton = 10;
+    double tol_newton = 1.0e-3;
+    // double tol_newton = 1.0e-5;
     for(int inewton = 0; inewton < nnewton; inewton ++){
-        tau = tau - GetFuncS(tau, sigma_arr, mval_arr, nsky, lconst, epsilon)
-            / GetFuncDiffS(tau, sigma_arr, mval_arr, tau_thres_arr, nsky, lconst, epsilon);
-        if( fabs(GetFuncS(tau, sigma_arr, mval_arr, nsky, lconst, epsilon) ) < tol_newton){
+        tau = tau - GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst)
+            / GetFuncDiffS(tau, sigma_arr, mval_arr, tau_thres_arr, nsky, beta, lconst);
+        if( fabs(GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst) ) < tol_newton){
+            printf("inewton = %d\n", inewton);
             break;
         }
+        printf("S = %e\n", GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst));
+        
     }
     return(tau);
 }
@@ -250,7 +269,7 @@ double GetTau(const double* const mval_arr,
 double GetFindLconst(const double* const rho_arr,
                      const double* const mval_arr,
                      double beta, double mu,
-                     int nskyx, int nskyy, double epsilon,
+                     int nskyx, int nskyy,
                      double lconst_init,
                      double* const pLy_arr)
 {
@@ -263,14 +282,21 @@ double GetFindLconst(const double* const rho_arr,
         lconst *= eta;
 
         double* sigma_arr = new double[nsky];
-        GetFuncSigma(rho_arr, beta, mu, lconst, nskyx, nskyy, sigma_arr);
-        double tau = GetTau(mval_arr, sigma_arr, nsky, lconst, epsilon, tau_pre);
-        GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, pLy_arr);
+        GetFuncSigma(rho_arr, mu, lconst, nskyx, nskyy, sigma_arr);
+
+        double sigma_min = 0.0;
+        double sigma_max = 0.0;
+        GetMinMax(rho_arr, nsky, &sigma_min, &sigma_max);
+        printf("sigma_min, sigma_max = %e, %e\n", sigma_min, sigma_max);
+
+        
+        double tau = GetTau(mval_arr, sigma_arr, nsky, lconst, beta, tau_pre);
+        GetFuncRho(tau, sigma_arr, mval_arr, nsky, beta, lconst, pLy_arr);
         double qminusf = GetQMinusF(pLy_arr, rho_arr,
-                                    beta, mu, lconst,
+                                    mu, lconst,
                                     nskyx, nskyy);
-        //printf("GetFindLconst: ik: (L, qminusf) = %d (%e, %e)\n",
-        //       ik, lconst, qminusf);
+        printf("GetFindLconst: ik: (L, qminusf) = %d (%e, %e)\n",
+               ik, lconst, qminusf);
         if(qminusf >= 0.0){
             break;
         }
@@ -406,20 +432,17 @@ double GetFuncLsub(const double* const rho_arr,
 
 
 void GetFuncSigma(const double* const rho_arr,
-                  double beta, double mu,
+                  double mu,
                   double lconst, int nskyx, int nskyy,
                   double* out_arr)
 {
     int nsky = nskyx * nskyy;
-    double* rho_diff_sparse_arr = new double[nsky];
-    GetDiffSparse(rho_arr, nsky, beta, rho_diff_sparse_arr);
     double* rho_diff_v_arr = new double[nsky];
     GetDiffTermV(rho_arr, nskyx, nskyy, rho_diff_v_arr);
     for(int isky = 0; isky < nsky; isky ++){
         out_arr[isky] = rho_arr[isky] 
-            - (rho_diff_sparse_arr[isky] + mu * rho_diff_v_arr[isky]) / lconst;
+            - mu * rho_diff_v_arr[isky] / lconst;
     }
-    delete [] rho_diff_sparse_arr;
     delete [] rho_diff_v_arr;
 }
 
@@ -607,15 +630,24 @@ void GetFuncM(const double* const rho_arr,
 double GetFuncS(double tau,
                 const double* const sigma_arr,
                 const double* const mval_arr,
-                int nsky, double lconst, double epsilon)
+                int nsky, double beta, double lconst)
 {
     double* rho_arr = new double[nsky];
-    GetFuncRho(tau, sigma_arr, mval_arr, nsky, lconst, epsilon, rho_arr);
+    GetFuncRho(tau, sigma_arr, mval_arr, nsky, beta, lconst, rho_arr);
+
+    double rho_min = 0.0;
+    double rho_max = 0.0;
+    GetMinMax(rho_arr, nsky, &rho_min, &rho_max);
+    printf("GetFuncS: rho_min, rho_max = %e, %e\n", rho_min, rho_max);
+    
     double sum = 0.0;
     for(int isky = 0; isky < nsky; isky ++){
         sum += rho_arr[isky];
     }
     double ans = sum - 1.0;
+
+    printf("GetFuncS: S = %e\n", ans);
+    
     delete [] rho_arr;
     return(ans);
 }
@@ -623,14 +655,18 @@ double GetFuncS(double tau,
 void GetFuncRho(double tau,
                 const double* const sigma_arr,
                 const double* const mval_arr,
-                int nsky, double lconst, double epsilon,
+                int nsky, double beta, double lconst,
                 double* const out_arr)
 {
     for(int isky = 0; isky < nsky; isky ++){
-        double termb = sigma_arr[isky] + tau / lconst;
-        out_arr[isky] = ( termb + sqrt( termb * termb + 4.0 * mval_arr[isky] / lconst ) ) / 2.0;
-        if(out_arr[isky] <= epsilon){
-            out_arr[isky] = epsilon;
+        if( mval_arr[isky] > 1.0 - beta ){
+            double termb = sigma_arr[isky] - tau / lconst;
+            out_arr[isky] = ( termb + sqrt( termb * termb + 4.0 * (mval_arr[isky] - (1.0 - beta)) / lconst ) ) / 2.0;
+            if(out_arr[isky] <= 0.0){
+                out_arr[isky] = 0.0;
+            }
+        } else {
+            out_arr[isky] = 0.0;
         }
     }
 }
@@ -639,12 +675,18 @@ double GetFuncDiffS(double tau,
                     const double* const sigma_arr,
                     const double* const mval_arr,
                     const double* const tau_thres_arr,
-                    int nsky, double lconst, double epsilon)
+                    int nsky, double beta, double lconst)
 {
     double* diff_rho_arr = new double[nsky];
     GetFuncDiffRho(tau, sigma_arr, mval_arr, tau_thres_arr,
-                   nsky, lconst, epsilon,
+                   nsky, beta, lconst, 
                    diff_rho_arr);
+
+    double diff_rho_min = 0.0;
+    double diff_rho_max = 0.0;
+    GetMinMax(diff_rho_arr, nsky, &diff_rho_min, &diff_rho_max);
+    printf("GetFuncDiffS: diff_rho_min, diff_rho_max = %e, %e\n", diff_rho_min, diff_rho_max);
+    
     double ans = 0.0;
     for(int isky = 0; isky < nsky; isky ++){
         ans += diff_rho_arr[isky];
@@ -657,28 +699,27 @@ void GetFuncDiffRho(double tau,
                     const double* const sigma_arr,
                     const double* const mval_arr,
                     const double* const tau_thres_arr,
-                    int nsky, double lconst, double epsilon,
+                    int nsky, double beta, double lconst,
                     double* const out_arr)
 {
     for(int isky = 0; isky < nsky; isky ++){
         out_arr[isky] = 0.0;
-        if(tau <= tau_thres_arr[isky]){
+        if(tau >= tau_thres_arr[isky]){
             out_arr[isky] = 0.0;
         } else {
-            double termb = sigma_arr[isky] + tau / lconst;
-            double root = sqrt( termb * termb + 4.0 * mval_arr[isky] / lconst );
-            out_arr[isky] = (termb + root) / (2.0 * lconst * root);
+            double termb = sigma_arr[isky] - tau / lconst;
+            double root = sqrt( termb * termb + 4.0 * (mval_arr[isky] - (1.0 - beta) ) / lconst );
+            out_arr[isky] = -1.0 * (termb + root) / (2.0 * lconst * root);
         }
     }
 }
 
 void GetFuncTauThres(const double* const sigma_arr,
-                     const double* const mval_arr,
-                     int nsky, double lconst, double epsilon,
+                     int nsky, double lconst,
                      double* const out_arr)
 {
     for(int isky = 0; isky < nsky; isky ++){
-        out_arr[isky] = lconst * (epsilon - sigma_arr[isky]) - mval_arr[isky] / epsilon;
+        out_arr[isky] = lconst * sigma_arr[isky];
     }
 }
 
@@ -689,71 +730,55 @@ void GetFuncTauThres(const double* const sigma_arr,
 
 double GetQMinusF(const double* const rho_new_arr,
                   const double* const rho_arr,
-                  double beta, double mu, double lconst,
+                  double mu, double lconst,
                   int nskyx, int nskyy)
 {
-    //term1 =      FuncF(rho.vec, beta, mu, nrow, ncol)
-    //term2 = -1 * FuncF(rho.new.vec, beta, mu, nrow, ncol)
-    
-    double term1 = GetFuncF(rho_arr, beta, mu, nskyx, nskyy);
-    double term2 = -1 * GetFuncF(rho_new_arr, beta, mu, nskyx, nskyy);
-
-    // term3 = sum( (rho.new.vec - rho.vec) * DiffF(rho.vec, beta, mu, nrow, ncol) )
-    // term4 = L / 2.0 * sum( (rho.new.vec - rho.vec) * (rho.new.vec - rho.vec) )
+    double term1 = GetFuncF(rho_arr, mu, nskyx, nskyy);
+    double term2 = -1 * GetFuncF(rho_new_arr, mu, nskyx, nskyy);
     int nsky = nskyx * nskyy;
     double* diff_rho_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, diff_rho_arr, 1);
     daxpy_(nsky, -1.0, const_cast<double*>(rho_arr), 1, diff_rho_arr, 1);
     double* diff_f_arr = new double[nsky];
-    GetDiffF(rho_arr, beta, mu, nskyx, nskyy, diff_f_arr);
+    GetDiffF(rho_arr, mu, nskyx, nskyy, diff_f_arr);
     double term3 = ddot_(nsky, const_cast<double*>(diff_rho_arr), 1, const_cast<double*>(diff_f_arr), 1);
     double term4 = lconst *
         ddot_(nsky, const_cast<double*>(diff_rho_arr), 1, const_cast<double*>(diff_rho_arr), 1) / 2.0;
     double ans = term1 + term2 + term3 + term4;
+
+    printf("1, 2, 3 4 = %e, %e, %e, %e\n", term1, term2, term3, term4);
+
+    
     delete [] diff_rho_arr;
     delete [] diff_f_arr;
     return(ans);
 }
 
 double GetFuncF(const double* const rho_arr,
-                double beta, double mu,
+                double mu,
                 int nskyx, int nskyy)
 {
-    int nsky = nskyx * nskyy;
-    double sum = 0.0;
-    for(int isky = 0; isky < nsky; isky ++){
-        sum += log(rho_arr[isky]);
-    }
-    double ans = (1.0 - beta) * sum + mu * GetTermV(rho_arr, nskyx, nskyy);
+    double ans = mu * GetTermV(rho_arr, nskyx, nskyy);
     return(ans);
 }
 
 void GetDiffF(const double* const rho_arr,
-              double beta, double mu,
+              double mu,
               int nskyx, int nskyy,
               double* const out_arr)
 {
-    // term1 = (1 - beta) / rho.vec
     int nsky = nskyx * nskyy;
-    double* rho_inv_arr = new double[nsky];
-    GetInvArr(rho_arr, nsky, rho_inv_arr);
-
-    // term2 = mu * DiffTermV(rho.vec, nrow, ncol)
     GetDiffTermV(rho_arr, nskyx, nskyy, out_arr);
     dscal_(nsky, mu, out_arr, 1);
-
-    // ans = term1 + term2
-    daxpy_(nsky, 1.0 - beta, rho_inv_arr, 1, out_arr, 1);
-    delete [] rho_inv_arr;
 }
 
 double GetFuncG(const double* const rho_arr,
                 const double* const mval_arr,
-                int nsky)
+                int nsky, double beta)
 {
     double ans = 0.0;
     for(int isky = 0; isky < nsky; isky++){
-        ans += mval_arr[isky] * log(rho_arr[isky]);
+        ans += ( mval_arr[isky] - (1.0 - beta) ) * log(rho_arr[isky]);
     }
     ans *= -1;
     return(ans);
@@ -761,13 +786,60 @@ double GetFuncG(const double* const rho_arr,
 
 void GetDiffG(const double* const rho_arr,
               const double* const mval_arr,
-              int nsky,
+              int nsky, double beta,
               double* const out_arr)
 {
     for(int isky = 0; isky < nsky; isky++){
-        out_arr[isky] = -1 * mval_arr[isky] / rho_arr[isky];
+        out_arr[isky] = -1 * (mval_arr[isky] - (1.0 - beta)) / rho_arr[isky];
     }
 }
+
+void IsRhoAgainPlus(const double* const rho_arr,
+                    const double* const data_arr,
+                    const double* const resp_mat_arr,
+                    int ndet, int nsky,
+                    int* const out_arr)
+{
+    // det_arr = R_mat %*% rho_arr
+    char* transa = new char [1];
+    strcpy(transa, "N");
+    double* det_arr = new double[ndet];
+    dgemv_(transa, ndet, nsky, 1.0,
+           const_cast<double*>(resp_mat_arr), ndet,
+           const_cast<double*>(rho_arr), 1,
+           0.0, det_arr, 1);
+
+    double* check_arr = new double[ndet];
+    
+    // t(R_mat) %*% (data_arr / det_arr)
+    double* div_arr = new double[ndet];
+    for(int idet = 0; idet < ndet; idet++){
+        div_arr[idet] = data_arr[idet] / det_arr[idet];
+    }
+    strcpy(transa, "T");    
+    dgemv_(transa, ndet, nsky, 1.0,
+           const_cast<double*>(resp_mat_arr), ndet,
+           const_cast<double*>(div_arr), 1,
+           0.0, check_arr, 1);
+
+    int isky_max = 0;
+    double rho_max = 0.0;
+    for(int isky = 0; isky < nsky; isky++){
+        if(rho_arr[isky] > rho_max){
+            rho_max = rho_arr[isky];
+            isky_max = isky;
+        }
+    }
+    for(int isky = 0; isky < nsky; isky++){
+        if(check_arr[isky] >= check_arr[isky_max]){
+            out_arr[isky] = 1;
+        } else {
+            out_arr[isky] = 0;
+        }
+    }
+
+}
+
 
 
 double GetKLDiv(const double* const rho_arr,
