@@ -17,52 +17,68 @@ void SolveByEM(const double* const rho_arr, int nph,
                const double* const data_arr,
                const double* const resp_mat_arr,
                double beta, double mu, double lconst,
-               double tol, double tol_em, int nstep, int flag_line_search,
+               int nem, double tol_em, int npm, double tol_pm,
+               int flag_line_search,
                string outdir, string outfile_head,
                int ndet, int nskyx, int nskyy, double epsilon,
                int bitpix, double* const out_arr);
 
-double GetTau(const double* const mval_arr,
-              const double* const sigma_arr, int nsky,
-              double lconst, double beta,
-              double tau_init);
+void GetLineSearch(const double* const xval_arr,
+                   const double* const xval_new_arr,
+                   const double* const data_arr,
+                   const double* const resp_mat_arr,
+                   double beta, double mu,
+                   int ndet, int nskyx, int nskyy,
+                   double epsilon,
+                   double* const out_arr,
+                   int* flag_saturate_ptr);
 
-double GetFindLconst(const double* const rho_arr,
-                     const double* const mval_arr,
-                     double beta, double mu,
-                     int nskyx, int nskyy,
-                     double lconst_init,
-                     double* const pLy_arr);
-
+void IsRhoAgainPlus(const double* const rho_arr,
+                    const double* const data_arr,
+                    const double* const resp_mat_arr,
+                    int ndet, int nsky,
+                    int* const out_arr);
 
 double GetFuncL(const double* const rho_arr,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 double beta, double mu,
-                int ndet, int nskyx, int nskyy);
+                int ndet, int nskyx, int nskyy, double epsilon);
 
 void GetDiffL(const double* const rho_arr,
               const double* const data_arr,
               const double* const resp_mat_arr,
               double beta, double mu,
-              int ndet, int nskyx, int nskyy,
+              int ndet, int nskyx, int nskyy, double epsilon,
               double* const out_arr);
+
+void GetSuppArrByTrunc(const double* const rho_arr,
+                       const double* const mval_arr,
+                       double beta, int nsky,
+                       int* const out_arr);
 
 double GetFuncLsub(const double* const rho_arr,
                    const double* const mval_arr,
                    double beta, double mu,
                    int nskyx, int nskyy);
 
-void GetFuncSigma(const double* const rho_arr,
-                  double mu,
-                  double lconst, int nskyx, int nskyy,
-                  double* out_arr);
+double GetHellingerDist(const double* const rho_arr,
+                        const double* const rho_new_arr,
+                        int nsky);
 
-void GetDiffSparse(const double* const rho_arr, int nsky,
-                   double beta, double* const out_arr);
+double GetKLDiv(const double* const rho_arr,
+                const double* const rho_new_arr,
+                const double* const resp_mat_arr,
+                int ndet, int nsky);
 
-void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
-                  double* const rho_diff_arr);
+double GetFindLconst(const double* const rho_arr,
+                     const double* const mval_arr,
+                     double beta, double mu,
+                     int nskyx, int nskyy,
+                     double lconst_init,
+                     double tau_init,
+                     double* const pLy_arr,
+                     double* const tau_out_ptr);
 
 void GetFuncM(const double* const rho_arr,
               const double* const data_arr,
@@ -70,34 +86,37 @@ void GetFuncM(const double* const rho_arr,
               int ndet, int nsky,
               double* const out_arr);
 
+void GetFuncSigma(const double* const rho_arr,
+                  double mu,
+                  double lconst, int nskyx, int nskyy,
+                  double* out_arr);
+
+double GetTau(const double* const mval_arr,
+              const double* const sigma_arr, int nsky,
+              double lconst, double beta,
+              double tau_init);
+
 double GetFuncS(double tau,
                 const double* const sigma_arr,
                 const double* const mval_arr,
                 int nsky, double beta, double lconst);
 
-void GetFuncRho(double tau,
-                const double* const sigma_arr,
-                const double* const mval_arr,
-                int nsky, double beta, double lconst, 
-                double* const out_arr);
-
 double GetFuncDiffS(double tau,
                     const double* const sigma_arr,
                     const double* const mval_arr,
-                    const double* const tau_thres_arr,
                     int nsky, double beta, double lconst);
+
+void GetFuncRho(double tau,
+                const double* const sigma_arr,
+                const double* const mval_arr,
+                int nsky, double beta, double lconst,
+                double* const out_arr);
 
 void GetFuncDiffRho(double tau,
                     const double* const sigma_arr,
                     const double* const mval_arr,
-                    const double* const tau_thres_arr,
-                    int nsky, double beta, double lconst, 
+                    int nsky, double beta, double lconst,
                     double* const out_arr);
-
-void GetFuncTauThres(const double* const sigma_arr,
-                     int nsky, double lconst,
-                     double* const out_arr);
-
 
 double GetQMinusF(const double* const rho_new_arr,
                   const double* const rho_arr,
@@ -122,21 +141,10 @@ void GetDiffG(const double* const rho_arr,
               int nsky, double beta,
               double* const out_arr);
 
-void IsRhoAgainPlus(const double* const rho_arr,
-                    const double* const data_arr,
-                    const double* const resp_mat_arr,
-                    int ndet, int nsky,
-                    int* const out_arr);
-
-double GetKLDiv(const double* const rho_arr,
-                const double* const rho_new_arr,
-                const double* const resp_mat_arr,
-                int ndet, int nsky);
-
-
 double GetTermV(const double* const rho_arr, int nskyx, int nskyy);
 
-// general
+void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
+                  double* const rho_diff_arr);
 
 double GetSumLogPlus(const double* const data_arr, int ndata,
                      const int* const supp_arr);
