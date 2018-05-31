@@ -298,6 +298,23 @@ void SolveByEM(const double* const rho_arr, int nph,
         if(kldiv < tol_em && fabs(diff_l_var) < 1.0e-1){
             printf("kldiv (%e) < tol_em (%e)\n", kldiv, tol_em);
             dcopy_(nsky, rho_new_arr, 1, out_arr, 1);
+
+            char outfile_last_head[kLineSize];
+            sprintf(outfile_last_head, "%s/%s_last_head.dat",
+                    outdir.c_str(), outfile_head.c_str());
+            FILE* fp_last_head = fopen(outfile_last_head, "w");
+            fprintf(fp_last_head, "# mu  beta  iem  nzero  kldiv  helldist logl  logl_inc  delta_logl  tdiff  lconst  diff_l_var\n");
+            fclose(fp_last_head);
+            
+            // last
+            char outfile_last[kLineSize];
+            sprintf(outfile_last, "%s/%s_last.dat",
+                    outdir.c_str(), outfile_head.c_str());
+            FILE* fp_last = fopen(outfile_last, "w");
+            fprintf(fp_last, "%e  %e  %d  %d  %e  %e  %.10e  %e  %e  %e  %e  %e\n",
+                    mu, beta, iem, nzero, kldiv, helldist, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var);
+            fclose(fp_last);
+            
             break;
         }
 
@@ -315,6 +332,7 @@ void SolveByEM(const double* const rho_arr, int nph,
     fclose(fp_diff_l_var);
     delete [] rho_new_arr;
     delete [] rho_pre_arr;
+    
 }
 
 void GetLineSearch(const double* const xval_arr,
