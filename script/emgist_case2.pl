@@ -121,7 +121,7 @@ $mipllib::sevar{'progname'} = "emgist_case2.pl";
 		my $tol_em = 1.0e-10;
 		my $npm    = 1000;
 		my $tol_pm = 1.0e-10;
-		my $lconst = 1.0;
+		my $lconst = 1.0e-5;
 		my $epsilon = 1.0e-15;
 		$cmd = sprintf("stdbuf -oL -eL /home/morii/work/github/moriiism/srt/emgist_case2/%s  " .
 			       "%s  %s  %s  " . 

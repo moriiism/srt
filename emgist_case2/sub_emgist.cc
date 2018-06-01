@@ -75,7 +75,7 @@ void LoadResp(string respdir, int nskyx, int nskyy,
 void SolveByEM(const double* const rho_arr, int nph,
                const double* const data_arr,
                const double* const resp_mat_arr,
-               double beta, double mu, double lconst,
+               double beta, double mu, double lconst_init,
                int nem, double tol_em, int npm, double tol_pm,
                int flag_line_search,
                string outdir, string outfile_head,
@@ -132,7 +132,7 @@ void SolveByEM(const double* const rho_arr, int nph,
     for(int iem = 0; iem < nem; iem ++){
         double* mval_arr = new double[nsky];
         GetFuncM(rho_new_arr, data_arr, resp_mat_arr, ndet, nsky, mval_arr);
-        double lconst = 1.0e-5;
+        double lconst = lconst_init;
         double tau_pre = 0.0;
         for(int ipm = 0; ipm < npm; ipm ++){
             lconst /= 1.2;
@@ -730,7 +730,7 @@ double GetFindLconst(const double* const rho_arr,
         delete [] sigma_arr;
         
         //printf("GetFindLconst: ik: (L, qminusf) = %d (%e, %e)\n",
-        //       ik, lconst, qminusf);
+        //        ik, lconst, qminusf);
         if(qminusf >= 0.0){
             tau_out = tau;
             break;
@@ -758,9 +758,20 @@ void GetFuncM(const double* const rho_arr,
            const_cast<double*>(rho_arr), 1,
            0.0, det_arr, 1);
 
+
+    int nbad = 0;
     // mval_arr = t(R_mat) %*% (data_arr / det_arr) * rho_arr
     double* div_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet++){
+        double epsilon = 1.0e-15;
+        if(data_arr[idet] <= epsilon){
+            det_arr[idet] = epsilon;
+        }
+        if(data_arr[idet] > epsilon && det_arr[idet] < epsilon){
+            // printf("bad idet = %d, data_arr = %e, det_arr = %e\n", idet, data_arr[idet], det_arr[idet]);
+            det_arr[idet] = epsilon;
+            nbad ++;
+        }
         div_arr[idet] = data_arr[idet] / det_arr[idet];
     }
     strcpy(transa, "T");    
@@ -771,6 +782,8 @@ void GetFuncM(const double* const rho_arr,
     for(int isky = 0; isky < nsky; isky ++){
         out_arr[isky] = out_arr[isky] * rho_arr[isky];
     }
+    printf("nbad = %d\n", nbad);
+    
     delete [] transa;
     delete [] det_arr;
     delete [] div_arr;
@@ -797,7 +810,7 @@ double GetTau(const double* const mval_arr,
               double tau_init)
 {
     double tau = tau_init;
-    int nnewton = 100;
+    int nnewton = 50;
     double tol_newton = 1.0e-3;
     for(int inewton = 0; inewton < nnewton; inewton ++){
         tau = tau - GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst)
@@ -806,7 +819,7 @@ double GetTau(const double* const mval_arr,
             // printf("inewton = %d, tau = %e\n", inewton, tau);
             break;
         }
-        // printf("S = %e\n", GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst));
+        // printf("inewton = %d, tau = %e, S = %e\n", inewton, tau, GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst));
     }
     return(tau);
 }
@@ -902,7 +915,6 @@ double GetQMinusF(const double* const rho_new_arr,
     double term4 = lconst *
         ddot_(nsky, const_cast<double*>(diff_rho_arr), 1, const_cast<double*>(diff_rho_arr), 1) / 2.0;
     double ans = term1 + term2 + term3 + term4;
-    // printf("1, 2, 3 4 = %e, %e, %e, %e\n", term1, term2, term3, term4);
     delete [] diff_rho_arr;
     delete [] diff_f_arr;
     return(ans);
