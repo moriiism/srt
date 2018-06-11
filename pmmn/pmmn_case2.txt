@@ -1,0 +1,29 @@
+#
+# pmmn_case2.txt
+#
+
+
+respdir="/home/morii/work/maeda/data/20170428b/model"
+datafile="../18041200/casa_10000/conv.fits"
+skyfile="none"
+mu=1e8
+beta=2.0
+outdir="casa_10000_conv_pm_mn/mu1e8/beta2.0"
+outfile_head="rec"
+tol=1e-13
+nstep=10000
+lconst=1.0
+epsilon=1.0e-15
+
+/home/morii/work/github/moriiism/srt/pmmn/pmmn_case2 \
+${respdir} \
+${datafile} \
+${skyfile} \
+${mu} \
+${beta} \
+${outdir} \
+${outfile_head} \
+${tol} \
+${nstep} \
+${lconst} \
+${epsilon}

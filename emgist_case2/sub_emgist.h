@@ -55,7 +55,8 @@ void GetDiffL(const double* const rho_arr,
 void GetSuppArrByTrunc(const double* const rho_arr,
                        const double* const mval_arr,
                        double beta, int nsky,
-                       int* const out_arr);
+                       int* const out_arr,
+                       vector<int>* const index_supp_vec_ptr);
 
 double GetFuncLsub(const double* const rho_arr,
                    const double* const mval_arr,
@@ -167,5 +168,10 @@ int GetIbin(int ibinx, int ibiny, int nbinx);
 
 void GetMinMax(const double* const data_arr, int ndata,
                double* min_ptr, double* max_ptr);
+
+void GetMinMaxSupp(const double* const data_arr,
+                   const int* const index_supp_arr,
+                   int ndata,
+                   double* min_ptr, double* max_ptr);
 
 #endif // MORIIISM_SRT_EMGIST_SUB_EMGIST_H_

@@ -70,9 +70,10 @@ int main(int argc, char* argv[])
         int bitpix_sky = 0;
         MifFits::InFitsImageD(argval->GetSkyfile(), img_info_sky,
                               &bitpix_sky, &rho_ref_arr);
+        double nph_ref = MirMath::GetSum(nsky, rho_ref_arr);
         for(int isky = 0; isky < nsky; isky ++){
-            // rho_arr[isky] = (rho_arr[isky] + rho_ref_arr[isky] / nph ) / 2.0;
-            rho_arr[isky] = rho_ref_arr[isky] / nph;
+            rho_arr[isky] = (rho_arr[isky] + rho_ref_arr[isky] / nph_ref ) / 2.0;
+            // rho_arr[isky] = rho_ref_arr[isky] / nph_ref;
             rho_new_arr[isky] = rho_arr[isky];
         }
         delete [] rho_ref_arr;
