@@ -77,6 +77,7 @@ void SolveByEM(const double* const rho_arr, int nph,
                const double* const resp_mat_arr,
                double beta, double mu, double lconst_init,
                int nem, double tol_em, int npm, double tol_pm,
+               double tol_diff_l_var,
                int flag_line_search,
                string outdir, string outfile_head,
                int ndet, int nskyx, int nskyy, double epsilon,
@@ -127,11 +128,15 @@ void SolveByEM(const double* const rho_arr, int nph,
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_pre_arr, 1);
 
     //    int* is_rho_again_arr = new int[nsky];
-    int flag_saturate = 0;
     double* pLy_arr = new double[nsky];
     for(int iem = 0; iem < nem; iem ++){
         double* mval_arr = new double[nsky];
         GetFuncM(rho_new_arr, data_arr, resp_mat_arr, ndet, nsky, mval_arr);
+        int* index_supp_arr = new int[nsky];
+        vector<int> index_supp_vec;
+        GetSuppArrByTrunc(rho_new_arr, mval_arr, beta, nsky,
+                          index_supp_arr, &index_supp_vec);
+        
         double lconst = lconst_init;
         double tau_pre = 0.0;
         for(int ipm = 0; ipm < npm; ipm ++){
@@ -155,31 +160,29 @@ void SolveByEM(const double* const rho_arr, int nph,
 
         // line search
         if(1 == flag_line_search){
-            if(flag_saturate == 0){
-                double* tmp_arr = new double[nsky];
-                dcopy_(nsky, rho_new_arr, 1, tmp_arr, 1);
-                GetLineSearch(rho_pre_arr, tmp_arr, data_arr, resp_mat_arr, beta, mu, 
-                              ndet, nskyx, nskyy, epsilon, rho_new_arr, &flag_saturate);
-                if(flag_saturate == 1){
-                    dcopy_(nsky, tmp_arr, 1, rho_new_arr, 1);
-                    printf("flag_saturate = %d\n", flag_saturate);
-                }
-                delete [] tmp_arr;
-            }
+            double* tmp_arr = new double[nsky]; 
+            dcopy_(nsky, rho_new_arr, 1, tmp_arr, 1);
+            GetLineSearch(rho_pre_arr, tmp_arr, data_arr, resp_mat_arr,
+                          index_supp_vec, beta, mu,
+                          ndet, nskyx, nskyy, epsilon, rho_new_arr);
+            delete [] tmp_arr;
         }
 
 //        int* is_rho_again_arr = new int [nsky];
 //        IsRhoAgainPlus(rho_new_arr, data_arr, resp_mat_arr, ndet, nsky, is_rho_again_arr);
+//        double rho_min = 0.0;
+//        double rho_max = 0.0;
+//        GetMinMaxSupp(rho_new_arr, index_supp_arr, nsky, &rho_min, &rho_max);
+//        
 //        int nrho_again = 0;
 //        for(int isky = 0; isky < nsky; isky++){
 //            if(rho_new_arr[isky] < epsilon && 1 == is_rho_again_arr[isky]){
-//                rho_new_arr[isky] = epsilon;
+//                rho_new_arr[isky] = rho_min;
 //                nrho_again ++;
 //            }
 //        }
 //        printf("nrho_again = %d\n", nrho_again);
 //        delete [] is_rho_again_arr;
-
 
 
 //        //
@@ -267,10 +270,10 @@ void SolveByEM(const double* const rho_arr, int nph,
         double time = MiTime::GetTimeSec();
         double tdiff = time - time_st;
         printf("iem = %d  nzero = %d  kldiv = %e  helldist = %e  logl = %.10e  logl - logl_init = %e "
-               "delta_logl = %e  tdiff = %e  lconst = %e, diff_l_var = %e, flag_saturate = %d\n",
-               iem, nzero, kldiv, helldist, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var, flag_saturate);
-        fprintf(fp_moni, "%d  %d  %e  %e  %.10e  %e  %e  %e  %e  %e  %d\n",
-                iem, nzero, kldiv, helldist, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var, flag_saturate);
+               "delta_logl = %e  tdiff = %e  lconst = %e, diff_l_var = %e\n",
+               iem, nzero, kldiv, helldist, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var);
+        fprintf(fp_moni, "%d  %d  %e  %e  %.10e  %e  %e  %e  %e  %e\n",
+                iem, nzero, kldiv, helldist, logl, logl_inc, delta_logl, tdiff, lconst, diff_l_var);
         fprintf(fp_timelog, "%e  %e\n", tdiff, logl_inc);
         fprintf(fp_delta_logl, "%d  %e\n", iem, delta_logl);
         fprintf(fp_kldiv, "%d  %e\n", iem, kldiv);
@@ -299,7 +302,7 @@ void SolveByEM(const double* const rho_arr, int nph,
         //    printf("delta_logl (%e) > 10.0, then break.\n", delta_logl);
         //    break;
         //}
-        if(kldiv < tol_em && fabs(diff_l_var) < 1.0e-1){
+        if(kldiv < tol_em && fabs(diff_l_var) < tol_diff_l_var){
             printf("kldiv (%e) < tol_em (%e)\n", kldiv, tol_em);
             dcopy_(nsky, rho_new_arr, 1, out_arr, 1);
 
@@ -343,30 +346,39 @@ void GetLineSearch(const double* const xval_arr,
                    const double* const xval_new_arr,
                    const double* const data_arr,
                    const double* const resp_mat_arr,
+                   vector<int> index_supp_vec,
                    double beta, double mu,
                    int ndet, int nskyx, int nskyy,
                    double epsilon,
-                   double* const out_arr,
-                   int* flag_saturate_ptr)
+                   double* const out_arr)
 {
     int nsky = nskyx * nskyy;
+    int index_supp_st = index_supp_vec[0];
+    int nsupp = index_supp_vec.size();
 
-    double xval0     = xval_arr[0];
-    double xval0_new = xval_new_arr[0];
-    double* xval2_arr = new double[nsky - 1];
-    double* xval2_new_arr = new double[nsky - 1];
-    double* theta_arr = new double[nsky - 1];
-    double* theta_new_arr = new double[nsky - 1];
+    int* index_supp_arr = new int [nsky];
+    for(int isky = 0; isky < nsky; isky ++){
+        index_supp_arr[isky] = 0;
+    }
+    for(int isupp = 0; isupp < nsupp; isupp ++){
+        index_supp_arr[index_supp_vec[isupp]] = 1;
+    }
     
-    for(int isky = 0; isky < nsky - 1; isky ++){
-        xval2_arr[isky]     = xval_arr[isky + 1];
-        xval2_new_arr[isky] = xval_new_arr[isky + 1];
+
+    double xval0     = xval_arr[index_supp_st];
+    double xval0_new = xval_new_arr[index_supp_st];
+    vector<double> xval2_vec(nsupp - 1);
+    vector<double> xval2_new_vec(nsupp - 1);
+    vector<double> theta_vec(nsupp - 1);
+    vector<double> theta_new_vec(nsupp - 1);
+    for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+        xval2_vec[isupp] = xval_arr[ index_supp_vec[isupp + 1] ];
+        xval2_new_vec[isupp] = xval_new_arr[ index_supp_vec[isupp + 1] ];
     }
-    for(int isky = 0; isky < nsky - 1; isky ++){        
-        theta_arr[isky]     = log( xval2_arr[isky] / (1.0 - xval0) );
-        theta_new_arr[isky] = log( xval2_new_arr[isky] / (1.0 - xval0_new) );
+    for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+        theta_vec[isupp]     = log( xval2_vec[isupp] / (1.0 - xval0) );
+        theta_new_vec[isupp] = log( xval2_new_vec[isupp] / (1.0 - xval0_new) );
     }
-    int nstep = 100;
     double logl_init = GetFuncL(xval_arr, data_arr, resp_mat_arr,
                                 beta, mu, ndet, nskyx, nskyy, epsilon);
     
@@ -381,208 +393,66 @@ void GetLineSearch(const double* const xval_arr,
     fprintf(fp_out, "skip sing\n");
     fprintf(fp_out, "read\n");
 
-    int flag_saturate = 0;
-    double eta = 3.0;
-    for(int istep = 1; istep < nstep; istep ++){
+    int nstep = 10;
+    double eta = 2.0;
+    for(int istep = 0; istep < nstep; istep ++){
         double factor = pow(eta, istep);
         double lxval0_this = factor * (log(xval0_new) - log(xval0)) + log(xval0);
         double xval0_this = exp(lxval0_this);
 
-        double* theta_this_arr = new double[nsky - 1];
-        for(int isky = 0; isky < nsky - 1; isky ++){
-            theta_this_arr[isky] = factor * (theta_new_arr[isky] - theta_arr[isky]) + theta_arr[isky];
+        vector<double> theta_this_vec(nsupp - 1);
+        for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+            theta_this_vec[isupp] = factor * (theta_new_vec[isupp] - theta_vec[isupp]) + theta_vec[isupp];
         }
         double alpha = 0.0;
-        for(int isky = 0; isky < nsky - 1; isky ++){
-            alpha += exp(theta_this_arr[isky]);
+        for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+            alpha += exp(theta_this_vec[isupp]);
         }
-        double* xval2_this_arr = new double[nsky - 1];
-        for(int isky = 0; isky < nsky - 1; isky ++){
-            xval2_this_arr[isky] = (1 - xval0_this) * exp(theta_this_arr[isky]) / alpha;
+        vector<double> xval2_this_vec(nsupp - 1);
+        for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+            xval2_this_vec[isupp] = (1 - xval0_this) * exp(theta_this_vec[isupp]) / alpha;
         }
-        delete [] theta_this_arr;
         
         double* xval_this_arr = new double[nsky];
-        xval_this_arr[0] = xval0_this;
-        for(int isky = 0; isky < nsky - 1; isky ++){
-            xval_this_arr[isky + 1] = xval2_this_arr[isky];
+        for(int isky = 0; isky < nsky; isky ++){
+            xval_this_arr[isky] = 0.0;
         }
-        delete [] xval2_this_arr;
+        xval_this_arr[index_supp_st] = xval0_this;
+        for(int isupp = 0; isupp < nsupp - 1; isupp ++){
+            xval_this_arr[ index_supp_vec[isupp + 1] ] = xval2_this_vec[isupp];
+        }
 
-        double xval_this_min = 0.0;
-        double xval_this_max = 0.0;
-        GetMinMax(xval_this_arr, nsky, &xval_this_min, &xval_this_max);
-        if(xval_this_min < epsilon){
-            printf("xval_this_min < epsilon: factor(istep) = %e (%d)\n", factor, istep);
-            if(istep != 1){
-                dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
-            }
-            flag_saturate = 1;
-            break;
-        }
         double logl = GetFuncL(xval_this_arr, data_arr, resp_mat_arr,
                                beta, mu, ndet, nskyx, nskyy, epsilon);
         fprintf(fp_out, "%d  %e\n", istep, logl - logl_init);
+        // printf("%d  %e\n", istep, logl - logl_init);
 
-
+        double xval_min = 0.0;
+        double xval_max = 0.0;
+        GetMinMaxSupp(xval_this_arr, index_supp_arr, nsky, &xval_min, &xval_max);
+        // printf("xval_min = %e, xval_max = %e\n", xval_min, xval_max);
+        if(xval_min < epsilon){
+            dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
+            printf("xval_min < epsilon, then break, linesearch step = %d\n", istep);
+            break;
+        }
         if(logl_pre < logl){
             if(istep != 1){
                 dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
-                // printf("linesearch step = %d\n", istep);
+                printf("logl_pre < logl, then break, linesearch step = %d\n", istep);
             }
             break;
         }
         logl_pre = logl;
+        dcopy_(nsky, const_cast<double*>(xval_this_arr), 1, out_arr, 1);
         dcopy_(nsky, const_cast<double*>(xval_this_arr), 1, xval_pre_arr, 1);
         delete [] xval_this_arr;
     }
 
-    delete [] xval2_arr;
-    delete [] xval2_new_arr;
-    delete [] theta_arr;
-    delete [] theta_new_arr;
+    delete [] index_supp_arr;
     delete [] xval_pre_arr;
     fclose(fp_out);
-
-    *flag_saturate_ptr = flag_saturate;
 }
-
-
-
-
-//void GetLineSearch(const double* const xval_arr,
-//                   const double* const xval_new_arr,
-//                   const double* const data_arr,
-//                   const double* const resp_mat_arr,
-//                   const double* const mval_arr,
-//                   double beta, double mu,
-//                   int ndet, int nskyx, int nskyy,
-//                   double epsilon,
-//                   double* const out_arr,
-//                   int* flag_saturate_ptr)
-//{
-//    int nsky = nskyx * nskyy;
-//
-//    // index supp
-//    int* index_supp_arr = new int[nsky];
-//    vector<int> index_supp_vec;
-//    GetSuppArrByTrunc(xval_new_arr, mval_arr, beta, nsky, index_supp_arr, &index_supp_vec);
-//    int index_supp_st = index_supp_vec[0];
-//    
-//    double xval0     = xval_arr[index_supp_st];
-//    double xval0_new = xval_new_arr[index_supp_st];
-//    double* xval2_arr = new double[nsky - 1];
-//    double* xval2_new_arr = new double[nsky - 1];
-//    double* theta_arr = new double[nsky - 1];
-//    double* theta_new_arr = new double[nsky - 1];
-//    
-//    for(int isky = 0; isky < nsky - 1; isky ++){
-//        xval2_arr[isky]     = xval_arr[isky + 1];
-//        xval2_new_arr[isky] = xval_new_arr[isky + 1];
-//    }
-//    for(int isky = 0; isky < nsky - 1; isky ++){        
-//        theta_arr[isky]     = log( xval2_arr[isky] / (1.0 - xval0) );
-//        theta_new_arr[isky] = log( xval2_new_arr[isky] / (1.0 - xval0_new) );
-//    }
-//    int nstep = 100;
-//    double logl_init = GetFuncL(xval_arr, data_arr, resp_mat_arr,
-//                                beta, mu, ndet, nskyx, nskyy, epsilon);
-//    
-//    double logl_pre = logl_init;
-//    double* xval_pre_arr = new double[nsky];
-//    dcopy_(nsky, const_cast<double*>(xval_arr), 1, xval_pre_arr, 1);
-//
-//    char outfile[kLineSize];
-//    sprintf(outfile, "temp.dat"); 
-//    FILE* fp_out = fopen(outfile, "w");
-//    setbuf(fp_out, NULL);
-//    fprintf(fp_out, "skip sing\n");
-//    fprintf(fp_out, "read\n");
-//
-//    int flag_saturate = 0;
-//    double eta = 3.0;
-//    for(int istep = 1; istep < nstep; istep ++){
-//        double factor = pow(eta, istep);
-//        double lxval0_this = factor * (log(xval0_new) - log(xval0)) + log(xval0);
-//        double xval0_this = exp(lxval0_this);
-//
-//        double* theta_this_arr = new double[nsky - 1];
-//        for(int isky = 0; isky < nsky - 1; isky ++){
-//            theta_this_arr[isky] = factor * (theta_new_arr[isky] - theta_arr[isky]) + theta_arr[isky];
-//        }
-//        double alpha = 0.0;
-//        for(int isky = 0; isky < nsky - 1; isky ++){
-//            alpha += exp(theta_this_arr[isky]);
-//        }
-//        double* xval2_this_arr = new double[nsky - 1];
-//        for(int isky = 0; isky < nsky - 1; isky ++){
-//            xval2_this_arr[isky] = (1 - xval0_this) * exp(theta_this_arr[isky]) / alpha;
-//        }
-//        delete [] theta_this_arr;
-//        
-//        double* xval_this_arr = new double[nsky];
-//        xval_this_arr[0] = xval0_this;
-//        for(int isky = 0; isky < nsky - 1; isky ++){
-//            xval_this_arr[isky + 1] = xval2_this_arr[isky];
-//        }
-//        delete [] xval2_this_arr;
-//
-//        double xval_this_min = 0.0;
-//        double xval_this_max = 0.0;
-//        GetMinMaxSupp(xval_this_arr, index_supp_arr, nsky, &xval_this_min, &xval_this_max);
-//
-//        printf("xval_this_min = %e, xval_this_max = %e\n", xval_this_min, xval_this_max);
-//        
-//        if(xval_this_min < epsilon){
-//            printf("xval_this_min < epsilon: factor(istep) = %e (%d)\n", factor, istep);
-//            if(istep != 1){
-//                dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
-//            }
-//            flag_saturate = 1;
-//            break;
-//        }
-//
-//        double logl = GetFuncL(xval_this_arr, data_arr, resp_mat_arr,
-//                               beta, mu, ndet, nskyx, nskyy, epsilon);
-//        fprintf(fp_out, "%d  %e\n", istep, logl - logl_init);
-//        printf("%d  %e\n", istep, logl - logl_init);
-//
-//        if(logl_pre < logl){
-//            if(istep != 1){
-//                dcopy_(nsky, const_cast<double*>(xval_pre_arr), 1, out_arr, 1);
-//                // printf("linesearch step = %d\n", istep);
-//            }
-//            break;
-//        }
-//        logl_pre = logl;
-//        dcopy_(nsky, const_cast<double*>(xval_this_arr), 1, xval_pre_arr, 1);
-//        delete [] xval_this_arr;
-//    }
-//
-//    delete [] xval2_arr;
-//    delete [] xval2_new_arr;
-//    delete [] theta_arr;
-//    delete [] theta_new_arr;
-//    delete [] xval_pre_arr;
-//    delete [] index_supp_arr;
-//    fclose(fp_out);
-//
-//    *flag_saturate_ptr = flag_saturate;
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
