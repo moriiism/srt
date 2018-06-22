@@ -122,7 +122,7 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
 	    $cmd = sprintf("cat %s", $heldistfile);
 	    my $heldist = `$cmd`;
 	    chomp($heldist);
-	    printf(SMR "%d  %d  %e  %e  %e\n", 
+	    printf(SMR "%d  %d  %e  %e  %s\n", 
 		   $imu, $ibeta,
 		   $mu_arr[$imu], $beta_arr[$ibeta], $heldist);
 	}
