@@ -1,0 +1,60 @@
+#
+# ptmap.txt
+#
+
+make map of (mean, stderr) of cross-validation value,
+among various partitioning of folded data.
+
+
+
+source ~/work/github/moriiism/mitool/setup/setup.sh
+
+cd /mnt/s8tb1/work/maeda/18082800
+
+mkdir setup
+
+cat << EOF > setup/cvsmr.list
+part01/cv/smr.txt
+part02/cv/smr.txt
+part03/cv/smr.txt
+part04/cv/smr.txt
+part05/cv/smr.txt
+part06/cv/smr.txt
+part07/cv/smr.txt
+part08/cv/smr.txt
+part09/cv/smr.txt
+part10/cv/smr.txt
+EOF
+
+cat << EOF > setup/hist_info.dat
+# nbin  lo  up  delta-bin  mode
+11  -5.000000e-01     1.050000e+01    none  none
+11  5.000000e-02     1.150000e+00    none  none
+EOF
+
+cat << EOF > setup/hist_info_index.dat
+# nbin  lo  up  delta-bin  mode
+11  -5.000000e-01     1.050000e+01    none  none
+11  -5.000000e-01     1.050000e+01    none  none
+EOF
+
+cvsmr_list=setup/cvsmr.list
+hist_info_file=setup/hist_info.dat
+hist_info_index_file=setup/hist_info_index.dat
+zrange_lo=0.110
+zrange_up=0.112
+outdir=ptmap
+outfile_head=ptmap
+
+/home/morii/work/github/moriiism/srt/ptmap/ptmap \
+$cvsmr_list \
+$hist_info_file \
+$hist_info_index_file \
+$zrange_lo \
+$zrange_up \
+$outdir \
+$outfile_head
+
+
+(x, y)_min = (8.000000e+00, 6.000000e-01)
+amean of stddev = 2.446354e-04
