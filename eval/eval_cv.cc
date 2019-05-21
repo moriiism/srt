@@ -76,8 +76,15 @@ int main(int argc, char* argv[])
 
        
         double* rec_norm_arr = new double[nsky];
-        for(int isky = 0; isky < nsky; isky++){
-            rec_norm_arr[isky] = rec_arr[isky] / nph_rec;
+        if(fabs(nph_rec) > 1.0e-20){
+            for(int isky = 0; isky < nsky; isky++){
+                rec_norm_arr[isky] = rec_arr[isky] / nph_rec;
+            }
+        } else {
+            // adhoc
+            for(int isky = 0; isky < nsky; isky++){
+                rec_norm_arr[isky] = 1./ nsky; 
+            }
         }
         delete img_info_rec;
         delete [] rec_arr;

@@ -19,7 +19,7 @@ void ArgValCvmap::Init(int argc, char* argv[])
     if(0 < g_flag_verbose){
         printf("ArgVal::Init: # of arg = %d\n", argc - optind);
     }
-    int narg = 6;
+    int narg = 7;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -27,6 +27,7 @@ void ArgValCvmap::Init(int argc, char* argv[])
     int iarg = optind;
     infile_       = argv[iarg]; iarg++;
     hist_info_file_  = argv[iarg]; iarg++;
+    hist_info_index_file_  = argv[iarg]; iarg++;
     zrange_lo_    = atof(argv[iarg]); iarg++;
     zrange_up_    = atof(argv[iarg]); iarg++; 
     outdir_       = argv[iarg]; iarg++;
@@ -42,6 +43,7 @@ void ArgValCvmap::Print(FILE* fp) const
     fprintf(fp, "%s: progname_      : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: infile_        : %s\n", __func__, infile_.c_str());
     fprintf(fp, "%s: hist_info_file_ : %s\n", __func__, hist_info_file_.c_str());
+    fprintf(fp, "%s: hist_info_index_file_ : %s\n", __func__, hist_info_index_file_.c_str());
     fprintf(fp, "%s: zrange_lo_     : %e\n", __func__, zrange_lo_);
     fprintf(fp, "%s: zrange_up_     : %e\n", __func__, zrange_up_);    
     fprintf(fp, "%s: outdir_        : %s\n", __func__, outdir_.c_str());
@@ -53,6 +55,7 @@ void ArgValCvmap::Null()
     progname_     = "";
     infile_       = "";
     hist_info_file_ = "";
+    hist_info_index_file_ = "";
     zrange_lo_    = 0.0;
     zrange_up_    = 0.0;
     outdir_       = "";
@@ -114,7 +117,7 @@ void ArgValCvmap::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "infile  hist_info_file  zrange_lo  zrange_up  outdir  outfile_head \n",
+            "infile  hist_info_file  hist_info_index_file  zrange_lo  zrange_up  outdir  outfile_head \n",
             progname_.c_str());
     exit(1);
 }

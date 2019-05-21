@@ -171,6 +171,8 @@ void SolveByEM(const double* const rho_arr, int nph,
             double tau_out = 0.0;
             lconst = GetFindLconst(rho_new_arr, mval_arr, beta, mu,
                                    nskyx, nskyy, lconst, tau_pre, pLy_arr, &tau_out);
+            printf("tau_out = %e\n", tau_out);
+            
             
             double logl_sub_pre = GetFuncLsub(rho_new_arr, mval_arr, beta, mu, nskyx, nskyy);
             dcopy_(nsky, const_cast<double*>(pLy_arr), 1, rho_new_arr, 1);
@@ -178,6 +180,9 @@ void SolveByEM(const double* const rho_arr, int nph,
 
             double diff_logl_sub = logl_sub - logl_sub_pre;
             printf("diff_logl_sub = %e\n", logl_sub - logl_sub_pre);
+
+            printf("logl_sub = %e, logl_sub_pre = %e\n", logl_sub, logl_sub_pre);
+            
             if(fabs(diff_logl_sub) < tol_pm){
                 // printf("PM break: ipm = %d\n", ipm);
                 break;
@@ -291,19 +296,19 @@ void SolveByEM(const double* const rho_arr, int nph,
         fprintf(fp_kldiv, "%d  %e\n", iem, kldiv);
         fprintf(fp_diff_l_var, "%d  %e\n", iem, diff_l_var);
 
-        if(iem % 10 == 0){
-            int naxis = 2;
-            long* naxes = new long[naxis];
-            naxes[0] = nskyx;
-            naxes[1] = nskyy;
-            char tag[kLineSize];
-            sprintf(tag, "%4.4d", iem);
-            MifFits::OutFitsImageD(outdir, outfile_head,
-                                   tag, 2,
-                                   bitpix,
-                                   naxes, rho_new_arr);
-            delete [] naxes;
-        }
+//        if(iem % 10 == 0){
+//            int naxis = 2;
+//            long* naxes = new long[naxis];
+//            naxes[0] = nskyx;
+//            naxes[1] = nskyy;
+//            char tag[kLineSize];
+//            sprintf(tag, "%4.4d", iem);
+//            MifFits::OutFitsImageD(outdir, outfile_head,
+//                                   tag, 2,
+//                                   bitpix,
+//                                   naxes, rho_new_arr);
+//            delete [] naxes;
+//        }
 
         if( nzero ==  nsky){
             printf("nzero == 0.0, then break.\n");
@@ -698,12 +703,23 @@ double GetFuncLsub(const double* const rho_arr,
     int nsky = nskyx * nskyy;
     double term12 = 0.0;
     for(int isky = 0; isky < nsky; isky ++){
+
+        // debug
+        //printf("rho_arr[isky] = %e\n", rho_arr[isky]);
+        //printf("mval_arr[isky] = %e\n", mval_arr[isky]);
+
+        
         if(mval_arr[isky] >= 1.0 - beta){
             term12 += -1 * ( mval_arr[isky] - (1.0 - beta) ) * log(rho_arr[isky]);
         }
     }
     double term3 = mu * GetTermV(rho_arr, nskyx, nskyy);
     double ans = term12 + term3;
+
+    // debug
+    // printf("term12, term3 = %e, %e\n", term12, term3);
+
+    
     return(ans);
 }
 
@@ -877,14 +893,25 @@ double GetTau(const double* const mval_arr,
     double tau = tau_init;
     int nnewton = 50;
     double tol_newton = 1.0e-3;
+    // double S_val_pre = 0.0;
     for(int inewton = 0; inewton < nnewton; inewton ++){
-        tau = tau - GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst)
-            / GetFuncDiffS(tau, sigma_arr, mval_arr, nsky, beta, lconst);
+        double S_val = GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst);
+        double Sdiff_val = GetFuncDiffS(tau, sigma_arr, mval_arr, nsky, beta, lconst);
+        tau = tau - S_val / Sdiff_val;
+
+        // double diff_S_val = S_val - S_val_pre;
+        //if(inewton > 0 && fabs(diff_S_val) < 1e-5){
+        //    break;
+        //}
         if( fabs(GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst) ) < tol_newton){
             // printf("inewton = %d, tau = %e\n", inewton, tau);
             break;
         }
-        // printf("inewton = %d, tau = %e, S = %e\n", inewton, tau, GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst));
+        // debug
+        //printf("inewton = %d, tau = %e, S = %e\n",
+        //       inewton, tau, GetFuncS(tau, sigma_arr, mval_arr, nsky, beta, lconst));
+
+        // S_val_pre = S_val;
     }
     return(tau);
 }

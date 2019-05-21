@@ -18,7 +18,7 @@ void ArgValSimobs::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 8;
+    int narg = 10;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -29,7 +29,9 @@ void ArgValSimobs::Init(int argc, char* argv[])
     nevt_           = atoi(argv[iarg]); iarg++;
     rand_seed_sky_  = atoi(argv[iarg]); iarg++;
     rand_seed_det_  = atoi(argv[iarg]); iarg++;
-    nobs_           = atoi(argv[iarg]); iarg++;
+    rand_seed_partition_  = atoi(argv[iarg]); iarg++;
+    nfold_          = atoi(argv[iarg]); iarg++;
+    npartition_     = atoi(argv[iarg]); iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
 }
@@ -46,7 +48,9 @@ void ArgValSimobs::Print(FILE* fp) const
     fprintf(fp, "%s: nevt_           : %d\n", __func__, nevt_);
     fprintf(fp, "%s: rand_seed_sky_  : %d\n", __func__, rand_seed_sky_);
     fprintf(fp, "%s: rand_seed_det_  : %d\n", __func__, rand_seed_det_);
-    fprintf(fp, "%s: nobs_           : %d\n", __func__, nobs_);
+    fprintf(fp, "%s: rand_seed_partition_  : %d\n", __func__, rand_seed_partition_);
+    fprintf(fp, "%s: nfold_          : %d\n", __func__, nfold_);
+    fprintf(fp, "%s: npartition_     : %d\n", __func__, npartition_);
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
 }
@@ -61,7 +65,9 @@ void ArgValSimobs::Null()
     nevt_      = 0;
     rand_seed_sky_ = 0;
     rand_seed_det_ = 0;
-    nobs_      = 0;
+    rand_seed_partition_ = 0;
+    nfold_     = 0;
+    npartition_ = 0;
     outdir_    = "";
     outfile_head_ = "";
 }
@@ -120,7 +126,8 @@ void ArgValSimobs::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "respdir  infile  nevt  rand_seed_sky  rand_seed_det  nobs  outdir  outfile_head\n",
+            "respdir  infile  nevt  rand_seed_sky  rand_seed_det  rand_seed_partition  "
+            "nfold  npartition  outdir  outfile_head\n",
             progname_.c_str());
     abort();
 }

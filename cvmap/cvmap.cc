@@ -54,6 +54,11 @@ int main(int argc, char* argv[]){
                ave_arr[iline], stddev_arr[iline]);
     }
 
+    // ave_of_stddev
+    double ave_of_stddev = MirMath::GetAMean(nline, stddev_arr);
+
+
+    
     double ave_min   = 1.0e10;
     double ave_max   = -1.0e10;
     double imu_min   = 0.0;
@@ -66,9 +71,19 @@ int main(int argc, char* argv[]){
     hd2d->Init(hi2d);
     HistDataNerr2d* hd2d_stddev = new HistDataNerr2d;
     hd2d_stddev->Init(hi2d);
+
+    HistInfo2d* hi2d_index = new HistInfo2d;
+    hi2d_index->Load(argval->GetHistInfoIndexFile());
+    HistDataNerr2d* hd2d_index = new HistDataNerr2d;
+    hd2d_index->Init(hi2d_index);
+    HistDataNerr2d* hd2d_stddev_index = new HistDataNerr2d;
+    hd2d_stddev_index->Init(hi2d_index);
+    
     for(long iline = 0; iline < nline; iline ++){
-        hd2d->Fill(imu_arr[iline], ibeta_arr[iline], ave_arr[iline]);
-        hd2d_stddev->Fill(imu_arr[iline], ibeta_arr[iline], stddev_arr[iline]);
+        hd2d->Fill(log10(mu_arr[iline]), beta_arr[iline], ave_arr[iline]);
+        hd2d_stddev->Fill(log10(mu_arr[iline]), beta_arr[iline], stddev_arr[iline]);
+        hd2d_index->Fill(imu_arr[iline], ibeta_arr[iline], ave_arr[iline]);
+        hd2d_stddev_index->Fill(imu_arr[iline], ibeta_arr[iline], stddev_arr[iline]);
 
         if(ave_arr[iline] < ave_min){
             ave_min   = ave_arr[iline];
@@ -83,13 +98,36 @@ int main(int argc, char* argv[]){
         
     }
 
+    char outcvmap[kLineSize];
+    sprintf(outcvmap, "%s/%s_out.dat",
+            argval->GetOutdir().c_str(),
+            argval->GetOutfileHead().c_str());
     //printf("min at (%e, %e)\n",
     //       hd2d->GetXvalAtOvalMin(),
     //       hd2d->GetYvalAtOvalMin());
     printf("min at (imu, ibeta) (mu, beta) = (%e, %e) (%e, %e)\n",
            imu_min, ibeta_min, mu_min, beta_min);
-
     printf("ave_min = %e, ave_max = %e\n", ave_min, ave_max);
+
+    FILE* fp_outcvmap = fopen(outcvmap, "w");
+    fprintf(fp_outcvmap, "# mu_min  beta_min\n");
+    fprintf(fp_outcvmap, "%e  %e\n", mu_min, beta_min);
+    fclose(fp_outcvmap);
+
+
+    // find ave_min + ave_of_stddev
+    char outcvmap_cand[kLineSize];
+    sprintf(outcvmap_cand, "%s/%s_out_cand.dat",
+            argval->GetOutdir().c_str(),
+            argval->GetOutfileHead().c_str());
+    FILE* fp_outcvmap_cand = fopen(outcvmap_cand, "w");
+    for(long iline = 0; iline < nline; iline ++){
+        if(ave_arr[iline] < ave_min + ave_of_stddev){
+            fprintf(fp_outcvmap_cand, "%e  %e  %e\n", mu_arr[iline], beta_arr[iline], ave_arr[iline]);
+        }
+    }
+    fclose(fp_outcvmap_cand);
+    
     
     double zrange_lo = argval->GetZrangeLo();
     double zrange_up = argval->GetZrangeUp();

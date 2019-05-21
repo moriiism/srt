@@ -24,8 +24,8 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
 
     my $cmd;
     # -- argument
-    my $NARG = 5;
-    my($cvlist, $mulist, $betalist, $nfold, $outdir);
+    my $NARG = 6;
+    my($cvlist, $mulist, $betalist, $nfold, $outdir, $respdir);
     printf("# of arg = %d\n", $#ARGV + 1);
     if( $#ARGV == $NARG - 1){
 	my $iarg = 0;
@@ -34,6 +34,7 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
 	$betalist = $ARGV[$iarg]; $iarg ++;
 	$nfold    = $ARGV[$iarg]; $iarg ++;
 	$outdir   = $ARGV[$iarg]; $iarg ++;
+	$respdir  = $ARGV[$iarg]; $iarg ++;
     }else{
         printf("# of arg must be %d.\n", $NARG);
 	&Usage();
@@ -44,6 +45,7 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
     printf("%s: %s: betalist  = %s\n", $mipllib::sevar{'progname'}, $prompt_arg, $betalist);
     printf("%s: %s: nfold     = %d\n", $mipllib::sevar{'progname'}, $prompt_arg, $nfold);
     printf("%s: %s: outdir    = %s\n", $mipllib::sevar{'progname'}, $prompt_arg, $outdir);
+    printf("%s: %s: respdir   = %s\n", $mipllib::sevar{'progname'}, $prompt_arg, $respdir);
     # == argument
 
     my $outdir_setup = sprintf("%s/setup", $outdir);
@@ -52,8 +54,6 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
 	printf("cmd = %s\n", $cmd);
 	system($cmd);
     }
-
-    my $respdir = "/home/morii/work/maeda/data/20170428b/model";
 
     my @fold_dir_arr = ();
     my @recfile_arr  = ();
@@ -99,17 +99,17 @@ $mipllib::sevar{'progname'} = "eval_cv.pl";
 
     for(my $imu = 0; $imu <= $#mu_arr; $imu ++){
 	for(my $ibeta = 0; $ibeta <= $#beta_arr; $ibeta ++){
-	    my $filelist = sprintf("%s/mu%.1e_beta%.2e.list",
+	    my $filelist = sprintf("%s/mu%.2e_beta%.2e.list",
 				  $outdir_setup, $mu_arr[$imu], $beta_arr[$ibeta]);
 	    open(OUT, ">$filelist");
 	    for(my $ifold = 0; $ifold < $nfold; $ifold ++){
-		printf(OUT "%s/mu%.1e/beta%.2e/%s  %s\n" ,
+		printf(OUT "%s/mu%.2e/beta%.2e/%s  %s\n" ,
 		       $fold_dir_arr[$ifold], $mu_arr[$imu], $beta_arr[$ibeta], $recfile_arr[$ifold],
 		       $valfile_arr[$ifold]);
 	    }
 	    close(OUT);
 
-	    my $outfile_head = sprintf("mu%.1e_beta%.2e",
+	    my $outfile_head = sprintf("mu%.2e_beta%.2e",
 				       $mu_arr[$imu], $beta_arr[$ibeta]);
 	    $cmd = sprintf("/home/morii/work/github/moriiism/srt/eval/eval_cv  " .
 			   "%s  %s  %s  %s",

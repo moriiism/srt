@@ -10,6 +10,7 @@ public:
         progname_(""),
         infile_(""),
         hist_info_file_(""),
+        hist_info_index_file_(""),
         zrange_lo_(0.0),
         zrange_up_(0.0),
         outdir_(""),
@@ -23,6 +24,7 @@ public:
     string GetProgname() const {return progname_;};
     string GetInfile()   const {return infile_;};
     string GetHistInfoFile()   const {return hist_info_file_;};
+    string GetHistInfoIndexFile()   const {return hist_info_index_file_;};
     double GetZrangeLo() const {return zrange_lo_;};
     double GetZrangeUp() const {return zrange_up_;};
     string GetOutdir() const {return outdir_;};
@@ -32,6 +34,7 @@ private:
     string progname_;
     string infile_;
     string hist_info_file_;
+    string hist_info_index_file_;
     double zrange_lo_;
     double zrange_up_;
     string outdir_;

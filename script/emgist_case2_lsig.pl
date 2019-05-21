@@ -85,7 +85,7 @@ $mipllib::sevar{'progname'} = "emgist_case2_lsig.pl";
 	for(my $imu = 0; $imu <= $#mu_arr; $imu ++){
 	    for(my $ibeta = 0; $ibeta <= $#beta_arr; $ibeta ++){
 
-		my $outdir_this2 = sprintf("%s/%s/mu%1.1e/beta%1.2e",
+		my $outdir_this2 = sprintf("%s/%s/mu%1.2e/beta%1.2e",
 					   $outdir, $outdir_this,
 					   $mu_arr[$imu], $beta_arr[$ibeta]);
 		if(! -e $outdir_this2){
@@ -113,7 +113,10 @@ $mipllib::sevar{'progname'} = "emgist_case2_lsig.pl";
 		## my $tol_pm = 1.0e-10;
 		my $tol_pm = 1.0e-5;
 		my $tol_diff_l_var = 5.0e-2;
-		my $lconst = 1.0e-5;
+
+		## my $lconst = 1.0e-5;
+		my $lconst = 1.0e-3;
+
 		my $epsilon = 1.0e-15;
 		$cmd = sprintf("stdbuf -oL -eL /home/morii/work/github/moriiism/srt/emgist_case2_lsig/%s  " .
 			       "%s  %s  %s  " . 
