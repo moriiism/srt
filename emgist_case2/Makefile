@@ -13,7 +13,9 @@ LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LI
 	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = emgist_openblas  emgist_test  emgist
+# TARGET = emgist_openblas  emgist_test  emgist
+TARGET = emgist_test  emgist
+
 
 all: $(TARGET) 
 

@@ -3,7 +3,8 @@
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "arg_richlucy_bg.h"
-#include "sub.h"
+#include "sub_bg.h"
+#include "TRandom3.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -82,22 +83,18 @@ int main(int argc, char* argv[])
     }
 
     // bg image
+    TRandom3* trand = new TRandom3(0);
     double* bg_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
-        bg_arr[isky] = 0.0;
+        bg_arr[isky] = trand->PoissonD(2.0);
     }
-    
-
     bitpix = -32;
-    Richlucy(rho_arr, nph,
-             data_arr, resp_mat_arr,
-             argval->GetNem(), argval->GetTolEm(),
-             argval->GetTolDiffLVar(),
-             argval->GetFlagLineSearch(),
-             argval->GetOutdir(), argval->GetOutfileHead(),
-             ndet, nskyx, nskyy, argval->GetEpsilon(),
-             bitpix,
-             rho_new_arr);
+    RichlucyBg(rho_arr, nph,
+               data_arr, resp_mat_arr, bg_arr,
+               50, 
+               argval->GetOutdir(), argval->GetOutfileHead(),
+               ndet, nskyx, nskyy,
+               rho_new_arr);
 
     printf("nph = %d\n", nph);
     double sum_image = MirMath::GetSum(nsky, rho_arr);

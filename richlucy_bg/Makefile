@@ -17,8 +17,8 @@ TARGET = richlucy_bg
 
 all: $(TARGET) 
 
-richlucy_bg: richlucy_bg.o  arg_richlucy_bg.o  sub.o
-	$(CXXN) $@.o arg_$@.o sub.o ${LDLIBS} -o $@
+richlucy_bg: richlucy_bg.o  arg_richlucy_bg.o  sub_bg.o
+	$(CXXN) $@.o arg_$@.o sub_bg.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:
