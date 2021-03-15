@@ -13,12 +13,12 @@ LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LI
 	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = richlucy
+TARGET = mksrc
 
 all: $(TARGET) 
 
-richlucy: richlucy.o  arg_richlucy.o  sub.o
-	$(CXXN) $@.o arg_$@.o sub.o ${LDLIBS} -o $@
+mksrc: mksrc.o  arg_mksrc.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:

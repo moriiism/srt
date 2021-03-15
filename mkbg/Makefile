@@ -13,12 +13,12 @@ LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LI
 	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = mkobs
+TARGET = mkbg
 
 all: $(TARGET) 
 
-mkobs: mkobs.o  arg_mkobs.o  sub.o
-	$(CXXN) $@.o arg_$@.o sub.o ${LDLIBS} -o $@
+mkbg: mkbg.o  arg_mkbg.o  model.o
+	$(CXXN) $@.o arg_$@.o model.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:

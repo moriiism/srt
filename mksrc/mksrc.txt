@@ -1,0 +1,29 @@
+#
+# mksrc.txt
+#
+
+# overview
+
+point sources at sky を作成する。
+
+# example
+
+point source を2天体作成する場合:
+
+source ~/github/moriiism/mitool/setup/setup_letsnote.sh 
+
+cd /home/morii/work/arb/run
+
+mkdir sim
+cat << EOF > sim/two.dat
+# posx posy flux
+15 15 100
+20 20 100
+EOF
+
+infile=sim/two.dat
+outfile=sim/two.fits
+
+~/github/moriiism/srt/mksrc/mksrc \
+$infile \
+$outfile

@@ -1,28 +1,28 @@
-#ifndef MORIIISM_SRT_MKOBS_ARG_MKOBS_H_
-#define MORIIISM_SRT_MKOBS_ARG_MKOBS_H_
+#ifndef MORIIISM_SRT_MKBG_ARG_MKBG_H_
+#define MORIIISM_SRT_MKBG_ARG_MKBG_H_
 
 #include "mi_base.h"
 
-class ArgValMkobs : public MiArgBase{
+class ArgValMkbg : public MiArgBase{
 public:
-    ArgValMkobs() :
+    ArgValMkbg() :
         MiArgBase(),
         progname_(""),
-        infile_(""),
+        model_file_(""),
         outfile_("") {}
-    ~ArgValMkobs(){
+    ~ArgValMkbg(){
         Null();
     }
     void Init(int argc, char* argv[]);
     void Print(FILE* fp) const;
 
     string GetProgname() const {return progname_;};
-    string GetInfile() const {return infile_;};
+    string GetModelFile() const {return model_file_;};
     string GetOutfile() const {return outfile_;};
 
 private:
     string progname_;
-    string infile_;
+    string model_file_;
     string outfile_;
 
     void Null();
@@ -30,4 +30,4 @@ private:
     void Usage(FILE* fp) const;
 };
 
-#endif // MORIIISM_SRT_MKOBS_ARG_MKOBS_H_
+#endif // MORIIISM_SRT_MKBG_ARG_MKBG_H_

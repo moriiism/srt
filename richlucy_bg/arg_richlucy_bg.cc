@@ -27,7 +27,7 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     respdir_        = argv[iarg]; iarg++;
     datafile_       = argv[iarg]; iarg++;
     skyfile_        = argv[iarg]; iarg++;
-    bgfile_         = argv[iarg]; iarg++;    
+    bgfile_         = argv[iarg]; iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
     nem_            = atoi(argv[iarg]); iarg++;
@@ -47,7 +47,7 @@ void ArgValRichlucyBg::Print(FILE* fp) const
     fprintf(fp, "%s: respdir_        : %s\n", __func__, respdir_.c_str());
     fprintf(fp, "%s: datafile_       : %s\n", __func__, datafile_.c_str());
     fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());
-    fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());    
+    fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
     fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
@@ -66,7 +66,7 @@ void ArgValRichlucyBg::Null()
     respdir_  = "";
     datafile_ = "";
     skyfile_  = "";
-    bgfile_   = "";    
+    bgfile_   = "";
     outdir_   = "";
     outfile_head_ = "";
     nem_      = 0;    
@@ -130,7 +130,8 @@ void ArgValRichlucyBg::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "respdir  datafile  skyfile  bgfile  outdir  outfile_head  nem  tol_em  tol_diff_l_var  "
+            "respdir  datafile  skyfile  bgfile  "
+            "outdir  outfile_head  nem  tol_em  tol_diff_l_var  "
             "flag_line_search  epsilon\n",
             progname_.c_str());
     abort();

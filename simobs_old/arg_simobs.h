@@ -9,10 +9,9 @@ public:
         MiArgBase(),
         progname_(""),
         respdir_(""),
-        srcfile_(""),
-        nevt_src_(0),
-        bgfile_(""),
-        nevt_bg_(0),
+        infile_(""),
+        nevt_(0),
+        rand_seed_sky_(0),
         rand_seed_det_(0),
         rand_seed_partition_(0),
         nfold_(0),
@@ -27,10 +26,9 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetRespdir() const {return respdir_;};
-    string GetSrcfile() const {return srcfile_;};
-    int    GetNevtSrc() const {return nevt_src_;};
-    string GetBgfile() const {return bgfile_;};
-    int    GetNevtBg() const {return nevt_bg_;};
+    string GetInfile() const {return infile_;};
+    int    GetNevt() const {return nevt_;};
+    int    GetRandSeedSky() const {return rand_seed_sky_;};
     int    GetRandSeedDet() const {return rand_seed_det_;};
     int    GetRandSeedPartition() const {return rand_seed_partition_;};
     int    GetNfold() const {return nfold_;};
@@ -41,10 +39,9 @@ public:
 private:
     string progname_;
     string respdir_;
-    string srcfile_;
-    int    nevt_src_;
-    string bgfile_;
-    int    nevt_bg_;
+    string infile_;
+    int    nevt_;
+    int    rand_seed_sky_;
     int    rand_seed_det_;
     int    rand_seed_partition_;
     int    nfold_;

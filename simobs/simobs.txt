@@ -1,0 +1,30 @@
+#
+# simobs.txt
+#
+
+respdir=../data/imageall
+srcfile=sim/two.fits
+nevt_src=10000
+bgfile=sim/bg.fits
+nevt_bg=100
+rand_seed_det=1
+rand_seed_partition=1
+nfold=1
+npartition=1
+outdir=sim
+outfile_head=two
+
+
+~/github/moriiism/srt/simobs/simobs \
+$respdir \
+$srcfile \
+$nevt_src \
+$bgfile \
+$nevt_bg \
+$rand_seed_det \
+$rand_seed_partition \
+$nfold \
+$npartition \
+$outdir \
+$outfile_head
+

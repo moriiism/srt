@@ -1,10 +1,10 @@
-#include "arg_mkimg.h"
+#include "arg_mkbg.h"
 
 // public
 
-void ArgValMkimg::Init(int argc, char* argv[])
+void ArgValMkbg::Init(int argc, char* argv[])
 {
-    progname_ = "mkimg";
+    progname_ = "mkbg";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -18,43 +18,37 @@ void ArgValMkimg::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 4;
+    int narg = 2;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
-    infile_    = argv[iarg]; iarg++;
-    dotfile_   = argv[iarg]; iarg++;
-    outdir_    = argv[iarg]; iarg++;
-    outfile_head_ = argv[iarg]; iarg++;
+    model_file_     = argv[iarg]; iarg++;
+    outfile_        = argv[iarg]; iarg++;
 }
 
-void ArgValMkimg::Print(FILE* fp) const
+void ArgValMkbg::Print(FILE* fp) const
 {
     fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
     fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
     fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: infile_         : %s\n", __func__, infile_.c_str());
-    fprintf(fp, "%s: dotfile_        : %s\n", __func__, dotfile_.c_str());
-    fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
-    fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
+    fprintf(fp, "%s: model_file_     : %s\n", __func__, model_file_.c_str());
+    fprintf(fp, "%s: outfile_        : %s\n", __func__, outfile_.c_str());
 }
 
 // private
 
-void ArgValMkimg::Null()
+void ArgValMkbg::Null()
 {
-    progname_  = "";
-    infile_    = "";
-    dotfile_   = "";
-    outdir_    = "";
-    outfile_head_ = "";
+    progname_   = "";
+    model_file_ = "";
+    outfile_    = "";
 }
 
-void ArgValMkimg::SetOption(int argc, char* argv[], option* long_options)
+void ArgValMkbg::SetOption(int argc, char* argv[], option* long_options)
 {
     if(0 < g_flag_verbose){
         MPrintInfo("start...");
@@ -104,11 +98,11 @@ void ArgValMkimg::SetOption(int argc, char* argv[], option* long_options)
 }
 
 
-void ArgValMkimg::Usage(FILE* fp) const
+void ArgValMkbg::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "infile  dotfile  outdir  outfile_head \n",
+            "model_file  outfile\n",
             progname_.c_str());
     abort();
 }

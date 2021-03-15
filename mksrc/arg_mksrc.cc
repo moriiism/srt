@@ -1,10 +1,10 @@
-#include "arg_mkobs.h"
+#include "arg_mksrc.h"
 
 // public
 
-void ArgValMkobs::Init(int argc, char* argv[])
+void ArgValMksrc::Init(int argc, char* argv[])
 {
-    progname_ = "mkobs";
+    progname_ = "mksrc";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -28,7 +28,7 @@ void ArgValMkobs::Init(int argc, char* argv[])
     outfile_        = argv[iarg]; iarg++;
 }
 
-void ArgValMkobs::Print(FILE* fp) const
+void ArgValMksrc::Print(FILE* fp) const
 {
     fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
     fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
@@ -41,14 +41,14 @@ void ArgValMkobs::Print(FILE* fp) const
 
 // private
 
-void ArgValMkobs::Null()
+void ArgValMksrc::Null()
 {
     progname_  = "";
     infile_    = "";
     outfile_   = "";
 }
 
-void ArgValMkobs::SetOption(int argc, char* argv[], option* long_options)
+void ArgValMksrc::SetOption(int argc, char* argv[], option* long_options)
 {
     if(0 < g_flag_verbose){
         MPrintInfo("start...");
@@ -98,7 +98,7 @@ void ArgValMkobs::SetOption(int argc, char* argv[], option* long_options)
 }
 
 
-void ArgValMkobs::Usage(FILE* fp) const
+void ArgValMksrc::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "

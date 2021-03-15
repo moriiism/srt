@@ -9,11 +9,10 @@ double GetNextNb(const double* const rho_arr,
 {
     double N_B_new = N_B;
     double B = GetB(bg_arr, ndet);
-    printf("B = %e\n", B);
-    
     double deriv_f_at_B = GetDerivF_NB(rho_arr, data_arr, resp_mat_arr,
                                        bg_arr, ndet, nsky, B);
     if(deriv_f_at_B >= 0.0){
+        printf("GetNextNb: deriv_f_at_B >= 0\n");
         N_B_new = B;
     } else{
         // get next N_B by Newton Method
@@ -24,8 +23,17 @@ double GetNextNb(const double* const rho_arr,
             double deriv2_f_at_NB = GetDeriv2F_NB(rho_arr, data_arr,
                                                   resp_mat_arr, bg_arr,
                                                   ndet, nsky, N_B_new);
+
+            printf("deriv2_f_at_NB = %e\n", deriv2_f_at_NB);
+            
+            if(fabs(deriv2_f_at_NB) < 1e-10){
+                printf("GetNextNb: deriv_f_at_NB == 0\n");
+            }
             N_B_new -= deriv_f_at_NB / deriv2_f_at_NB;
         }
+    }
+    if (N_B_new < B){
+        printf("warning: N_B (%e) < B(%e).\n", N_B_new, B);
     }
     return(N_B_new);
 }
@@ -68,11 +76,6 @@ double GetDerivF_NB(const double* const rho_arr,
     for(int idet = 0; idet < ndet; idet++){
         sum += data_arr[idet] * det_arr[idet] /
             (N_B * det_arr[idet] + bg_arr[idet]);
-        //printf("data = %e\n ", data_arr[idet]);
-        //printf("det = %e\n ", det_arr[idet]);
-        //printf("N_B = %e\n ", N_B);
-        //printf("bg  = %e\n ", bg_arr[idet]);
-        //printf("sum = %e\n", sum);
     }
     double deriv_f = 1.0 - sum;
     delete [] transa;
@@ -155,6 +158,13 @@ void GetNextRhoArr(const double* const rho_arr,
         out_arr[isky] = out_arr[isky] * rho_arr[isky];
         out_arr[isky] *= coeff;
     }
+
+    // if N_B == B out_arr = 0
+    if(fabs(N_B - B) < 1e-10){
+        for(int isky = 0; isky < nsky; isky ++){
+            out_arr[isky] = 0.0;
+        }
+    }
     
     delete [] transa;
     delete [] det_arr;
@@ -176,10 +186,17 @@ void RichlucyBg(const double* const rho_arr, int nph,
     double N_B = GetN(rho_new_arr, nsky) + GetB(bg_arr, ndet);
     printf("N_B = %e\n", N_B);
     for(int iiter = 0; iiter < niter; iiter ++){
-        printf("iiter = %d\n", iiter);
+
         N_B = GetNextNb(rho_new_arr, data_arr, resp_mat_arr,
                         bg_arr, ndet, nsky, N_B);
-        printf("N_B = %e\n", N_B);
+        //if(std::isnan(N_B)){
+        //    for(int isky = 0; isky < nsky; isky ++){
+        //        printf("rho = %e\n", rho_new_arr[isky]);
+        //    }
+        //}
+        
+        double B = GetB(bg_arr, ndet);
+        printf("iiter = %d, B, N_B = %e, %e\n", iiter, B, N_B);
         int nem = 50;
         for(int iem = 0; iem < nem; iem ++){
             double* rho_next_arr = new double[nsky];

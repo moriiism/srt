@@ -82,16 +82,31 @@ int main(int argc, char* argv[])
         delete img_info_sky;
     }
 
-    // bg image
-    TRandom3* trand = new TRandom3(0);
-    double* bg_arr = new double[nsky];
-    for(int isky = 0; isky < nsky; isky ++){
-        bg_arr[isky] = trand->PoissonD(2.0);
-    }
+    // load bg model
+    bitpix = 0;
+    double* bg_arr = NULL;
+    MifFits::InFitsImageD(argval->GetBgfile(), img_info,
+                          &bitpix, &bg_arr);
+    int nph_bg = MirMath::GetSum(ndet, bg_arr);
+    printf("N bg = %d\n", nph_bg);
+    
+    //    TRandom3* trand = new TRandom3(0);
+    //    double* bg_arr = new double[ndet];
+    //for(int idet = 0; idet < ndet; idet ++){
+    //    bg_arr[idet] = trand->PoissonD(7.0);
+    //}
+    //for(int idet = 0; idet < ndet; idet ++){
+    //data_arr[idet] = data_arr[idet] + bg_arr[idet];
+    //}
+    //int nph_with_bg = MirMath::GetSum(ndet, data_arr);
+    //printf("N photon with bg = %d\n", nph_with_bg);
+    //ph = nph_with_bg;
+
+    
     bitpix = -32;
     RichlucyBg(rho_arr, nph,
                data_arr, resp_mat_arr, bg_arr,
-               50, 
+               20, 
                argval->GetOutdir(), argval->GetOutfileHead(),
                ndet, nskyx, nskyy,
                rho_new_arr);

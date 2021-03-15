@@ -2,8 +2,7 @@
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
-#include "arg_mkobs.h"
-#include "sub.h"
+#include "arg_mksrc.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -14,7 +13,7 @@ int main(int argc, char* argv[])
 {
     int status_prog = kRetNormal;
     
-    ArgValMkobs* argval = new ArgValMkobs;
+    ArgValMksrc* argval = new ArgValMksrc;
     argval->Init(argc, argv);
     argval->Print(stdout);
 

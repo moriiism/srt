@@ -1,0 +1,29 @@
+#
+# mkbg.txt
+#
+
+# overview
+
+background at detector を作成する。
+
+# example
+
+quadratic function のbackground を作成する場合:
+
+source ~/github/moriiism/mitool/setup/setup_letsnote.sh 
+
+cd /home/morii/work/arb/run
+
+cat << EOF > sim/bg.dat
+# background model name
+# background model parameters
+quad
+30 30 -1  0  0 10000
+EOF
+
+model_file=sim/bg.dat
+outfile=sim/bg.fits
+
+~/github/moriiism/srt/mkbg/mkbg \
+$model_file \
+$outfile
