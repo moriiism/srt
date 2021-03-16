@@ -83,23 +83,27 @@ skyfile=none
 bgfile=sim/two_bg_3000.fits
 outdir=rl_bg
 outfile_head=two_obs
-nem=1000
-tol_em=1.0e-6
-tol_diff_l_var=1.0e-5
-flag_line_search=1
+nloop_main=100
+nloop_em=100
+nloop_newton=10
+tol_main=1.0e-5
+tol_em=1.0e-5
+tol_newton=1.0e-5
 epsilon=1.0e-5
 
-../../../github/moriiism/srt/richlucy_bg/richlucy_bg \
+~/github/moriiism/srt/richlucy_bg/richlucy_bg \
 $respdir \
 $datafile \
 $skyfile \
 $bgfile \
 $outdir \
 $outfile_head \
-$nem \
+$nloop_main \
+$nloop_em \
+$nloop_newton \
+$tol_main \
 $tol_em \
-$tol_diff_l_var \
-$flag_line_search \
+$tol_newton \
 $epsilon
 
 

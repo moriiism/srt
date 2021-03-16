@@ -5,7 +5,9 @@ double GetNextNb(const double* const rho_arr,
                  const double* const resp_mat_arr,
                  const double* const bg_arr,
                  int ndet, int nsky,
-                 double N_B)
+                 double N_B,
+                 int niter_newton,
+                 double tol_newton)
 {
     double N_B_new = N_B;
     double B = GetB(bg_arr, ndet);
@@ -16,20 +18,24 @@ double GetNextNb(const double* const rho_arr,
         N_B_new = B;
     } else{
         // get next N_B by Newton Method
-        for(int iter = 0; iter < 10; iter ++){
+        double N_B_pre = N_B_new;
+        for(int iter = 0; iter < niter_newton; iter ++){
             double deriv_f_at_NB = GetDerivF_NB(rho_arr, data_arr,
                                                 resp_mat_arr, bg_arr,
                                                 ndet, nsky, N_B_new);
             double deriv2_f_at_NB = GetDeriv2F_NB(rho_arr, data_arr,
                                                   resp_mat_arr, bg_arr,
                                                   ndet, nsky, N_B_new);
-
-            printf("deriv2_f_at_NB = %e\n", deriv2_f_at_NB);
-            
             if(fabs(deriv2_f_at_NB) < 1e-10){
-                printf("GetNextNb: deriv_f_at_NB == 0\n");
+                printf("GetNextNb: deriv_f_at_NB = %e\n",
+                       deriv2_f_at_NB);
             }
             N_B_new -= deriv_f_at_NB / deriv2_f_at_NB;
+
+            if (fabs(N_B_new - N_B_pre / N_B_pre) < tol_newton){
+                break;
+            }
+            N_B_pre = N_B_new;
         }
     }
     if (N_B_new < B){
@@ -175,39 +181,50 @@ void RichlucyBg(const double* const rho_arr, int nph,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 const double* const bg_arr,
-                int niter,
+                int niter_main, int niter_em, int niter_newton,
                 string outdir, string outfile_head,
                 int ndet, int nskyx, int nskyy,
+                double tol_main, double tol_em, double tol_newton, 
                 double* const out_arr)
 {
     int nsky = nskyx * nskyy;
     double* rho_new_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_new_arr, 1);
+    double* rho_pre_arr = new double[nsky];
+    dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_pre_arr, 1);
     double N_B = GetN(rho_new_arr, nsky) + GetB(bg_arr, ndet);
     printf("N_B = %e\n", N_B);
-    for(int iiter = 0; iiter < niter; iiter ++){
-
+    for(int iiter = 0; iiter < niter_main; iiter ++){
         N_B = GetNextNb(rho_new_arr, data_arr, resp_mat_arr,
-                        bg_arr, ndet, nsky, N_B);
-        //if(std::isnan(N_B)){
-        //    for(int isky = 0; isky < nsky; isky ++){
-        //        printf("rho = %e\n", rho_new_arr[isky]);
-        //    }
-        //}
-        
+                        bg_arr, ndet, nsky, N_B,
+                        niter_newton, tol_newton);
         double B = GetB(bg_arr, ndet);
-        printf("iiter = %d, B, N_B = %e, %e\n", iiter, B, N_B);
-        int nem = 50;
-        for(int iem = 0; iem < nem; iem ++){
+        for(int iem = 0; iem < niter_em; iem ++){
             double* rho_next_arr = new double[nsky];
             GetNextRhoArr(rho_new_arr, data_arr, resp_mat_arr, bg_arr,
                           ndet, nsky, N_B, rho_next_arr);
+            double helldist = GetHellingerDist(rho_new_arr, rho_next_arr, nsky);
             dcopy_(nsky, const_cast<double*>(rho_next_arr), 1, rho_new_arr, 1);
             delete [] rho_next_arr;
+            if (helldist < tol_em){
+                printf("iem = %d, helldist = %e\n", iem, helldist);
+                break;
+            }
         }
+        double helldist_main = GetHellingerDist(rho_pre_arr, rho_new_arr, nsky);
+
+        printf("iiter = %d, B = %e, N_B = %e, helldist_main = %e\n",
+               iiter, B, N_B, helldist_main);
+        if (helldist_main < tol_main){
+            printf("iiter = %d, helldist_main = %e\n",
+                   iiter, helldist_main);
+            break;
+        }
+        dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
     }
     dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, out_arr, 1);
     delete [] rho_new_arr;
+    delete [] rho_pre_arr;
 }
 
 
@@ -285,3 +302,18 @@ void GetNdet(string respdir, int* const ndetx_ptr, int* const ndety_ptr)
     *ndety_ptr = ndet_arr[1];
     delete [] ndet_arr;
 }
+
+
+double GetHellingerDist(const double* const rho_arr,
+                        const double* const rho_new_arr,
+                        int nsky)
+{
+    double sum = 0.0;
+    for(int isky = 0; isky < nsky; isky ++){
+        double diff = sqrt(rho_arr[isky]) - sqrt(rho_new_arr[isky]);
+        sum += diff * diff;
+    }
+    double ans = sqrt(sum);
+    return (ans);
+}
+

@@ -13,7 +13,9 @@ double GetNextNb(const double* const rho_arr,
                  const double* const resp_mat_arr,
                  const double* const bg_arr,
                  int ndet, int nsky,
-                 double N_B);
+                 double N_B,
+                 int niter_newton,
+                 double tol_newton);
 
 double GetB(const double* const bg_arr, int ndet);
 
@@ -50,9 +52,10 @@ void RichlucyBg(const double* const rho_arr, int nph,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 const double* const bg_arr,
-                int niter,
+                int niter_main, int niter_em, int niter_newton,
                 string outdir, string outfile_head,
                 int ndet, int nskyx, int nskyy,
+                double tol_main, double tol_em, double tol_newton,
                 double* const out_arr);
 
 void LoadResp(string respdir, int nskyx, int nskyy,
@@ -63,5 +66,8 @@ void LoadResp(string respdir, int nskyx, int nskyy,
 
 void GetNdet(string respdir, int* const ndetx_ptr, int* const ndety_ptr);
 
+double GetHellingerDist(const double* const rho_arr,
+                        const double* const rho_new_arr,
+                        int nsky);
 
 #endif // MORIIISM_SRT_RICHLUCY_BG_SUB_BG_H_

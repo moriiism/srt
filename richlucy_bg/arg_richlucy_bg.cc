@@ -18,7 +18,7 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 11;
+    int narg = 13;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -30,10 +30,12 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     bgfile_         = argv[iarg]; iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
-    nem_            = atoi(argv[iarg]); iarg++;
+    nloop_main_     = atoi(argv[iarg]); iarg++;
+    nloop_em_       = atoi(argv[iarg]); iarg++;
+    nloop_newton_   = atoi(argv[iarg]); iarg++;
+    tol_main_       = atof(argv[iarg]); iarg++;
     tol_em_         = atof(argv[iarg]); iarg++;
-    tol_diff_l_var_ = atof(argv[iarg]); iarg++;
-    flag_line_search_ = atoi(argv[iarg]); iarg++;
+    tol_newton_     = atof(argv[iarg]); iarg++;
     epsilon_        = atof(argv[iarg]); iarg++;
 }
 
@@ -50,12 +52,13 @@ void ArgValRichlucyBg::Print(FILE* fp) const
     fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
-    fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
+    fprintf(fp, "%s: nloop_main_     : %d\n", __func__, nloop_main_);
+    fprintf(fp, "%s: nloop_em_       : %d\n", __func__, nloop_em_);
+    fprintf(fp, "%s: nloop_newton_   : %d\n", __func__, nloop_newton_);
+    fprintf(fp, "%s: tol_main_       : %f\n", __func__, tol_main_);
     fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
-    fprintf(fp, "%s: tol_diff_l_var_ : %f\n", __func__, tol_diff_l_var_);
-    fprintf(fp, "%s: flag_line_search_ : %d\n", __func__, flag_line_search_);
+    fprintf(fp, "%s: tol_newton_     : %f\n", __func__, tol_newton_);
     fprintf(fp, "%s: epsilon_        : %f\n", __func__, epsilon_);
-
 }
 
 // private
@@ -69,11 +72,13 @@ void ArgValRichlucyBg::Null()
     bgfile_   = "";
     outdir_   = "";
     outfile_head_ = "";
-    nem_      = 0;    
-    tol_em_   = 0.0;
-    tol_diff_l_var_ = 0.0;
-    flag_line_search_ = 0;
-    epsilon_  = 0.0;
+    nloop_main_   = 0;    
+    nloop_em_     = 0;
+    nloop_newton_ = 0;
+    tol_main_     = 0.0;
+    tol_em_       = 0.0;
+    tol_newton_   = 0.0;
+    epsilon_      = 0.0;
 }
 
 void ArgValRichlucyBg::SetOption(int argc, char* argv[], option* long_options)
@@ -131,8 +136,8 @@ void ArgValRichlucyBg::Usage(FILE* fp) const
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
             "respdir  datafile  skyfile  bgfile  "
-            "outdir  outfile_head  nem  tol_em  tol_diff_l_var  "
-            "flag_line_search  epsilon\n",
+            "outdir  outfile_head  nloop_main  nloop_em  nloop_newton "
+            "tol_main  tol_em  tol_newton  epsilon\n",
             progname_.c_str());
     abort();
 }

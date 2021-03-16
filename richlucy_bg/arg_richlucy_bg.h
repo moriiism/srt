@@ -14,10 +14,12 @@ public:
 	bgfile_(""),
         outdir_(""),
         outfile_head_(""),
-        nem_(0),
+        nloop_main_(0),
+        nloop_em_(0),
+        nloop_newton_(0),
+        tol_main_(0.0),
         tol_em_(0.0),
-        tol_diff_l_var_(0.0),
-        flag_line_search_(0),
+        tol_newton_(0.0),
         epsilon_(0.0) {}
     ~ArgValRichlucyBg(){
         Null();
@@ -32,10 +34,12 @@ public:
     string GetBgfile() const {return bgfile_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
-    int    GetNem() const {return nem_;};
+    int    GetNloopMain() const {return nloop_main_;};
+    int    GetNloopEm() const {return nloop_em_;};
+    int    GetNloopNewton() const {return nloop_newton_;};
+    double GetTolMain() const {return tol_main_;};
     double GetTolEm() const {return tol_em_;};
-    double GetTolDiffLVar() const {return tol_diff_l_var_;};
-    int    GetFlagLineSearch() const {return flag_line_search_;};
+    double GetTolNewton() const {return tol_newton_;};
     double GetEpsilon() const {return epsilon_;};
 
 private:
@@ -46,10 +50,12 @@ private:
     string bgfile_;
     string outdir_;
     string outfile_head_;
-    int    nem_;
+    int    nloop_main_;
+    int    nloop_em_;
+    int    nloop_newton_;
+    double tol_main_;
     double tol_em_;
-    double tol_diff_l_var_;
-    int    flag_line_search_;
+    double tol_newton_;
     double epsilon_;
 
     void Null();
