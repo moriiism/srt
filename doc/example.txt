@@ -1,0 +1,105 @@
+#
+# example.txt
+#
+
+#
+# 1. mksrc
+# 2. mkbg
+# 3. simobs
+# 4. richlucy_bg
+#
+
+source ~/github/moriiism/mitool/setup/setup_letsnote.sh 
+
+cd /home/morii/work/arb/run
+
+# 1. mksrc
+
+mkdir sim
+cat << EOF > sim/two.dat
+# posx posy flux
+15 15 100
+20 20 100
+EOF
+
+infile=sim/two.dat
+outfile=sim/two.fits
+
+~/github/moriiism/srt/mksrc/mksrc \
+$infile \
+$outfile
+
+# 2. mkbg
+
+cat << EOF > sim/bg.dat
+# background model name
+# background model parameters
+quad
+30 30 -1  0  0 10000
+EOF
+
+model_file=sim/bg.dat
+outfile=sim/bg.fits
+
+~/github/moriiism/srt/mkbg/mkbg \
+$model_file \
+$outfile
+
+
+# 3. simobs
+
+respdir=../data/imageall
+srcfile=sim/two.fits
+nevt_src=10000
+bgfile=sim/bg.fits
+nevt_bg=3000
+rand_seed_det=1
+rand_seed_partition=1
+nfold=1
+npartition=1
+outdir=sim
+outfile_head=two
+
+
+~/github/moriiism/srt/simobs/simobs \
+$respdir \
+$srcfile \
+$nevt_src \
+$bgfile \
+$nevt_bg \
+$rand_seed_det \
+$rand_seed_partition \
+$nfold \
+$npartition \
+$outdir \
+$outfile_head
+
+
+# 4. richlucy_bg
+
+respdir=../data/imageall
+datafile=sim/two_obs_0001.fits
+skyfile=none
+bgfile=sim/two_bg_3000.fits
+outdir=rl_bg
+outfile_head=two_obs
+nem=1000
+tol_em=1.0e-6
+tol_diff_l_var=1.0e-5
+flag_line_search=1
+epsilon=1.0e-5
+
+../../../github/moriiism/srt/richlucy_bg/richlucy_bg \
+$respdir \
+$datafile \
+$skyfile \
+$bgfile \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$tol_diff_l_var \
+$flag_line_search \
+$epsilon
+
+
