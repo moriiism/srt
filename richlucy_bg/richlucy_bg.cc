@@ -35,28 +35,27 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "-----------------------------\n");
     argval->Print(fp_log);
 
-    // load response 
-    int nskyx = 60;
-    int nskyy = 60;
-    int ndetx = 0;
-    int ndety = 0;
-    double* resp_mat_arr = NULL;
-    LoadResp(argval->GetRespdir(), nskyx, nskyy,
-             argval->GetEpsilon(),
-             &resp_mat_arr, &ndetx, &ndety);
+
+    int nskyx = argval->GetNskyx();
+    int nskyy = argval->GetNskyy();
+    int ndetx = argval->GetNdetx();
+    int ndety = argval->GetNdety();
     int nsky = nskyx * nskyy;
     int ndet = ndetx * ndety;    
 
+    
     // load data
-    MifImgInfo* img_info = new MifImgInfo;
-    img_info->InitSetImg(1, 1, ndetx, ndety);
+    MifImgInfo* img_info_data = new MifImgInfo;
+    img_info_data->InitSetImg(1, 1, ndetx, ndety);
     int bitpix = 0;
     double* data_arr = NULL;
-    MifFits::InFitsImageD(argval->GetDatafile(), img_info,
+    MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
                           &bitpix, &data_arr);
     int nph = MirMath::GetSum(ndet, data_arr);
     printf("N photon = %d\n", nph);
     
+
+
     // sky image
     double* rho_arr = new double[nsky];
     double* rho_new_arr = new double[nsky];
@@ -82,10 +81,41 @@ int main(int argc, char* argv[])
         delete img_info_sky;
     }
 
+
+    // load normalized response file
+    int naxis = 2;
+    int* naxes_arr = new int[naxis];
+    for(int iaxis = 0; iaxis < naxis; iaxis ++){
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespNormFile(), iaxis);
+    }
+    if ((naxes_arr[0] != ndet) || (naxes_arr[1] != nsky)){
+        abort();
+    }
+    double* resp_mat_arr = NULL;
+    int bitpix_resp = 0;
+    MifImgInfo* img_info_resp = new MifImgInfo;
+    img_info_resp->InitSetImg(1, 1, ndet, nsky);
+    MifFits::InFitsImageD(argval->GetRespNormFile(), img_info_resp,
+                          &bitpix_resp, &resp_mat_arr);
+
+    // load efficiency file
+    for(int iaxis = 0; iaxis < naxis; iaxis ++){
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetEffFile(), iaxis);
+    }
+    double* eff_mat_arr = NULL;
+    int bitpix_eff = 0;
+    MifImgInfo* img_info_eff = new MifImgInfo;
+    img_info_eff->InitSetImg(1, 1, nskyx, nskyy);
+    MifFits::InFitsImageD(argval->GetEffFile(), img_info_eff,
+                          &bitpix_eff, &eff_mat_arr);
+    
+
     // load bg model
     bitpix = 0;
     double* bg_arr = NULL;
-    MifFits::InFitsImageD(argval->GetBgfile(), img_info,
+    MifImgInfo* img_info_bg = new MifImgInfo;
+    img_info_bg->InitSetImg(1, 1, ndetx, ndety);
+    MifFits::InFitsImageD(argval->GetBgfile(), img_info_bg,
                           &bitpix, &bg_arr);
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
     printf("N bg = %d\n", nph_bg);
@@ -112,7 +142,11 @@ int main(int argc, char* argv[])
     for(int isky = 0; isky < nsky; isky ++){
         rho_new_arr[isky] *= nph;
     }
-    int naxis = 2;
+    // div by eff_arr
+    for(int isky = 0; isky < nsky; isky ++){
+        rho_new_arr[isky] /= eff_mat_arr[isky];
+    }    
+    naxis = 2;
     long* naxes = new long[naxis];
     naxes[0] = nskyx;
     naxes[1] = nskyy;

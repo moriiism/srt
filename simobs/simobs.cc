@@ -32,18 +32,47 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "-----------------------------\n");
     argval->Print(fp_log);
     
-    // load response 
-    int nskyx = 60;
-    int nskyy = 60;
-    int ndetx = 0;
-    int ndety = 0;
+//    // load response 
+//    int nskyx = 60;
+//    int nskyy = 60;
+//    int ndetx = 0;
+//    int ndety = 0;
+//    double* resp_mat_arr = NULL;
+//    LoadResp(argval->GetRespdir(), nskyx, nskyy,
+//             &resp_mat_arr, &ndetx, &ndety);
+//    int nsky = nskyx * nskyy;
+//    int ndet = ndetx * ndety;
+
+   
+    // load response
+    int naxis = 2;
+    int* naxes_arr = new int[naxis];
+    for(int iaxis = 0; iaxis < naxis; iaxis ++){
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespfile(), iaxis);
+    }
     double* resp_mat_arr = NULL;
-    LoadResp(argval->GetRespdir(), nskyx, nskyy,
-             &resp_mat_arr, &ndetx, &ndety);
+    int bitpix_resp = 0;
+    MifImgInfo* img_info_resp = new MifImgInfo;
+    img_info_resp->InitSetImg(1, 1, naxes_arr[0], naxes_arr[1]);
+    MifFits::InFitsImageD(argval->GetRespfile(), img_info_resp,
+                          &bitpix_resp, &resp_mat_arr);
+    
+    // get nskyx, nskyy
+    for(int iaxis = 0; iaxis < naxis; iaxis ++){
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetSrcfile(), iaxis);
+    }
+    int nskyx = naxes_arr[0];
+    int nskyy = naxes_arr[1];
+
+    // get ndetx, ndety
+    for(int iaxis = 0; iaxis < naxis; iaxis ++){
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetBgfile(), iaxis);
+    }
+    int ndetx = naxes_arr[0];
+    int ndety = naxes_arr[1];
     int nsky = nskyx * nskyy;
     int ndet = ndetx * ndety;
 
-   
     // load srcfile
     double* src_arr = NULL;
     MifImgInfo* img_info_src = new MifImgInfo;
@@ -119,20 +148,10 @@ int main(int argc, char* argv[])
            const_cast<double*>(src_norm_arr), 1,
            0.0, det_arr, 1);
 
-    double sum_det = 0.0;
-    for(int idet = 0; idet < ndet; idet ++){
-        sum_det += det_arr[idet];
-    }
-    printf("sum_det = %e\n", sum_det);
-    double* det_norm_arr = new double [ndet];
-    for(int idet = 0; idet < ndet; idet ++){
-        det_norm_arr[idet] = det_arr[idet] / sum_det;
-    }
-
     // det + bg
     double* det_bg_arr = new double [ndet];
     for(int idet = 0; idet < ndet; idet ++){
-        det_bg_arr[idet] = det_norm_arr[idet] * argval->GetNevtSrc() +
+        det_bg_arr[idet] = det_arr[idet] * argval->GetNevtSrc() +
             bg_norm_arr[idet] * argval->GetNevtBg();
     }
     double sum_det_bg = 0.0;

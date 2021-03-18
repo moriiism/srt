@@ -2,24 +2,47 @@
 # example.txt
 #
 
-#
-# 1. mksrc
-# 2. mkbg
-# 3. simobs
-# 4. richlucy_bg
-#
+# 1. mkresp
+# 2. mksrc
+# 3. mkbg
+# 4. simobs
+# 5. richlucy_bg
+
 
 source ~/github/moriiism/mitool/setup/setup_letsnote.sh 
 
 cd /home/morii/work/arb/run
 
-# 1. mksrc
+# responseの前提
+nskyx=60
+nskyy=60
+ndetx=60
+ndety=60
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=../data/imageall
+outdir=resp
+outfile_head=arb
+
+~/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head
+
+--->
+  resp/arb_eff.fits        : efficiency file
+  resp/arb_resp.fits       : response file
+  resp/arb_resp_norm.fits  : normalized response file
+
+# 2. mksrc
 
 mkdir sim
 cat << EOF > sim/two.dat
 # posx posy flux
-15 15 100
-20 20 100
+15 15 1.0
+20 20 1.0
 EOF
 
 infile=sim/two.dat
@@ -29,7 +52,10 @@ outfile=sim/two.fits
 $infile \
 $outfile
 
-# 2. mkbg
+--> 
+  sim/two.fits
+
+# 3. mkbg
 
 cat << EOF > sim/bg.dat
 # background model name
@@ -45,10 +71,12 @@ outfile=sim/bg.fits
 $model_file \
 $outfile
 
+--> 
+  sim/bg.fits
 
-# 3. simobs
+# 4. simobs
 
-respdir=../data/imageall
+respfile=resp/arb_resp.fits
 srcfile=sim/two.fits
 nevt_src=10000
 bgfile=sim/bg.fits
@@ -60,9 +88,8 @@ npartition=1
 outdir=sim
 outfile_head=two
 
-
 ~/github/moriiism/srt/simobs/simobs \
-$respdir \
+$respfile \
 $srcfile \
 $nevt_src \
 $bgfile \
@@ -74,13 +101,22 @@ $npartition \
 $outdir \
 $outfile_head
 
+-->
+  sim/two_obs_0001.fits  : observation data in detector coordinate
+  sim/two_bg_3000.fits   : background model in detector coordinate
 
-# 4. richlucy_bg
 
-respdir=../data/imageall
+# 5. richlucy_bg
+
 datafile=sim/two_obs_0001.fits
 skyfile=none
 bgfile=sim/two_bg_3000.fits
+resp_norm_file=resp/arb_resp_norm.fits
+eff_file=resp/arb_eff.fits
+nskyx=60
+nskyy=60
+ndetx=60
+ndety=60
 outdir=rl_bg
 outfile_head=two_obs
 nloop_main=100
@@ -89,13 +125,17 @@ nloop_newton=10
 tol_main=1.0e-5
 tol_em=1.0e-5
 tol_newton=1.0e-5
-epsilon=1.0e-5
 
 ~/github/moriiism/srt/richlucy_bg/richlucy_bg \
-$respdir \
 $datafile \
 $skyfile \
 $bgfile \
+$resp_norm_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
 $outdir \
 $outfile_head \
 $nloop_main \
@@ -103,7 +143,7 @@ $nloop_em \
 $nloop_newton \
 $tol_main \
 $tol_em \
-$tol_newton \
-$epsilon
+$tol_newton
 
-
+--> 
+  rl_bg/two_obs_rec.fits

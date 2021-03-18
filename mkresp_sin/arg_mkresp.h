@@ -8,7 +8,6 @@ public:
     ArgValMkresp() :
         MiArgBase(),
         progname_(""),
-        respdir_(""),
         outdir_(""),
         outfile_head_("") {}
     ~ArgValMkresp(){
@@ -18,13 +17,11 @@ public:
     void Print(FILE* fp) const;
 
     string GetProgname() const {return progname_;};
-    string GetRespdir() const {return respdir_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
 
 private:
     string progname_;
-    string respdir_;
     string outdir_;
     string outfile_head_;
 

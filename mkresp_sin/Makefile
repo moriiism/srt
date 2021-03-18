@@ -17,8 +17,8 @@ TARGET = mkresp
 
 all: $(TARGET) 
 
-mkresp: mkresp.o  arg_mkresp.o  load_resp.o
-	$(CXXN) $@.o arg_$@.o load_resp.o ${LDLIBS} -o $@
+mkresp: mkresp.o  arg_mkresp.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:

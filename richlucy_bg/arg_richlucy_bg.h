@@ -8,10 +8,15 @@ public:
     ArgValRichlucyBg() :
         MiArgBase(),
         progname_(""),
-        respdir_(""),
         datafile_(""),
         skyfile_(""),
 	bgfile_(""),
+        resp_norm_file_(""),
+        eff_file_(""),
+        nskyx_(0),
+        nskyy_(0),
+        ndetx_(0),
+        ndety_(0),
         outdir_(""),
         outfile_head_(""),
         nloop_main_(0),
@@ -19,8 +24,7 @@ public:
         nloop_newton_(0),
         tol_main_(0.0),
         tol_em_(0.0),
-        tol_newton_(0.0),
-        epsilon_(0.0) {}
+        tol_newton_(0.0) {}
     ~ArgValRichlucyBg(){
         Null();
     }
@@ -28,10 +32,15 @@ public:
     void Print(FILE* fp) const;
 
     string GetProgname() const {return progname_;};
-    string GetRespdir() const {return respdir_;};
     string GetDatafile() const {return datafile_;};
     string GetSkyfile() const {return skyfile_;};
     string GetBgfile() const {return bgfile_;};
+    string GetRespNormFile() const {return resp_norm_file_;};
+    string GetEffFile() const {return eff_file_;};
+    int    GetNskyx() const {return nskyx_;};
+    int    GetNskyy() const {return nskyy_;};
+    int    GetNdetx() const {return ndetx_;};
+    int    GetNdety() const {return ndety_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
     int    GetNloopMain() const {return nloop_main_;};
@@ -40,14 +49,18 @@ public:
     double GetTolMain() const {return tol_main_;};
     double GetTolEm() const {return tol_em_;};
     double GetTolNewton() const {return tol_newton_;};
-    double GetEpsilon() const {return epsilon_;};
 
 private:
     string progname_;
-    string respdir_;
     string datafile_;
     string skyfile_;
     string bgfile_;
+    string resp_norm_file_;
+    string eff_file_;
+    int nskyx_;
+    int nskyy_;
+    int ndetx_;
+    int ndety_;
     string outdir_;
     string outfile_head_;
     int    nloop_main_;
@@ -56,7 +69,6 @@ private:
     double tol_main_;
     double tol_em_;
     double tol_newton_;
-    double epsilon_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

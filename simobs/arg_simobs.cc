@@ -24,7 +24,7 @@ void ArgValSimobs::Init(int argc, char* argv[])
         Usage(stdout);
     }
     int iarg = optind;
-    respdir_        = argv[iarg]; iarg++;
+    respfile_       = argv[iarg]; iarg++;
     srcfile_        = argv[iarg]; iarg++;
     nevt_src_       = atoi(argv[iarg]); iarg++;
     bgfile_         = argv[iarg]; iarg++;
@@ -44,7 +44,7 @@ void ArgValSimobs::Print(FILE* fp) const
     fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: respdir_        : %s\n", __func__, respdir_.c_str());
+    fprintf(fp, "%s: respfile_       : %s\n", __func__, respfile_.c_str());
     fprintf(fp, "%s: srcfile_        : %s\n", __func__, srcfile_.c_str());
     fprintf(fp, "%s: nevt_src_       : %d\n", __func__, nevt_src_);
     fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());
@@ -62,7 +62,7 @@ void ArgValSimobs::Print(FILE* fp) const
 void ArgValSimobs::Null()
 {
     progname_  = "";
-    respdir_   = "";
+    respfile_  = "";
     srcfile_   = "";
     nevt_src_  = 0;
     bgfile_    = "";
@@ -129,7 +129,7 @@ void ArgValSimobs::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "respdir  srcfile  nevt_src  bgfile  nevt_bg  "
+            "respfile  srcfile  nevt_src  bgfile  nevt_bg  "
             "rand_seed_det  rand_seed_partition  "
             "nfold  npartition  outdir  outfile_head\n",
             progname_.c_str());

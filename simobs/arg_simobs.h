@@ -8,7 +8,7 @@ public:
     ArgValSimobs() :
         MiArgBase(),
         progname_(""),
-        respdir_(""),
+        respfile_(""),
         srcfile_(""),
         nevt_src_(0),
         bgfile_(""),
@@ -26,7 +26,7 @@ public:
     void Print(FILE* fp) const;
 
     string GetProgname() const {return progname_;};
-    string GetRespdir() const {return respdir_;};
+    string GetRespfile() const {return respfile_;};
     string GetSrcfile() const {return srcfile_;};
     int    GetNevtSrc() const {return nevt_src_;};
     string GetBgfile() const {return bgfile_;};
@@ -40,7 +40,7 @@ public:
 
 private:
     string progname_;
-    string respdir_;
+    string respfile_;
     string srcfile_;
     int    nevt_src_;
     string bgfile_;

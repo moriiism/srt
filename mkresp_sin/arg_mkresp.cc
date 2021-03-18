@@ -18,13 +18,12 @@ void ArgValMkresp::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 3;
+    int narg = 2;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
-    respdir_        = argv[iarg]; iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
 }
@@ -36,7 +35,6 @@ void ArgValMkresp::Print(FILE* fp) const
     fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: respdir_        : %s\n", __func__, respdir_.c_str());
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
 }
@@ -45,9 +43,8 @@ void ArgValMkresp::Print(FILE* fp) const
 
 void ArgValMkresp::Null()
 {
-    progname_ = "";
-    respdir_  = "";
-    outdir_   = "";
+    progname_  = "";
+    outdir_    = "";
     outfile_head_ = "";
 }
 
@@ -105,7 +102,7 @@ void ArgValMkresp::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "respdir  outdir  outfile_head\n",
+            "outdir  outfile_head\n",
             progname_.c_str());
     abort();
 }
