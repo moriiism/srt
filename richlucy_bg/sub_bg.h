@@ -48,7 +48,7 @@ void GetNextRhoArr(const double* const rho_arr,
                    double N_B,
                    double* const out_arr);
 
-void RichlucyBg(const double* const rho_arr, int nph,
+void RichlucyBg(const double* const rho_arr,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 const double* const bg_arr,
@@ -56,7 +56,7 @@ void RichlucyBg(const double* const rho_arr, int nph,
                 string outdir, string outfile_head,
                 int ndet, int nskyx, int nskyy,
                 double tol_main, double tol_em, double tol_newton,
-                double* const out_arr);
+                double* const out_arr, double* const N_B_ptr);
 
 void LoadResp(string respdir, int nskyx, int nskyy,
               double epsilon,

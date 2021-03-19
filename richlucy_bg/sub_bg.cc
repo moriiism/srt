@@ -177,7 +177,7 @@ void GetNextRhoArr(const double* const rho_arr,
     delete [] div_arr;
 }
 
-void RichlucyBg(const double* const rho_arr, int nph,
+void RichlucyBg(const double* const rho_arr,
                 const double* const data_arr,
                 const double* const resp_mat_arr,
                 const double* const bg_arr,
@@ -185,15 +185,18 @@ void RichlucyBg(const double* const rho_arr, int nph,
                 string outdir, string outfile_head,
                 int ndet, int nskyx, int nskyy,
                 double tol_main, double tol_em, double tol_newton, 
-                double* const out_arr)
+                double* const out_arr, double* const N_B_ptr)
 {
     int nsky = nskyx * nskyy;
     double* rho_new_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_new_arr, 1);
     double* rho_pre_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_pre_arr, 1);
-    double N_B = GetN(rho_new_arr, nsky) + GetB(bg_arr, ndet);
-    printf("N_B = %e\n", N_B);
+
+    int nph = MirMath::GetSum(ndet, data_arr);
+    double B = MirMath::GetSum(ndet, bg_arr);
+    double N_B = nph / 2.0 + B;
+    printf("initial N_B = %e\n", N_B);
     for(int iiter = 0; iiter < niter_main; iiter ++){
         N_B = GetNextNb(rho_new_arr, data_arr, resp_mat_arr,
                         bg_arr, ndet, nsky, N_B,
@@ -225,6 +228,8 @@ void RichlucyBg(const double* const rho_arr, int nph,
     dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, out_arr, 1);
     delete [] rho_new_arr;
     delete [] rho_pre_arr;
+
+    *N_B_ptr = N_B;
 }
 
 double GetHellingerDist(const double* const rho_arr,

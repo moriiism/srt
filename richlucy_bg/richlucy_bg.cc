@@ -53,7 +53,6 @@ int main(int argc, char* argv[])
                           &bitpix, &data_arr);
     int nph = MirMath::GetSum(ndet, data_arr);
     printf("N photon = %d\n", nph);
-    
 
 
     // sky image
@@ -131,10 +130,11 @@ int main(int argc, char* argv[])
                           &bitpix, &bg_arr);
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
     printf("N bg = %d\n", nph_bg);
-    
-    
+
+
+    double N_B = 0.0;
     bitpix = -32;
-    RichlucyBg(rho_arr, nph,
+    RichlucyBg(rho_arr,
                data_arr, resp_norm_mat_arr, bg_arr,
                argval->GetNloopMain(),
                argval->GetNloopEm(),
@@ -144,15 +144,15 @@ int main(int argc, char* argv[])
                argval->GetTolMain(),
                argval->GetTolEm(),               
                argval->GetTolNewton(),
-               rho_new_arr);
+               rho_new_arr, &N_B);
 
-    printf("nph = %d\n", nph);
-    double sum_image = MirMath::GetSum(nsky, rho_arr);
-    printf("sum_image = %e\n", sum_image);
+    //printf("nph = %d\n", nph);
+    //double sum_image = MirMath::GetSum(nsky, rho_arr);
+    //printf("sum_image = %e\n", sum_image);
  
     // output reconstructed sky image
     for(int isky = 0; isky < nsky; isky ++){
-        rho_new_arr[isky] *= nph;
+        rho_new_arr[isky] *= N_B;
     }
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 
     double time_ed = MiTime::GetTimeSec();
     printf("duration = %e sec.\n", time_ed - time_st);
-    sum_image = MirMath::GetSum(nsky, rho_new_arr);
+    double sum_image = MirMath::GetSum(nsky, rho_new_arr);
     printf("sum_image = %e\n", sum_image);
     
     return status_prog;
