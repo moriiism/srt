@@ -82,11 +82,11 @@ int main(int argc, char* argv[])
     }
 
 
-    // load normalized response file
+    // load response file
     int naxis = 2;
     int* naxes_arr = new int[naxis];
     for(int iaxis = 0; iaxis < naxis; iaxis ++){
-        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespNormFile(), iaxis);
+        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespFile(), iaxis);
     }
     if ((naxes_arr[0] != ndet) || (naxes_arr[1] != nsky)){
         abort();
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     int bitpix_resp = 0;
     MifImgInfo* img_info_resp = new MifImgInfo;
     img_info_resp->InitSetImg(1, 1, ndet, nsky);
-    MifFits::InFitsImageD(argval->GetRespNormFile(), img_info_resp,
+    MifFits::InFitsImageD(argval->GetRespFile(), img_info_resp,
                           &bitpix_resp, &resp_mat_arr);
 
     // load efficiency file
@@ -108,7 +108,19 @@ int main(int argc, char* argv[])
     img_info_eff->InitSetImg(1, 1, nskyx, nskyy);
     MifFits::InFitsImageD(argval->GetEffFile(), img_info_eff,
                           &bitpix_eff, &eff_mat_arr);
-    
+
+    // normalize response file
+    double* resp_norm_mat_arr = new double [ndet * nsky];
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
+            for(int idet = 0; idet < ndet; idet ++){
+                resp_norm_mat_arr[imat + idet]
+                    = resp_mat_arr[imat + idet] / eff_mat_arr[isky];
+            }
+        }
+    }
 
     // load bg model
     bitpix = 0;
@@ -123,7 +135,7 @@ int main(int argc, char* argv[])
     
     bitpix = -32;
     RichlucyBg(rho_arr, nph,
-               data_arr, resp_mat_arr, bg_arr,
+               data_arr, resp_norm_mat_arr, bg_arr,
                argval->GetNloopMain(),
                argval->GetNloopEm(),
                argval->GetNloopNewton(),

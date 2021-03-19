@@ -11,7 +11,7 @@ public:
         datafile_(""),
         skyfile_(""),
 	bgfile_(""),
-        resp_norm_file_(""),
+        resp_file_(""),
         eff_file_(""),
         nskyx_(0),
         nskyy_(0),
@@ -35,7 +35,7 @@ public:
     string GetDatafile() const {return datafile_;};
     string GetSkyfile() const {return skyfile_;};
     string GetBgfile() const {return bgfile_;};
-    string GetRespNormFile() const {return resp_norm_file_;};
+    string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
     int    GetNskyy() const {return nskyy_;};
@@ -55,7 +55,7 @@ private:
     string datafile_;
     string skyfile_;
     string bgfile_;
-    string resp_norm_file_;
+    string resp_file_;
     string eff_file_;
     int nskyx_;
     int nskyy_;

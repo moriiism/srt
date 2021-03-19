@@ -27,7 +27,7 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     datafile_       = argv[iarg]; iarg++;
     skyfile_        = argv[iarg]; iarg++;
     bgfile_         = argv[iarg]; iarg++;
-    resp_norm_file_ = argv[iarg]; iarg++;
+    resp_file_      = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
     nskyy_          = atoi(argv[iarg]); iarg++;
@@ -53,7 +53,7 @@ void ArgValRichlucyBg::Print(FILE* fp) const
     fprintf(fp, "%s: datafile_       : %s\n", __func__, datafile_.c_str());
     fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());
     fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());
-    fprintf(fp, "%s: resp_norm_file_ : %s\n", __func__, resp_norm_file_.c_str());
+    fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
     fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
@@ -77,7 +77,7 @@ void ArgValRichlucyBg::Null()
     datafile_ = "";
     skyfile_  = "";
     bgfile_   = "";
-    resp_norm_file_ = "";
+    resp_file_ = "";
     eff_file_ = "";
     nskyx_    = 0;
     nskyy_    = 0;
@@ -148,7 +148,7 @@ void ArgValRichlucyBg::Usage(FILE* fp) const
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
             "datafile  skyfile  bgfile  "
-            "resp_norm_file  eff_file  "
+            "resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  nloop_main  nloop_em  nloop_newton "
             "tol_main  tol_em  tol_newton\n",

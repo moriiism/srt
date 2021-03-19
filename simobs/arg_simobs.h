@@ -14,9 +14,6 @@ public:
         bgfile_(""),
         nevt_bg_(0),
         rand_seed_det_(0),
-        rand_seed_partition_(0),
-        nfold_(0),
-        npartition_(0),
         outdir_(""),
         outfile_head_("") {}
     ~ArgValSimobs(){
@@ -32,9 +29,6 @@ public:
     string GetBgfile() const {return bgfile_;};
     int    GetNevtBg() const {return nevt_bg_;};
     int    GetRandSeedDet() const {return rand_seed_det_;};
-    int    GetRandSeedPartition() const {return rand_seed_partition_;};
-    int    GetNfold() const {return nfold_;};
-    int    GetNpartition() const {return npartition_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
 
@@ -46,9 +40,6 @@ private:
     string bgfile_;
     int    nevt_bg_;
     int    rand_seed_det_;
-    int    rand_seed_partition_;
-    int    nfold_;
-    int    npartition_;
     string outdir_;
     string outfile_head_;
 

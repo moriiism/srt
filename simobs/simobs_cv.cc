@@ -102,8 +102,6 @@ int main(int argc, char* argv[])
     for(int idet = 0; idet < ndet; idet ++){
         bg_expected_arr[idet] = bg_norm_arr[idet] * argval->GetNevtBg();
     }
-    double nbg_expected_counts = MirMath::GetSum(ndet, bg_expected_arr);
-    printf("nbg_expected_counts = %e\n", nbg_expected_counts);
 
     // det_arr = R_mat %*% src_norm_arr
     double* det_arr = new double[ndet];
@@ -143,9 +141,7 @@ int main(int argc, char* argv[])
         naxes[0] = ndetx;
         naxes[1] = ndety;
         char tag[kLineSize];
-        sprintf(tag, "obs_src_%d_bg_%d_%4.4d",
-                argval->GetNevtSrc(),
-                argval->GetNevtBg(),
+        sprintf(tag, "obs_%4.4d",
                 argval->GetRandSeedDet());
         int bitpix = -64;
         MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
@@ -171,6 +167,63 @@ int main(int argc, char* argv[])
         delete [] naxes;
     }
 
+    
+//    for(int ipart = 0; ipart < argval->GetNpartition(); ipart ++){
+//        double** obs_tr_arr = new double*[argval->GetNfold()];
+//        double** obs_vl_arr = new double*[argval->GetNfold()];
+//        for(int ifold = 0; ifold < argval->GetNfold(); ifold ++){
+//            obs_tr_arr[ifold] = new double[ndet];
+//            obs_vl_arr[ifold] = new double[ndet];
+//        }
+//        int rand_seed_part = argval->GetRandSeedPartition() + ipart;
+//        GenCVImageByPartition(obs_evt_arr, argval->GetNevt(),
+//                              argval->GetNfold(), rand_seed_part,
+//                              ndet,
+//                              obs_tr_arr,
+//                              obs_vl_arr);
+//        for(int ifold = 0; ifold < argval->GetNfold(); ifold ++){
+//            int naxis = 2;
+//            long* naxes = new long[naxis];
+//            naxes[0] = ndetx;
+//            naxes[1] = ndety;
+//            char tag[kLineSize];
+//            sprintf(tag, "sky_%4.4d_obs_%4.4d_part%2.2d_%2.2dfold%2.2d_tr",
+//                    argval->GetRandSeedSky(), argval->GetRandSeedDet(), rand_seed_part,
+//                    argval->GetNfold(), ifold);
+//            int bitpix = -64;
+//            MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
+//                                   tag, 2,
+//                                   bitpix,
+//                                   naxes, obs_tr_arr[ifold]);
+//            sprintf(tag, "sky_%4.4d_obs_%4.4d_part%2.2d_%2.2dfold%2.2d_vl",
+//                    argval->GetRandSeedSky(), argval->GetRandSeedDet(), rand_seed_part,
+//                    argval->GetNfold(), ifold);
+//            MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
+//                                   tag, 2,
+//                                   bitpix,
+//                                   naxes, obs_vl_arr[ifold]);
+//            delete [] naxes;
+//        }
+//
+//        // check
+//        for(int ifold = 0; ifold < argval->GetNfold(); ifold ++){
+//            int nevt_out_tr = 0;
+//            int nevt_out_vl = 0;
+//            for(int idet = 0; idet < ndet; idet ++){
+//                nevt_out_tr += obs_tr_arr[ifold][idet];
+//                nevt_out_vl += obs_vl_arr[ifold][idet];
+//            }
+//            printf("obs_tr_arr[%d], obs_vl_arr[%d] = (%d, %d)\n",
+//                   ifold, ifold, nevt_out_tr, nevt_out_vl);
+//        }
+//        
+//        for(int ifold = 0; ifold < argval->GetNfold(); ifold ++){
+//            delete [] obs_tr_arr[ifold];
+//            delete [] obs_vl_arr[ifold];
+//        }
+//        delete [] obs_tr_arr;
+//        delete [] obs_vl_arr;
+//    }
     
     return status_prog;
 }

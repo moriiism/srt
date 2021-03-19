@@ -80,11 +80,8 @@ respfile=resp/arb_resp.fits
 srcfile=sim/two.fits
 nevt_src=10000
 bgfile=sim/bg.fits
-nevt_bg=3000
+nevt_bg=500
 rand_seed_det=1
-rand_seed_partition=1
-nfold=1
-npartition=1
 outdir=sim
 outfile_head=two
 
@@ -95,23 +92,20 @@ $nevt_src \
 $bgfile \
 $nevt_bg \
 $rand_seed_det \
-$rand_seed_partition \
-$nfold \
-$npartition \
 $outdir \
 $outfile_head
 
 -->
-  sim/two_obs_0001.fits  : observation data in detector coordinate
-  sim/two_bg_3000.fits   : background model in detector coordinate
+  sim/two_obs_src_10000_bg_500_0001.fits  : observation data in detector coordinate
+  sim/two_bg_500.fits                     : background model in detector coordinate
 
 
 # 5. richlucy_bg
 
-datafile=sim/two_obs_0001.fits
+datafile=sim/two_obs_src_10000_bg_500_0001.fits
 skyfile=none
-bgfile=sim/two_bg_3000.fits
-resp_norm_file=resp/arb_resp_norm.fits
+bgfile=sim/two_bg_500.fits
+resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
 nskyx=60
 nskyy=60
@@ -130,7 +124,7 @@ tol_newton=1.0e-5
 $datafile \
 $skyfile \
 $bgfile \
-$resp_norm_file \
+$resp_file \
 $eff_file \
 $nskyx \
 $nskyy \
