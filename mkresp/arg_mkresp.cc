@@ -18,7 +18,7 @@ void ArgValMkresp::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 3;
+    int narg = 6;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -27,6 +27,9 @@ void ArgValMkresp::Init(int argc, char* argv[])
     respdir_        = argv[iarg]; iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
+    nskyx_          = atoi(argv[iarg]); iarg++;
+    nskyy_          = atoi(argv[iarg]); iarg++;
+    nphoton_input_  = atoi(argv[iarg]); iarg++;
 }
 
 void ArgValMkresp::Print(FILE* fp) const
@@ -39,6 +42,9 @@ void ArgValMkresp::Print(FILE* fp) const
     fprintf(fp, "%s: respdir_        : %s\n", __func__, respdir_.c_str());
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
+    fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
+    fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
+    fprintf(fp, "%s: nphoton_input_  : %d\n", __func__, nphoton_input_);
 }
 
 // private
@@ -49,6 +55,9 @@ void ArgValMkresp::Null()
     respdir_  = "";
     outdir_   = "";
     outfile_head_ = "";
+    nskyx_    = 0;
+    nskyy_    = 0;
+    nphoton_input_ = 0;
 }
 
 void ArgValMkresp::SetOption(int argc, char* argv[], option* long_options)
@@ -105,7 +114,7 @@ void ArgValMkresp::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "respdir  outdir  outfile_head\n",
+            "respdir  outdir  outfile_head  nskyx  nskyy  nphoton_input\n",
             progname_.c_str());
     abort();
 }

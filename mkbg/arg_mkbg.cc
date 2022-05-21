@@ -18,7 +18,7 @@ void ArgValMkbg::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 2;
+    int narg = 4;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -26,6 +26,8 @@ void ArgValMkbg::Init(int argc, char* argv[])
     int iarg = optind;
     model_file_     = argv[iarg]; iarg++;
     outfile_        = argv[iarg]; iarg++;
+    ndetx_          = atoi(argv[iarg]); iarg++;
+    ndety_          = atoi(argv[iarg]); iarg++;    
 }
 
 void ArgValMkbg::Print(FILE* fp) const
@@ -37,6 +39,8 @@ void ArgValMkbg::Print(FILE* fp) const
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: model_file_     : %s\n", __func__, model_file_.c_str());
     fprintf(fp, "%s: outfile_        : %s\n", __func__, outfile_.c_str());
+    fprintf(fp, "%s: ndetx_          : %d\n", __func__, ndetx_);
+    fprintf(fp, "%s: ndety_          : %d\n", __func__, ndety_);
 }
 
 // private
@@ -46,6 +50,8 @@ void ArgValMkbg::Null()
     progname_   = "";
     model_file_ = "";
     outfile_    = "";
+    ndetx_     = 0;
+    ndety_     = 0;    
 }
 
 void ArgValMkbg::SetOption(int argc, char* argv[], option* long_options)
@@ -102,7 +108,7 @@ void ArgValMkbg::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "model_file  outfile\n",
+            "model_file  outfile  ndetx  ndety\n",
             progname_.c_str());
     abort();
 }

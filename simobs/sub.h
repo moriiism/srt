@@ -1,7 +1,7 @@
 #ifndef MORIIISM_SRT_EMGIST_SUB_EMGIST_H_
 #define MORIIISM_SRT_EMGIST_SUB_EMGIST_H_
 
-#include "mi_rand.h"
+//#include "mi_rand.h"
 #include "mib_blas.h"
 #include "mi_sort.h"
 #include "mi_time.h"

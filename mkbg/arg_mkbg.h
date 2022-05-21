@@ -9,7 +9,9 @@ public:
         MiArgBase(),
         progname_(""),
         model_file_(""),
-        outfile_("") {}
+        outfile_(""),
+        ndetx_(0),
+        ndety_(0) {}
     ~ArgValMkbg(){
         Null();
     }
@@ -19,11 +21,15 @@ public:
     string GetProgname() const {return progname_;};
     string GetModelFile() const {return model_file_;};
     string GetOutfile() const {return outfile_;};
+    int    GetNdetx() const {return ndetx_;};
+    int    GetNdety() const {return ndety_;};    
 
 private:
     string progname_;
     string model_file_;
     string outfile_;
+    int    ndetx_;
+    int    ndety_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

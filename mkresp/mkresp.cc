@@ -32,9 +32,9 @@ int main(int argc, char* argv[])
     argval->Print(fp_log);
 
     // load response
-    int nphoton_input = 100000;
-    int nskyx = 60;
-    int nskyy = 60;
+    int nphoton_input = argval->GetNphotonInput();
+    int nskyx = argval->GetNskyx();
+    int nskyy = argval->GetNskyy();
     int ndetx = 0;
     int ndety = 0;
     double* resp_mat_arr = NULL;

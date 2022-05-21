@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
         
     }
     
-    int nskyx = 60;
-    int nskyy = 60;
+    int nskyx = argval->GetNskyx();
+    int nskyy = argval->GetNskyy();
     int nsky = nskyx * nskyy;
     double* sky_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){

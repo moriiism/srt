@@ -18,7 +18,7 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 10;
+    int narg = 12;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -34,6 +34,8 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     tol_diff_l_var_ = atof(argv[iarg]); iarg++;
     flag_line_search_ = atoi(argv[iarg]); iarg++;
     epsilon_        = atof(argv[iarg]); iarg++;
+    skyx_           = atoi(argv[iarg]); iarg++;
+    skyy_           = atoi(argv[iarg]); iarg++;
 }
 
 void ArgValRichlucy::Print(FILE* fp) const
@@ -53,7 +55,8 @@ void ArgValRichlucy::Print(FILE* fp) const
     fprintf(fp, "%s: tol_diff_l_var_ : %f\n", __func__, tol_diff_l_var_);
     fprintf(fp, "%s: flag_line_search_ : %d\n", __func__, flag_line_search_);
     fprintf(fp, "%s: epsilon_        : %f\n", __func__, epsilon_);
-
+    fprintf(fp, "%s: skyx_           : %d\n", __func__, skyx_);
+    fprintf(fp, "%s: skyy_           : %d\n", __func__, skyy_);
 }
 
 // private
@@ -71,6 +74,8 @@ void ArgValRichlucy::Null()
     tol_diff_l_var_ = 0.0;
     flag_line_search_ = 0;
     epsilon_  = 0.0;
+    skyx_     = 0;
+    skyy_     = 0;
 }
 
 void ArgValRichlucy::SetOption(int argc, char* argv[], option* long_options)
@@ -128,7 +133,7 @@ void ArgValRichlucy::Usage(FILE* fp) const
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
             "respdir  datafile  skyfile  outdir  outfile_head  nem  tol_em  tol_diff_l_var  "
-            "flag_line_search  epsilon\n",
+            "flag_line_search  epsilon  skyx  skyy\n",
             progname_.c_str());
     abort();
 }

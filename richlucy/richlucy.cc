@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
     argval->Print(fp_log);
 
     // load response 
-    int nskyx = 60;
-    int nskyy = 60;
+    int nskyx = argval->GetSkyx();
+    int nskyy = argval->GetSkyy();
     int ndetx = 0;
     int ndety = 0;
     double* resp_mat_arr = NULL;

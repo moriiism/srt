@@ -1,5 +1,5 @@
 #
-# example.txt
+# example2.txt
 #
 
 # 1. mkresp
@@ -9,27 +9,33 @@
 # 5. richlucy_bg
 
 
-source ~/github/moriiism/mitool/setup/setup_letsnote.sh 
+source ~/github/moriiism/mitool/setup/setup_jaxa.sh 
 
 cd /home/morii/work/arb/ana/run
 
 # response format
-nskyx=60
-nskyy=60
-ndetx=60
-ndety=60
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
 
 # 1. make response matrix, normed response matrix, 
 #    and efficiency matrix files
 
-respdir=../data/imageall
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
 outdir=resp
 outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
 
-~/github/moriiism/srt/mkresp/mkresp \
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
 $respdir \
 $outdir \
-$outfile_head
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
 
 --->
   resp/arb_eff.fits        : efficiency file
@@ -47,10 +53,14 @@ EOF
 
 infile=sim/two.dat
 outfile=sim/two.fits
+nskyx=$nskyx
+nskyy=$nskyy
 
-~/github/moriiism/srt/mksrc/mksrc \
+~/work/github/moriiism/srt/mksrc/mksrc \
 $infile \
-$outfile
+$outfile \
+$nskyx \
+$nskyy
 
 --> 
   sim/two.fits
@@ -66,10 +76,14 @@ EOF
 
 model_file=sim/bg.dat
 outfile=sim/bg.fits
+ndetx=$ndetx
+ndety=$ndety
 
-~/github/moriiism/srt/mkbg/mkbg \
+~/work/github/moriiism/srt/mkbg/mkbg \
 $model_file \
-$outfile
+$outfile \
+$ndetx \
+$ndety
 
 --> 
   sim/bg.fits
@@ -85,7 +99,7 @@ rand_seed_det=1
 outdir=sim
 outfile_head=two
 
-~/github/moriiism/srt/simobs/simobs \
+~/work/github/moriiism/srt/simobs/simobs \
 $respfile \
 $srcfile \
 $nevt_src \
@@ -107,10 +121,10 @@ skyfile=none
 bgfile=sim/two_bg_800.fits
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
-nskyx=60
-nskyy=60
-ndetx=60
-ndety=60
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
 outdir=rl_bg
 outfile_head=two_obs
 nloop_main=100
@@ -120,7 +134,7 @@ tol_main=1.0e-5
 tol_em=1.0e-5
 tol_newton=1.0e-5
 
-~/github/moriiism/srt/richlucy_bg/richlucy_bg \
+~/work/github/moriiism/srt/richlucy_bg/richlucy_bg \
 $datafile \
 $skyfile \
 $bgfile \

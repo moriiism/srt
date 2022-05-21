@@ -1,7 +1,6 @@
 #ifndef MORIIISM_SRT_RICHLUCY_BG_SUB_BG_H_
 #define MORIIISM_SRT_RICHLUCY_BG_SUB_BG_H_
 
-#include "mi_rand.h"
 #include "mib_blas.h"
 #include "mi_sort.h"
 #include "mi_time.h"

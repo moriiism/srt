@@ -61,6 +61,11 @@ int main(int argc, char* argv[])
     int nsky = nskyx * nskyy;
     int ndet = ndetx * ndety;
 
+    printf("ndetx = %d\n", ndetx);
+    printf("ndety = %d\n", ndety);
+    printf("nskyx = %d\n", nskyx);
+    printf("nskyy = %d\n", nskyy);
+
     // load srcfile
     double* src_arr = NULL;
     MifImgInfo* img_info_src = new MifImgInfo;
@@ -105,6 +110,8 @@ int main(int argc, char* argv[])
     double nbg_expected_counts = MirMath::GetSum(ndet, bg_expected_arr);
     printf("nbg_expected_counts = %e\n", nbg_expected_counts);
 
+    printf("debug 1\n");
+    
     // det_arr = R_mat %*% src_norm_arr
     double* det_arr = new double[ndet];
     char* transa = new char [1];
@@ -112,6 +119,9 @@ int main(int argc, char* argv[])
     dgemv_(transa, ndet, nsky, 1.0, const_cast<double*>(resp_mat_arr), ndet,
            const_cast<double*>(src_norm_arr), 1,
            0.0, det_arr, 1);
+
+
+    printf("debug\n");
 
     // det + bg
     double* det_bg_arr = new double [ndet];
@@ -129,7 +139,8 @@ int main(int argc, char* argv[])
         det_bg_norm_arr[idet] = det_bg_arr[idet] / sum_det_bg;
     }
     delete [] det_bg_arr;
-    
+
+   
     double* obs_bin_arr = new double[ndet];
     int*    obs_evt_arr = new int[argval->GetNevtSrc() + argval->GetNevtBg()];
     GenRandomEvtFromProbDist(det_bg_norm_arr, ndet,

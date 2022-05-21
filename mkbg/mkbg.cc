@@ -18,12 +18,12 @@ int main(int argc, char* argv[])
     argval->Init(argc, argv);
     argval->Print(stdout);
 
-    int nskyx = 60;
-    int nskyy = 60;
-    int nsky = nskyx * nskyy;
-    double* sky_arr = new double[nsky];
-    for(int isky = 0; isky < nsky; isky ++){
-        sky_arr[isky] = 0.0;
+    int ndetx = argval->GetNdetx();
+    int ndety = argval->GetNdety();
+    int ndet = ndetx * ndety;
+    double* det_arr = new double[ndet];
+    for(int idet = 0; idet < ndet; idet ++){
+        det_arr[idet] = 0.0;
     }
     
     // load params of model functions
@@ -47,11 +47,11 @@ int main(int argc, char* argv[])
         double constant = atof(par_arr[0].c_str());
         printf("%e\n", constant);
         double val_min = 10.0;
-        for(int isky = 0; isky < nsky; isky ++){
-            int posx = isky % nskyx;
-            int posy = isky / nskyx;
+        for(int idet = 0; idet < ndet; idet ++){
+            int posx = idet % ndetx;
+            int posy = idet / ndetx;
             double val = GetConstFunc(posx, posy, constant);
-            sky_arr[isky] = val;
+            det_arr[idet] = val;
             if (val < val_min){
                 val_min = val;
             }
@@ -71,12 +71,12 @@ int main(int argc, char* argv[])
         printf("%e  %e  %e\n",
                w0, w1, constant);
         double val_min = 10.0;
-        for(int isky = 0; isky < nsky; isky ++){
-            int posx = isky % nskyx;
-            int posy = isky / nskyx;
+        for(int idet = 0; idet < ndet; idet ++){
+            int posx = idet % ndetx;
+            int posy = idet / ndetx;
             double val = GetLinFunc(posx, posy,
                                     w0, w1, constant);
-            sky_arr[isky] = val;
+            det_arr[idet] = val;
             if (val < val_min){
                 val_min = val;
             }
@@ -99,14 +99,14 @@ int main(int argc, char* argv[])
         printf("%e  %e  %e  %e  %e  %e\n",
                posx_ctr, posy_ctr, coeff0, coeff1, coeff2, constant);
         double val_min = 10.0;
-        for(int isky = 0; isky < nsky; isky ++){
-            int posx = isky % nskyx;
-            int posy = isky / nskyx;
+        for(int idet = 0; idet < ndet; idet ++){
+            int posx = idet % ndetx;
+            int posy = idet / ndetx;
             double val = GetQuadFunc(posx, posy,
                                      posx_ctr, posy_ctr,
                                      coeff0, coeff1, coeff2,
                                      constant);
-            sky_arr[isky] = val;
+            det_arr[idet] = val;
             if (val < val_min){
                 val_min = val;
             }
@@ -123,18 +123,18 @@ int main(int argc, char* argv[])
     
     // normalize
     double sum = 0.0;
-    for(int isky = 0; isky < nsky; isky ++){
-        sum += sky_arr[isky];
+    for(int idet = 0; idet < ndet; idet ++){
+        sum += det_arr[idet];
     }
-    for(int isky = 0; isky < nsky; isky ++){
-        sky_arr[isky] /= sum;
+    for(int idet = 0; idet < ndet; idet ++){
+        det_arr[idet] /= sum;
     }
 
     int status = 0;
     int naxis = 2;
     long* naxes = new long[naxis];
-    naxes[0] = nskyx;
-    naxes[1] = nskyy;    
+    naxes[0] = ndetx;
+    naxes[1] = ndety;    
     long npix_image = naxes[0] * naxes[1];
     int bitpix = -64;
     fitsfile* fptr_out = NULL;
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 
     long firstpix[2] = {1,1};
     fits_write_pix(fptr_out, TDOUBLE, firstpix,
-                   npix_image, const_cast<double*>(sky_arr), &status);
+                   npix_image, const_cast<double*>(det_arr), &status);
     fits_close_file(fptr_out, &status);
     fits_report_error(stderr, status);
     

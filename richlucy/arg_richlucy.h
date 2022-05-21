@@ -17,7 +17,9 @@ public:
         tol_em_(0.0),
         tol_diff_l_var_(0.0),
         flag_line_search_(0),
-        epsilon_(0.0) {}
+        epsilon_(0.0),
+        skyx_(0),
+        skyy_(0) {}
     ~ArgValRichlucy(){
         Null();
     }
@@ -35,6 +37,8 @@ public:
     double GetTolDiffLVar() const {return tol_diff_l_var_;};
     int    GetFlagLineSearch() const {return flag_line_search_;};
     double GetEpsilon() const {return epsilon_;};
+    int    GetSkyx() const {return skyx_;};
+    int    GetSkyy() const {return skyy_;};
 
 private:
     string progname_;
@@ -48,6 +52,8 @@ private:
     double tol_diff_l_var_;
     int    flag_line_search_;
     double epsilon_;
+    int    skyx_;
+    int    skyy_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

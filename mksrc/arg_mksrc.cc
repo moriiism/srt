@@ -18,7 +18,7 @@ void ArgValMksrc::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 2;
+    int narg = 4;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -26,6 +26,8 @@ void ArgValMksrc::Init(int argc, char* argv[])
     int iarg = optind;
     infile_         = argv[iarg]; iarg++;
     outfile_        = argv[iarg]; iarg++;
+    nskyx_          = atoi(argv[iarg]); iarg++;
+    nskyy_          = atoi(argv[iarg]); iarg++;
 }
 
 void ArgValMksrc::Print(FILE* fp) const
@@ -37,6 +39,8 @@ void ArgValMksrc::Print(FILE* fp) const
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: infile_         : %s\n", __func__, infile_.c_str());
     fprintf(fp, "%s: outfile_        : %s\n", __func__, outfile_.c_str());
+    fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
+    fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
 }
 
 // private
@@ -46,6 +50,8 @@ void ArgValMksrc::Null()
     progname_  = "";
     infile_    = "";
     outfile_   = "";
+    nskyx_     = 0;
+    nskyy_     = 0;
 }
 
 void ArgValMksrc::SetOption(int argc, char* argv[], option* long_options)
@@ -102,7 +108,7 @@ void ArgValMksrc::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "infile  outfile\n",
+            "infile  outfile  nskyx  nskyy\n",
             progname_.c_str());
     abort();
 }
