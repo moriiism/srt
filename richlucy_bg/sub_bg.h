@@ -7,63 +7,40 @@
 #include "mif_fits.h"
 #include "mir_math.h"
 
-double GetNextNb(const double* const rho_arr,
-                 const double* const data_arr,
-                 const double* const resp_mat_arr,
-                 const double* const bg_arr,
-                 int ndet, int nsky,
-                 double N_B,
-                 int niter_newton,
-                 double tol_newton);
-
 double GetB(const double* const bg_arr, int ndet);
-
-double GetN(const double* const rho_arr, int nsky);
-
-double GetDerivF_NB(const double* const rho_arr,
-                    const double* const data_arr,
-                    const double* const resp_mat_arr,
-                    const double* const bg_arr,
-                    int ndet, int nsky,
-                    double N_B);
-
-double GetDeriv2F_NB(const double* const rho_arr,
-                     const double* const data_arr,
-                     const double* const resp_mat_arr,
-                     const double* const bg_arr,
-                     int ndet, int nsky,
-                     double N_B);
 
 void GetDetArr(const double* const rho_arr,
                const double* const resp_mat_arr,
                int ndet, int nsky,
                double* const out_arr);
 
-void GetNextRhoArr(const double* const rho_arr,
-                   const double* const data_arr,
-                   const double* const resp_mat_arr,
-                   const double* const bg_arr,
-                   int ndet, int nsky,
-                   double N_B,
-                   double* const out_arr);
-
-void RichlucyBg(const double* const rho_arr,
-                const double* const data_arr,
+double GetAlpha(const double* const rho_arr,
+                double nu,
                 const double* const resp_mat_arr,
+                const double* const bg_arr, double B,
+                const double* const data_arr,
+                int nsky, int ndet);
+
+void GetRhoNu_New(const double* const rho_arr, double nu,
+                  const double* const data_arr,
+                  const double* const resp_mat_arr,
+                  const double* const bg_arr, double B,
+                  int ndet, int nsky,
+                  double* const rho_new_arr,
+                  double* const nu_new_ptr);
+
+void RichlucyBg(const double* const rho_init_arr,
+                double nu_init,
+                const double* const data_arr,
                 const double* const bg_arr,
-                int niter_main, int niter_em, int niter_newton,
-                string outdir, string outfile_head,
-                int ndet, int nskyx, int nskyy,
-                double tol_main, double tol_em, double tol_newton,
-                double* const out_arr, double* const N_B_ptr);
-
-void LoadResp(string respdir, int nskyx, int nskyy,
-              double epsilon,
-              double** const mat_arr_ptr,
-              int* const ndetx_ptr,
-              int* const ndety_ptr);
-
-void GetNdet(string respdir, int* const ndetx_ptr, int* const ndety_ptr);
+                const double* const resp_norm_mat_arr,
+                int ndet, int nsky,
+                int niter,
+                string outdir,
+                string outfile_head,
+                double tol,
+                double* const rho_new_arr,
+                double* const nu_new_ptr);
 
 double GetHellingerDist(const double* const rho_arr,
                         const double* const rho_new_arr,

@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
         MifFits::InFitsImageD(argval->GetSkyfile(), img_info_sky,
                               &bitpix_sky, &sky_ref_arr);
         for(int isky = 0; isky < nsky; isky ++){
-            sky_ref_arr[isky] *= eff_arr[isky];
+            sky_ref_arr[isky] *= eff_mat_arr[isky];
         }
         double N_val = MirMath::GetSum(nsky, sky_ref_arr);
         double N_B = N_val + B_val;
@@ -145,8 +145,9 @@ int main(int argc, char* argv[])
                argval->GetTol(),
                rho_new_arr, &nu);
 
-    N_B = GetB(bg_arr, ndet) / nu;
+    double N_B = GetB(bg_arr, ndet) / nu;
     // output reconstructed sky image: lambda
+    double* sky_new_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] = rho_new_arr[isky] * N_B;
     }

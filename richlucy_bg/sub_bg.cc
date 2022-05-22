@@ -1,19 +1,5 @@
 #include "sub_bg.h"
 
-double GetHellingerDist(const double* const rho_arr,
-                        const double* const rho_new_arr,
-                        int nsky)
-{
-    double sum = 0.0;
-    for(int isky = 0; isky < nsky; isky ++){
-        double diff = sqrt(rho_arr[isky]) - sqrt(rho_new_arr[isky]);
-        sum += diff * diff;
-    }
-    double ans = sqrt(sum);
-    return (ans);
-}
-
-
 
 double GetB(const double* const bg_arr, int ndet)
 {
@@ -39,12 +25,12 @@ void GetDetArr(const double* const rho_arr,
            0.0, out_arr, 1);
 }
 
-
 double GetAlpha(const double* const rho_arr,
                 double nu,
                 const double* const resp_mat_arr,
                 const double* const bg_arr, double B,
-                const double* const data_arr){
+                const double* const data_arr,
+                int nsky, int ndet){
 
     double* det_arr = new double[ndet];
     GetDetArr(rho_arr, resp_mat_arr, ndet, nsky, det_arr);
@@ -77,7 +63,7 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     }
     double* div_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet++){
-        div_arr[idet] = data_arr[idet] / den_arr[idet]
+        div_arr[idet] = data_arr[idet] / den_arr[idet];
     }
     double* tmp_arr = new double[nsky];
     char* transa = new char [1];
@@ -89,7 +75,8 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     double alpha = GetAlpha(rho_arr, nu,
                             resp_mat_arr,
                             bg_arr, B,
-                            data_arr);
+                            data_arr,
+                            nsky, ndet);
     for(int isky = 0; isky < nsky; isky ++){
         rho_new_arr[isky] = tmp_arr[isky] * rho_arr[isky] / (alpha + B);
     }
@@ -100,7 +87,7 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     delete [] div_arr;
     delete [] tmp_arr;
     delete [] transa;
-    *nu_ptr = nu_new;
+    *nu_new_ptr = nu_new;
 }
 
 
@@ -137,9 +124,21 @@ void RichlucyBg(const double* const rho_init_arr,
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
         nu_pre = nu_new;
+        printf("iiter = %d, helldist = %e\n", iiter, helldist);
     }
     delete [] rho_pre_arr;
     *nu_new_ptr = nu_new;
 }
 
-
+double GetHellingerDist(const double* const rho_arr,
+                        const double* const rho_new_arr,
+                        int nsky)
+{
+    double sum = 0.0;
+    for(int isky = 0; isky < nsky; isky ++){
+        double diff = sqrt(rho_arr[isky]) - sqrt(rho_new_arr[isky]);
+        sum += diff * diff;
+    }
+    double ans = sqrt(sum);
+    return (ans);
+}
