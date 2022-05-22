@@ -9,8 +9,8 @@ public:
         MiArgBase(),
         progname_(""),
         datafile_(""),
-        skyfile_(""),
 	bgfile_(""),
+        skyfile_(""),        
         resp_file_(""),
         eff_file_(""),
         nskyx_(0),
@@ -19,12 +19,8 @@ public:
         ndety_(0),
         outdir_(""),
         outfile_head_(""),
-        nloop_main_(0),
-        nloop_em_(0),
-        nloop_newton_(0),
-        tol_main_(0.0),
-        tol_em_(0.0),
-        tol_newton_(0.0) {}
+        nloop_(0),
+        tol_(0.0) {}
     ~ArgValRichlucyBg(){
         Null();
     }
@@ -33,8 +29,8 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDatafile() const {return datafile_;};
-    string GetSkyfile() const {return skyfile_;};
     string GetBgfile() const {return bgfile_;};
+    string GetSkyfile() const {return skyfile_;};    
     string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
@@ -43,18 +39,14 @@ public:
     int    GetNdety() const {return ndety_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
-    int    GetNloopMain() const {return nloop_main_;};
-    int    GetNloopEm() const {return nloop_em_;};
-    int    GetNloopNewton() const {return nloop_newton_;};
-    double GetTolMain() const {return tol_main_;};
-    double GetTolEm() const {return tol_em_;};
-    double GetTolNewton() const {return tol_newton_;};
+    int    GetNloop() const {return nloop_;};
+    double GetTol() const {return tol_;};
 
 private:
     string progname_;
     string datafile_;
-    string skyfile_;
     string bgfile_;
+    string skyfile_;
     string resp_file_;
     string eff_file_;
     int nskyx_;
@@ -63,12 +55,8 @@ private:
     int ndety_;
     string outdir_;
     string outfile_head_;
-    int    nloop_main_;
-    int    nloop_em_;
-    int    nloop_newton_;
-    double tol_main_;
-    double tol_em_;
-    double tol_newton_;
+    int    nloop_;
+    double tol_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

@@ -4,7 +4,7 @@
 
 void ArgValRichlucyBg::Init(int argc, char* argv[])
 {
-    progname_ = "richlucy";
+    progname_ = "richlucy_bg";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -18,15 +18,15 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 17;
+    int narg = 13;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
     datafile_       = argv[iarg]; iarg++;
-    skyfile_        = argv[iarg]; iarg++;
     bgfile_         = argv[iarg]; iarg++;
+    skyfile_        = argv[iarg]; iarg++;    
     resp_file_      = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
@@ -35,12 +35,8 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     ndety_          = atoi(argv[iarg]); iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
-    nloop_main_     = atoi(argv[iarg]); iarg++;
-    nloop_em_       = atoi(argv[iarg]); iarg++;
-    nloop_newton_   = atoi(argv[iarg]); iarg++;
-    tol_main_       = atof(argv[iarg]); iarg++;
-    tol_em_         = atof(argv[iarg]); iarg++;
-    tol_newton_     = atof(argv[iarg]); iarg++;
+    nloop_          = atoi(argv[iarg]); iarg++;
+    tol_            = atof(argv[iarg]); iarg++;
 }
 
 void ArgValRichlucyBg::Print(FILE* fp) const
@@ -51,8 +47,8 @@ void ArgValRichlucyBg::Print(FILE* fp) const
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: datafile_       : %s\n", __func__, datafile_.c_str());
-    fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());
     fprintf(fp, "%s: bgfile_         : %s\n", __func__, bgfile_.c_str());
+    fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());    
     fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
@@ -61,12 +57,8 @@ void ArgValRichlucyBg::Print(FILE* fp) const
     fprintf(fp, "%s: ndety_          : %d\n", __func__, ndety_);
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
-    fprintf(fp, "%s: nloop_main_     : %d\n", __func__, nloop_main_);
-    fprintf(fp, "%s: nloop_em_       : %d\n", __func__, nloop_em_);
-    fprintf(fp, "%s: nloop_newton_   : %d\n", __func__, nloop_newton_);
-    fprintf(fp, "%s: tol_main_       : %f\n", __func__, tol_main_);
-    fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
-    fprintf(fp, "%s: tol_newton_     : %f\n", __func__, tol_newton_);
+    fprintf(fp, "%s: nloop_          : %d\n", __func__, nloop_);
+    fprintf(fp, "%s: tol_            : %f\n", __func__, tol_);
 }
 
 // private
@@ -75,8 +67,8 @@ void ArgValRichlucyBg::Null()
 {
     progname_ = "";
     datafile_ = "";
-    skyfile_  = "";
     bgfile_   = "";
+    skyfile_  = "";    
     resp_file_ = "";
     eff_file_ = "";
     nskyx_    = 0;
@@ -85,12 +77,8 @@ void ArgValRichlucyBg::Null()
     ndety_    = 0;
     outdir_   = "";
     outfile_head_ = "";
-    nloop_main_   = 0;    
-    nloop_em_     = 0;
-    nloop_newton_ = 0;
-    tol_main_     = 0.0;
-    tol_em_       = 0.0;
-    tol_newton_   = 0.0;
+    nloop_   = 0;    
+    tol_     = 0.0;
 }
 
 void ArgValRichlucyBg::SetOption(int argc, char* argv[], option* long_options)
@@ -147,11 +135,10 @@ void ArgValRichlucyBg::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "datafile  skyfile  bgfile  "
+            "datafile  bgfile  skyfile  "
             "resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
-            "outdir  outfile_head  nloop_main  nloop_em  nloop_newton "
-            "tol_main  tol_em  tol_newton\n",
+            "outdir  outfile_head  nloop  tol\n",
             progname_.c_str());
     abort();
 }

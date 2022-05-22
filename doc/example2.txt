@@ -92,9 +92,9 @@ $ndety
 
 respfile=resp/arb_resp.fits
 srcfile=sim/two.fits
-nevt_src=1000000
+nevt_src=10000
 bgfile=sim/bg.fits
-nevt_bg=800
+nevt_bg=8000
 rand_seed_det=1
 outdir=sim
 outfile_head=two
@@ -116,9 +116,9 @@ $outfile_head
 
 # 5. richlucy_bg
 
-datafile=sim/two_obs_src_1000000_bg_800_0001.fits
+datafile=sim/two_obs_src_10000_bg_8000_0001.fits
+bgfile=sim/two_bg_8000.fits
 skyfile=none
-bgfile=sim/two_bg_800.fits
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
 nskyx=$nskyx
@@ -127,17 +127,14 @@ ndetx=$ndetx
 ndety=$ndety
 outdir=rl_bg
 outfile_head=two_obs
-nloop_main=100
-nloop_em=100
-nloop_newton=10
-tol_main=1.0e-5
-tol_em=1.0e-5
-tol_newton=1.0e-5
+nloop=100
+tol=1.0e-5
+
 
 ~/work/github/moriiism/srt/richlucy_bg/richlucy_bg \
 $datafile \
-$skyfile \
 $bgfile \
+$skyfile \
 $resp_file \
 $eff_file \
 $nskyx \
@@ -146,12 +143,8 @@ $ndetx \
 $ndety \
 $outdir \
 $outfile_head \
-$nloop_main \
-$nloop_em \
-$nloop_newton \
-$tol_main \
-$tol_em \
-$tol_newton
+$nloop \
+$tol
 
 --> 
   rl_bg/two_obs_rec.fits
