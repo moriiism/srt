@@ -61,28 +61,6 @@ int main(int argc, char* argv[])
                           &bitpix, &bg_arr);
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
     printf("N bg = %d\n", nph_bg);
-    
-    // sky image to be reconstructed
-    double* sky_arr = new double[nsky];
-    for(int isky = 0; isky < nsky; isky ++){
-        sky_arr[isky] = nph_data / nsky;
-    }
-    if("none" != argval->GetSkyfile()){
-        // load
-        // reference sky image 
-        double* sky_ref_arr = new double[nsky];
-        MifImgInfo* img_info_sky = new MifImgInfo;
-        img_info_sky->InitSetImg(1, 1, nskyx, nskyy);
-        int bitpix_sky = 0;
-        MifFits::InFitsImageD(argval->GetSkyfile(), img_info_sky,
-                              &bitpix_sky, &sky_ref_arr);
-        double nph_sky_ref = MirMath::GetSum(nsky, sky_ref_arr);
-        for(int isky = 0; isky < nsky; isky ++){
-            rho_arr[isky] = (sky_arr[isky] + rho_ref_arr[isky] / nph_ref ) / 2.0;
-        }
-        delete [] rho_ref_arr;
-        delete img_info_sky;
-    }
 
 
     // load response file
@@ -124,31 +102,57 @@ int main(int argc, char* argv[])
             }
         }
     }
+    
+    // sky image to be reconstructed
+    double* rho_init_arr = new double[nsky];
+    double nu_init = 0.0;
+    double B_val = GetB(bg_arr, ndet);
+    for(int isky = 0; isky < nsky; isky ++){
+        rho_init_arr[isky] = (nph_data - B_val) / nph_data / nsky;
+        nu_init = B_val / nph_data;
+    }
+    if("none" != argval->GetSkyfile()){
+        // load
+        // reference sky image 
+        double* sky_ref_arr = new double[nsky];
+        MifImgInfo* img_info_sky = new MifImgInfo;
+        img_info_sky->InitSetImg(1, 1, nskyx, nskyy);
+        int bitpix_sky = 0;
+        MifFits::InFitsImageD(argval->GetSkyfile(), img_info_sky,
+                              &bitpix_sky, &sky_ref_arr);
+        for(int isky = 0; isky < nsky; isky ++){
+            sky_ref_arr[isky] *= eff_arr[isky];
+        }
+        double N_val = MirMath::GetSum(nsky, sky_ref_arr);
+        double N_B = N_val + B_val;
+        for(int isky = 0; isky < nsky; isky ++){
+            rho_init_arr[isky] = sky_ref_arr[isky] / N_B;
+        }
+        nu_init = B_val / N_B;
+        delete [] sky_ref_arr;
+        delete img_info_sky;
+    }
 
-
-
+    double* rho_new_arr = new double[nsky];
     double nu = 0.0;
     bitpix = -32;
-    RichlucyBg(rho_arr,
-               data_arr, resp_norm_mat_arr, bg_arr,
+    RichlucyBg(rho_init_arr, nu_init,
+               data_arr, bg_arr, resp_norm_mat_arr,
+               ndet, nsky,
                argval->GetNloop(),
                argval->GetOutdir(),
                argval->GetOutfileHead(),
-               ndet, nsky,
                argval->GetTol(),
                rho_new_arr, &nu);
 
-    //printf("nph = %d\n", nph);
-    //double sum_image = MirMath::GetSum(nsky, rho_arr);
-    //printf("sum_image = %e\n", sum_image);
- 
-    // output reconstructed sky image
+    N_B = GetB(bg_arr, ndet) / nu;
+    // output reconstructed sky image: lambda
     for(int isky = 0; isky < nsky; isky ++){
-        rho_new_arr[isky] *= N_B;
+        sky_new_arr[isky] = rho_new_arr[isky] * N_B;
     }
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
-        rho_new_arr[isky] /= eff_mat_arr[isky];
+        sky_new_arr[isky] /= eff_mat_arr[isky];
     }    
     naxis = 2;
     long* naxes = new long[naxis];
@@ -158,12 +162,12 @@ int main(int argc, char* argv[])
                            argval->GetOutfileHead(),
                            "rec", 2,
                            bitpix,
-                           naxes, rho_new_arr);
+                           naxes, sky_new_arr);
 
     double time_ed = MiTime::GetTimeSec();
     printf("duration = %e sec.\n", time_ed - time_st);
-    double sum_image = MirMath::GetSum(nsky, rho_new_arr);
-    printf("sum_image = %e\n", sum_image);
+    double sum_sky = MirMath::GetSum(nsky, sky_new_arr);
+    printf("sum_sky = %e\n", sum_sky);
     
     return status_prog;
 }
