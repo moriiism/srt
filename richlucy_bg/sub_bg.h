@@ -46,4 +46,23 @@ double GetHellingerDist(const double* const rho_arr,
                         const double* const rho_new_arr,
                         int nsky);
 
+double GetFuncL(const double* const data_arr,
+                const double* const bg_arr,
+                const double* const rho_arr,
+                double nu,
+                const double* const resp_norm_mat_arr,
+                int ndet, int nsky);
+
+void GetLineSearch(const double* const rho_1_arr,
+                   const double* const rho_2_arr,
+                   double nu_1,
+                   double nu_2,
+                   const double* const data_arr,
+                   const double* const resp_norm_mat_arr,
+                   const double* const bg_arr,
+                   double B_val,
+                   int ndet, int nsky,
+                   double* const rho_new_arr,
+                   double* nu_new_ptr);
+
 #endif // MORIIISM_SRT_RICHLUCY_BG_SUB_BG_H_
