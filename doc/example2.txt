@@ -127,7 +127,7 @@ ndetx=$ndetx
 ndety=$ndety
 outdir=rl_bg
 outfile_head=two_obs
-nloop=100
+nloop=1000
 tol=1.0e-5
 
 

@@ -149,22 +149,29 @@ void RichlucyBg(const double* const rho_init_arr,
         //                &nu_new);
         //
         //}
-        
-        double helldist = GetHellingerDist(rho_pre_arr, nu_pre,
-                                           rho_new_arr, nu_new, nsky);
-        double lval = GetFuncL(data_arr, bg_arr,
-                               rho_new_arr, nu_new,
-                               resp_norm_mat_arr,
-                               ndet, nsky);
+
+        double helldist  = GetHellingerDist(rho_pre_arr, nu_pre,
+                                            rho_new_arr, nu_new, nsky);
         if (helldist < tol){
-            printf("iiter = %d, helldist = %e, lval = %e\n",
-                   iiter, helldist, lval);
+            printf("iiter = %d, helldist = %e\n",
+                   iiter, helldist);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
         nu_pre = nu_new;
-        printf("iiter = %d, helldist = %e, lval = %e\n",
-               iiter, helldist, lval);
+
+        double lval = 0.0;        
+        if (iiter % 100 == 0){
+            lval = GetFuncL(data_arr, bg_arr,
+                            rho_new_arr, nu_new,
+                            resp_norm_mat_arr,
+                            ndet, nsky);
+            printf("iiter = %d, helldist = %e, lval = %e\n",
+                   iiter, helldist, lval);
+        } else {
+            printf("iiter = %d, helldist = %e\n",
+                   iiter, helldist);
+        }
     }
     delete [] rho_pre_arr;
     *nu_new_ptr = nu_new;
