@@ -148,3 +148,12 @@ $tol
 
 --> 
   rl_bg/two_obs_rec.fits
+
+usual blas:
+duration = 6.553913e+01 sec.
+
+export OPENBLAS_NUM_THREADS=8
+
+duration = 2.152546e+01 sec.
+
+

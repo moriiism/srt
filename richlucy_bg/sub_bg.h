@@ -10,21 +10,21 @@
 double GetB(const double* const bg_arr, int ndet);
 
 void GetDetArr(const double* const rho_arr,
-               const double* const resp_mat_arr,
+               const double* const resp_norm_mat_arr,
                int ndet, int nsky,
                double* const out_arr);
 
 double GetAlpha(const double* const rho_arr,
                 double nu,
-                const double* const resp_mat_arr,
-                const double* const bg_arr, double B,
+                const double* const resp_norm_mat_arr,
+                const double* const bg_arr,
                 const double* const data_arr,
                 int nsky, int ndet);
 
 void GetRhoNu_New(const double* const rho_arr, double nu,
                   const double* const data_arr,
-                  const double* const resp_mat_arr,
-                  const double* const bg_arr, double B,
+                  const double* const resp_norm_mat_arr,
+                  const double* const bg_arr,
                   int ndet, int nsky,
                   double* const rho_new_arr,
                   double* const nu_new_ptr);
@@ -42,8 +42,8 @@ void RichlucyBg(const double* const rho_init_arr,
                 double* const rho_new_arr,
                 double* const nu_new_ptr);
 
-double GetHellingerDist(const double* const rho_arr,
-                        const double* const rho_new_arr,
+double GetHellingerDist(const double* const rho_arr, double nu, 
+                        const double* const rho_new_arr, double nu_new,
                         int nsky);
 
 double GetFuncL(const double* const data_arr,
