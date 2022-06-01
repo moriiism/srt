@@ -6,7 +6,7 @@
 # 2. mksrc
 # 3. mkbg
 # 4. simobs
-# 5. richlucy_bg2
+# 5. richlucy_bg
 
 
 source ~/github/moriiism/mitool/setup/setup_jaxa.sh 
@@ -92,9 +92,9 @@ $ndety
 
 respfile=resp/arb_resp.fits
 srcfile=sim/two.fits
-nevt_src=50000
+nevt_src=2000
 bgfile=sim/bg.fits
-nevt_bg=800
+nevt_bg=8000
 rand_seed_det=1
 outdir=sim
 outfile_head=two
@@ -114,10 +114,10 @@ $outfile_head
   sim/two_bg_500.fits                     : background model in detector coordinate
 
 
-# 5. richlucy_bg2
+# 5. richlucy_bg
 
-datafile=sim/two_obs_src_50000_bg_800_0001.fits
-bgfile=sim/bg.fits
+datafile=sim/two_obs_src_2000_bg_8000_0001.fits
+bgfile=sim/two_bg_8000.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
@@ -131,7 +131,7 @@ nloop=1000
 tol=1.0e-5
 
 
-~/work/github/moriiism/srt/richlucy_bg2/richlucy_bg2 \
+~/work/github/moriiism/srt/richlucy_bg/richlucy_bg \
 $datafile \
 $bgfile \
 $skyfile \
@@ -150,19 +150,15 @@ $tol
   rl_bg/two_obs_rec.fits
 
 
+# nloop = 100    
+sum_one = 1.000000e+00
+B_val = 8.000000e+03
+duration = 1.486073e+01 sec.
+sum_sky = 5.905006e+03
+
+
 # nloop = 1000
-N_B = 1.038800e+04
-B_val = 3.372232e-04
-sum_rho_new = 1.000000e+00
-sum_sky_new = 1.038800e+04
-ave_eff = 5.082841e-01
-sum_sky_new_effcorr = 2.470904e+04
-
-# nloop = 100
-N_B = 1.038800e+04
-B_val = 2.977926e+03
-sum_rho_new = 7.133301e-01
-sum_sky_new = 7.410074e+03
-ave_eff = 5.082841e-01
-sum_sky_new_effcorr = 1.665918e+04
-
+sum_one = 1.000000e+00
+B_val = 8.000000e+03
+duration = 1.392229e+02 sec.
+sum_sky = 6.439016e+03

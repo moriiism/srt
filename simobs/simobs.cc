@@ -109,8 +109,6 @@ int main(int argc, char* argv[])
     }
     double nbg_expected_counts = MirMath::GetSum(ndet, bg_expected_arr);
     printf("nbg_expected_counts = %e\n", nbg_expected_counts);
-
-    printf("debug 1\n");
     
     // det_arr = R_mat %*% src_norm_arr
     double* det_arr = new double[ndet];
@@ -119,9 +117,6 @@ int main(int argc, char* argv[])
     dgemv_(transa, ndet, nsky, 1.0, const_cast<double*>(resp_mat_arr), ndet,
            const_cast<double*>(src_norm_arr), 1,
            0.0, det_arr, 1);
-
-
-    printf("debug\n");
 
     // det + bg
     double* det_bg_arr = new double [ndet];
@@ -142,7 +137,7 @@ int main(int argc, char* argv[])
 
    
     double* obs_bin_arr = new double[ndet];
-    int*    obs_evt_arr = new int[argval->GetNevtSrc() + argval->GetNevtBg()];
+    int*    obs_evt_arr = new int[ (int) sum_det_bg + 1];
     GenRandomEvtFromProbDist(det_bg_norm_arr, ndet,
                              (int) sum_det_bg,
                              argval->GetRandSeedDet(),

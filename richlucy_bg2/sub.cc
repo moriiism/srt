@@ -17,7 +17,7 @@ void GetDetArr(const double* const rho_arr,
 
 void GetRhoNu_New(const double* const rho_arr, double nu,
                   const double* const data_arr,
-                  const double* const resp_mat_arr,
+                  const double* const resp_norm_mat_arr,
                   const double* const bg_arr,
                   int ndet, int nsky,
                   double* const rho_new_arr,
@@ -30,7 +30,10 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     // nu_new = 1/nph * nu
     //         * [bg_arr * (data_arr / den_arr)]
     double* den_arr = new double[ndet];
-    GetDetArr(rho_arr, resp_mat_arr, ndet, nsky, den_arr);
+    for(int idet = 0; idet < ndet; idet ++){
+        den_arr[idet] = 0.0;
+    }
+    GetDetArr(rho_arr, resp_norm_mat_arr, ndet, nsky, den_arr);
     daxpy_(ndet, nu, const_cast<double*>(bg_arr), 1, den_arr, 1);
     double* div_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet++){
@@ -40,12 +43,14 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     char transa[1];
     strcpy(transa, "T");    
     dgemv_(transa, ndet, nsky, 1.0,
-           const_cast<double*>(resp_mat_arr), ndet,
-           const_cast<double*>(div_arr), 1,
+           const_cast<double*>(resp_norm_mat_arr), ndet,
+           div_arr, 1,
            0.0, tmp_arr, 1);
     MibBlas::ElmWiseMul(nsky, 1.0 / nph,
                         tmp_arr, rho_arr, rho_new_arr);
-
+    //for(int isky = 0; isky < nsky; isky ++){
+    //    rho_new_arr[isky] = tmp_arr[isky] * rho_arr[isky] / nph;
+    //}
     double nu_new = ddot_(ndet, div_arr, 1, const_cast<double*>(bg_arr), 1)
         * nu / nph;
     
@@ -81,7 +86,7 @@ void RichlucyBg(const double* const rho_init_arr,
                      ndet, nsky,
                      rho_new_arr,
                      &nu_new);
-
+        
         double helldist  = GetHellingerDist(rho_pre_arr, nu_pre,
                                             rho_new_arr, nu_new, nsky);
         if (helldist < tol){

@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
     double* rho_init_arr = new double[nsky];
     double nu_init = 0.0;
     double B_val = GetB(bg_arr, ndet);
+    printf("B_val = %e\n", B_val);
     for(int isky = 0; isky < nsky; isky ++){
         rho_init_arr[isky] = (nph_data - B_val) / nph_data / nsky;
         nu_init = B_val / nph_data;
@@ -145,6 +146,14 @@ int main(int argc, char* argv[])
                argval->GetTol(),
                rho_new_arr, &nu);
 
+    // check
+    double sum_one = nu;
+    for(int isky = 0; isky < nsky; isky ++){
+        sum_one += rho_new_arr[isky];
+    }
+    printf("sum_one = %e\n", sum_one);
+    
+    printf("B_val = %e\n", B_val);
     double N_B = GetB(bg_arr, ndet) / nu;
     // output reconstructed sky image: lambda
     double* sky_new_arr = new double[nsky];

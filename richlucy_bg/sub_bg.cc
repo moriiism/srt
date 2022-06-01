@@ -160,17 +160,21 @@ void RichlucyBg(const double* const rho_init_arr,
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
         nu_pre = nu_new;
 
-        double lval = 0.0;        
+        double sum_rho = 0.0;
+        //for(int isky = 0; isky < nsky; isky ++){
+        //    sum_rho += rho_new_arr[isky];
+        //}
+        double lval = 0.0;
         if (iiter % 100 == 0){
             lval = GetFuncL(data_arr, bg_arr,
                             rho_new_arr, nu_new,
                             resp_norm_mat_arr,
                             ndet, nsky);
-            printf("iiter = %d, helldist = %e, lval = %e\n",
-                   iiter, helldist, lval);
+            printf("iiter = %d, helldist = %e, sum_rho = %e, lval = %e\n",
+                   iiter, helldist, sum_rho, lval);
         } else {
-            printf("iiter = %d, helldist = %e\n",
-                   iiter, helldist);
+            printf("iiter = %d, helldist = %e, sum_rho = %e\n",
+                   iiter, helldist, sum_rho);
         }
     }
     delete [] rho_pre_arr;

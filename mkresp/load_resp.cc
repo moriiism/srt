@@ -35,6 +35,12 @@ void LoadResp(string respdir, int nskyx, int nskyy,
             double* data_arr = NULL;
             MifFits::InFitsImageD(infile, img_info,
                                   &bitpix, &data_arr);
+            // force to be non-negative
+            for (int idet = 0; idet < ndet; idet ++){
+                if(data_arr[idet] < 0.0){
+                    data_arr[idet] = 0.0;
+                }
+            }
             // div by nphoton_input
             for(int idet = 0; idet < ndet; idet ++){
                 data_arr[idet] /= nphoton_input;
@@ -56,6 +62,53 @@ void LoadResp(string respdir, int nskyx, int nskyy,
     }
     delete img_info;
 
+    // check
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
+            double resp_norm_sum = 0.0;
+            for(int idet = 0; idet < ndet; idet ++){
+                resp_norm_sum += resp_norm_arr[imat + idet];
+            }
+            // printf("resp_norm_sum = %e\n", resp_norm_sum);
+            if ( fabs(resp_norm_sum - 1.0) > 1.e-10){
+                printf("warning: resp_norm_sum = %e\n", resp_norm_sum);
+            }
+        }
+    }
+
+    // check
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
+            double resp_sum = 0.0;
+            for(int idet = 0; idet < ndet; idet ++){
+                resp_sum += resp_arr[imat + idet];
+            }
+            //printf("resp_sum = %e, eff_arr[isky] = %e\n",
+            //    resp_sum, eff_arr[isky]);
+            if ( fabs(resp_sum - eff_arr[isky]) > 1.e-10){
+                printf("warning:\n");
+                printf("resp_sum = %e, eff_arr[isky] = %e\n",
+                       resp_sum, eff_arr[isky]);
+            }
+        }
+    }
+
+    // average efficiency
+    double ave_eff = 0.0;
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            ave_eff += eff_arr[isky];
+        }
+    }
+    ave_eff /= nskyx * nskyy;
+    printf("ave_eff = %e\n", ave_eff);
+    
+    
     *resp_arr_ptr = resp_arr;
     *resp_norm_arr_ptr = resp_norm_arr;
     *eff_arr_ptr = eff_arr;

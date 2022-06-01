@@ -102,6 +102,20 @@ int main(int argc, char* argv[])
             }
         }
     }
+    // check
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;            
+            double resp_norm_sum = 0.0;
+            for(int idet = 0; idet < ndet; idet ++){
+                resp_norm_sum += resp_norm_mat_arr[imat + idet];
+            }
+            if ( fabs(resp_norm_sum - 1.0) > 1.0e-10){
+                // printf("warning: resp_norm_sum = %e\n", resp_norm_sum);
+            }
+        }
+    }
     
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
@@ -147,18 +161,31 @@ int main(int argc, char* argv[])
                rho_new_arr, &nu);
 
     double N_B = MibBlas::Sum(data_arr, ndet);
+    printf("N_B = %e\n", N_B);
     double B_val = nu * N_B;
     printf("B_val = %e\n", B_val);
+
+    double sum_rho_new = MirMath::GetSum(nsky, rho_new_arr);
+    printf("sum_rho_new = %e\n", sum_rho_new);
     
     // output reconstructed sky image: lambda
     double* sky_new_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] = rho_new_arr[isky] * N_B;
     }
+    double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
+    printf("sum_sky_new = %e\n", sum_sky_new);
+    
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
-    }    
+    }
+    double sum_eff = MirMath::GetSum(nsky, eff_mat_arr);
+    printf("ave_eff = %e\n", sum_eff / nsky);
+    
+    double sum_sky_new_effcorr = MirMath::GetSum(nsky, sky_new_arr);
+    printf("sum_sky_new_effcorr = %e\n", sum_sky_new_effcorr);
+    
     naxis = 2;
     long* naxes = new long[naxis];
     naxes[0] = nskyx;
@@ -171,8 +198,6 @@ int main(int argc, char* argv[])
 
     double time_ed = MiTime::GetTimeSec();
     printf("duration = %e sec.\n", time_ed - time_st);
-    double sum_sky = MirMath::GetSum(nsky, sky_new_arr);
-    printf("sum_sky = %e\n", sum_sky);
-    
+
     return status_prog;
 }
