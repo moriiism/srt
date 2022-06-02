@@ -6,7 +6,7 @@
 # 2. mksrc
 # 3. mkbg
 # 4. simobs
-# 5. richlucy_bg2
+# 5. richlucy_bg2_smooth
 
 
 source ~/github/moriiism/mitool/setup/setup_jaxa.sh 
@@ -92,7 +92,7 @@ $ndety
 
 respfile=resp/arb_resp.fits
 srcfile=sim/two.fits
-nevt_src=50000
+nevt_src=5000
 bgfile=sim/bg.fits
 nevt_bg=800
 rand_seed_det=1
@@ -114,9 +114,9 @@ $outfile_head
   sim/two_bg_500.fits                     : background model in detector coordinate
 
 
-# 5. richlucy_bg2
+# 5. richlucy_bg2_smooth
 
-datafile=sim/two_obs_src_50000_bg_800_0001.fits
+datafile=sim/two_obs_src_5000_bg_800_0001.fits
 bgfile=sim/bg.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
@@ -127,11 +127,15 @@ ndetx=$ndetx
 ndety=$ndety
 outdir=rl_bg
 outfile_head=two_obs
-nloop=500
-tol=1.0e-5
+nem=500
+tol_em=1.0e-5
+npm=100
+tol_pm=1.0e-5
+nnewton=100
+tol_newton=1.0e-5
+mu=1e4
 
-
-~/work/github/moriiism/srt/richlucy_bg2/richlucy_bg2 \
+~/work/github/moriiism/srt/richlucy_bg2_smooth/richlucy_bg2_smooth \
 $datafile \
 $bgfile \
 $skyfile \
@@ -143,8 +147,14 @@ $ndetx \
 $ndety \
 $outdir \
 $outfile_head \
-$nloop \
-$tol
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
 
 --> 
   rl_bg/two_obs_rec.fits
