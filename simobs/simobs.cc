@@ -133,6 +133,25 @@ int main(int argc, char* argv[])
     for(int idet = 0; idet < ndet; idet ++){
         det_bg_norm_arr[idet] = det_bg_arr[idet] / sum_det_bg;
     }
+
+    // det_bg_arr:
+    // output: resp * src + bg image
+    {
+        int naxis = 2;
+        long* naxes = new long[naxis];
+        naxes[0] = ndetx;
+        naxes[1] = ndety;
+        char tag[kLineSize];
+        sprintf(tag, "src_%d_bg_%d",
+                argval->GetNevtSrc(),
+                argval->GetNevtBg());
+        int bitpix = -64;
+        MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
+                               tag, 2,
+                               bitpix,
+                               naxes, det_bg_arr);
+        delete [] naxes;
+    }
     delete [] det_bg_arr;
 
    
@@ -160,7 +179,7 @@ int main(int argc, char* argv[])
                                naxes, obs_bin_arr);
         delete [] naxes;
     }
-
+    
     // output bg image
     {
         int naxis = 2;

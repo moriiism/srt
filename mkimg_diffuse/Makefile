@@ -13,12 +13,12 @@ LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LI
 	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = mksrc
+TARGET = mkimg_diffuse
 
 all: $(TARGET) 
 
-mksrc: mksrc.o  arg_mksrc.o
-	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
+mkimg_diffuse: mkimg_diffuse.o  arg_mkimg_diffuse.o model.o
+	$(CXXN) $@.o arg_$@.o model.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:

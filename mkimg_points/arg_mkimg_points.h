@@ -1,18 +1,19 @@
-#ifndef MORIIISM_SRT_MKSRC_ARG_MKSRC_H_
-#define MORIIISM_SRT_MKSRC_ARG_MKSRC_H_
+#ifndef MORIIISM_SRT_MKIMG_POINTS_ARG_MKIMG_POINTS_H_
+#define MORIIISM_SRT_MKIMG_POINTS_ARG_MKIMG_POINTS_H_
 
 #include "mi_base.h"
 
-class ArgValMksrc : public MiArgBase{
+class ArgValMkimgPoints: public MiArgBase{
 public:
-    ArgValMksrc() :
+    ArgValMkimgPoints():
         MiArgBase(),
         progname_(""),
         infile_(""),
-        outfile_(""),
+        outdir_(""),
+        outfile_head_(""),
         nskyx_(0),
         nskyy_(0){}
-    ~ArgValMksrc(){
+    ~ArgValMkimgPoints(){
         Null();
     }
     void Init(int argc, char* argv[]);
@@ -20,14 +21,16 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetInfile() const {return infile_;};
-    string GetOutfile() const {return outfile_;};
+    string GetOutdir() const {return outdir_;};
+    string GetOutfileHead() const {return outfile_head_;};
     int    GetNskyx() const {return nskyx_;};
-    int    GetNskyy() const {return nskyy_;};    
+    int    GetNskyy() const {return nskyy_;};
 
 private:
     string progname_;
     string infile_;
-    string outfile_;
+    string outdir_;
+    string outfile_head_;
     int    nskyx_;
     int    nskyy_;
 
@@ -36,4 +39,4 @@ private:
     void Usage(FILE* fp) const;
 };
 
-#endif // MORIIISM_SRT_MKSRC_ARG_MKSRC_H_
+#endif // MORIIISM_SRT_MKIMG_POINTS_ARG_MKIMG_POINTS_H_

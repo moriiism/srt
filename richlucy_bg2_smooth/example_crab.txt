@@ -1,0 +1,230 @@
+#
+# example_crab.txt
+#
+
+# 1. mkresp
+# 2. mksrc
+# 3. mkbg
+# 4. simobs
+# 5. richlucy_bg2_smooth
+
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+--->
+  resp/arb_eff.fits        : efficiency file
+  resp/arb_resp.fits       : response file
+  resp/arb_resp_norm.fits  : normalized response file
+
+# 2. mkimg_points
+
+mkdir skyorg
+cat << EOF > skyorg/crab_pulsar.dat
+# posx posy flux
+50 50 1000.0
+EOF
+
+infile=skyorg/crab_pulsar.dat
+outdir=skyorg
+outfile_head=crab_pulsar
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_points/mkimg_points \
+$infile \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+--> 
+skyorg/crab_pulsar.fits
+skyorg/crab_pulsar_norm.fits
+
+
+# 2. mkimg_diffuse
+
+cat << EOF > skyorg/crab_nebula.dat
+# model name
+# model parameters
+quad
+50 50 -1  0  0  1000
+EOF
+
+model_file=skyorg/crab_nebula.dat
+outdir=skyorg
+outfile_head=crab_nebula
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_diffuse/mkimg_diffuse \
+$model_file \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+--> 
+skyorg/crab_nebula.fits
+skyorg/crab_nebula_norm.fits
+
+
+# add cab pulsar + crab nebula
+
+imgfile1=skyorg/crab_pulsar_norm.fits
+imgfile2=skyorg/crab_nebula_norm.fits
+coeff1=10000
+coeff2=10000
+outfile=skyorg/crab_pulsar+nebula.fits
+~/work/github/moriiism/srt/imgadd/imgadd \
+$imgfile1 \
+$imgfile2 \
+$coeff1 \
+$coeff2 \
+$outfile
+
+
+# dummy bg img
+mkdir det
+cat << EOF > det/bg.dat
+# background model name
+# background model parameters
+quad
+30 30 -1  0  0 10000
+EOF
+
+model_file=det/bg.dat
+outfile=det/bg.fits
+ndetx=$ndetx
+ndety=$ndety
+
+~/work/github/moriiism/srt/mkbg/mkbg \
+$model_file \
+$outfile \
+$ndetx \
+$ndety
+
+
+
+# 4. make point source image
+respfile=resp/arb_resp_norm.fits
+srcfile=skyorg/crab_pulsar_norm.fits
+nevt_src=1
+bgfile=det/bg.fits
+nevt_bg=0
+rand_seed_det=1
+outdir=det
+outfile_head=crab_pulsar
+
+~/work/github/moriiism/srt/simobs/simobs \
+$respfile \
+$srcfile \
+$nevt_src \
+$bgfile \
+$nevt_bg \
+$rand_seed_det \
+$outdir \
+$outfile_head
+
+# use as background model 
+--> det/crab_pulsar_src_1_bg_0.fits 
+--> det/crab_pulsar_src_0_bg_0.fits 
+
+# 4. simobs
+
+respfile=resp/arb_resp.fits
+srcfile=skyorg/crab_pulsar+nebula.fits
+nevt_src=50000
+bgfile=det/bg.fits
+nevt_bg=0
+rand_seed_det=1
+outdir=sim
+outfile_head=crab_pulsar+nebula
+
+~/work/github/moriiism/srt/simobs/simobs \
+$respfile \
+$srcfile \
+$nevt_src \
+$bgfile \
+$nevt_bg \
+$rand_seed_det \
+$outdir \
+$outfile_head
+
+
+---> crab_pulsar+nebula_obs_src_500000_bg_0_0001.fits
+
+
+# 5. richlucy_bg2_smooth
+
+datafile=sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
+bgfile=det/crab_pulsar_src_1_bg_0.fits 
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_bg2_smooth
+outfile_head=crab_pulsar+nebula
+nem=500
+tol_em=1.0e-5
+npm=100
+tol_pm=1.0e-5
+nnewton=100
+tol_newton=1.0e-5
+mu=1.0e7
+
+
+~/work/github/moriiism/srt/richlucy_bg2_smooth/richlucy_bg2_smooth \
+$datafile \
+$bgfile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
+
+--> 
+  rl_bg/two_obs_rec.fits
+
+

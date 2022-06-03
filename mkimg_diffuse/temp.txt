@@ -1,0 +1,8 @@
+git rm   ../mksrc/Makefile \
+  ../mksrc/arg_mksrc.cc \
+  ../mksrc/arg_mksrc.h \
+  ../mksrc/mksrc.cc \
+  ../mksrc/mksrc.txt
+git add  ../richlucy_bg2_smooth/example.txt \
+../simobs/simobs.cc
+

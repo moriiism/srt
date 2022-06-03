@@ -1,10 +1,10 @@
-#include "arg_mksrc.h"
+#include "arg_mkimg_diffuse.h"
 
 // public
 
-void ArgValMksrc::Init(int argc, char* argv[])
+void ArgValMkimgDiffuse::Init(int argc, char* argv[])
 {
-    progname_ = "mksrc";
+    progname_ = "mkimg_diffuse";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -18,43 +18,46 @@ void ArgValMksrc::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 4;
+    int narg = 5;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
-    infile_         = argv[iarg]; iarg++;
-    outfile_        = argv[iarg]; iarg++;
+    model_file_     = argv[iarg]; iarg++;
+    outdir_         = argv[iarg]; iarg++;
+    outfile_head_   = argv[iarg]; iarg++;    
     nskyx_          = atoi(argv[iarg]); iarg++;
     nskyy_          = atoi(argv[iarg]); iarg++;
 }
 
-void ArgValMksrc::Print(FILE* fp) const
+void ArgValMkimgDiffuse::Print(FILE* fp) const
 {
     fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
     fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
     fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: infile_         : %s\n", __func__, infile_.c_str());
-    fprintf(fp, "%s: outfile_        : %s\n", __func__, outfile_.c_str());
+    fprintf(fp, "%s: model_file_     : %s\n", __func__, model_file_.c_str());    
+    fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
+    fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
     fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
 }
 
 // private
 
-void ArgValMksrc::Null()
+void ArgValMkimgDiffuse::Null()
 {
     progname_  = "";
-    infile_    = "";
-    outfile_   = "";
+    model_file_ = "";
+    outdir_    = "";
+    outfile_head_ = "";    
     nskyx_     = 0;
     nskyy_     = 0;
 }
 
-void ArgValMksrc::SetOption(int argc, char* argv[], option* long_options)
+void ArgValMkimgDiffuse::SetOption(int argc, char* argv[], option* long_options)
 {
     if(0 < g_flag_verbose){
         MPrintInfo("start...");
@@ -104,11 +107,11 @@ void ArgValMksrc::SetOption(int argc, char* argv[], option* long_options)
 }
 
 
-void ArgValMksrc::Usage(FILE* fp) const
+void ArgValMkimgDiffuse::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "infile  outfile  nskyx  nskyy\n",
+            "model_file  outdir  outfile_head  nskyx  nskyy\n",
             progname_.c_str());
     abort();
 }

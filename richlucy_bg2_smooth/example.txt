@@ -160,19 +160,3 @@ $mu
   rl_bg/two_obs_rec.fits
 
 
-# nloop = 1000
-N_B = 1.038800e+04
-B_val = 3.372232e-04
-sum_rho_new = 1.000000e+00
-sum_sky_new = 1.038800e+04
-ave_eff = 5.082841e-01
-sum_sky_new_effcorr = 2.470904e+04
-
-# nloop = 100
-N_B = 1.038800e+04
-B_val = 2.977926e+03
-sum_rho_new = 7.133301e-01
-sum_sky_new = 7.410074e+03
-ave_eff = 5.082841e-01
-sum_sky_new_effcorr = 1.665918e+04
-
