@@ -1,15 +1,15 @@
-#ifndef MORIIISM_SRT_CRAB_ARG_CRAB_H_
-#define MORIIISM_SRT_CRAB_ARG_CRAB_H_
+#ifndef MORIIISM_SRT_RICHLUCY_CRAB_ARG_RICHLUCY_CRAB_H_
+#define MORIIISM_SRT_RICHLUCY_CRAB_ARG_RICHLUCY_CRAB_H_
 
 #include "mi_base.h"
 
-class ArgValCrab : public MiArgBase{
+class ArgValRichlucyCrab : public MiArgBase{
 public:
-    ArgValCrab() :
+    ArgValRichlucyCrab() :
         MiArgBase(),
         progname_(""),
         datafile_(""),
-        crabfile_(""),
+        fixed_src_norm_file_(""),
         skyfile_(""),        
         resp_file_(""),
         eff_file_(""),
@@ -26,7 +26,7 @@ public:
         nnewton_(0),
         tol_newton_(0.0),
         mu_(0.0) {}
-    ~ArgValCrab(){
+    ~ArgValRichlucyCrab(){
         Null();
     }
     void Init(int argc, char* argv[]);
@@ -34,7 +34,7 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDatafile() const {return datafile_;};
-    string GetCrabfile() const {return crabfile_;};
+    string GetFixedSrcNormFile() const {return fixed_src_norm_file_;};
     string GetSkyfile() const {return skyfile_;};    
     string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
@@ -55,7 +55,7 @@ public:
 private:
     string progname_;
     string datafile_;
-    string crabfile_;
+    string fixed_src_norm_file_;
     string skyfile_;
     string resp_file_;
     string eff_file_;
@@ -78,5 +78,4 @@ private:
     void Usage(FILE* fp) const;
 };
 
-#endif // MORIIISM_SRT_CRAB_ARG_CRAB_H_
-
+#endif // MORIIISM_SRT_RICHLUCY_CRAB_ARG_RICHLUCY_CRAB_H_

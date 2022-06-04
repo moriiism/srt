@@ -1,0 +1,9 @@
+#
+# Makefile.in
+#
+
+SRT_DIR := /home/morii/work/github/moriiism/srt
+
+### srtlib
+SRTLIB_INC := -I$(SRT_DIR)/srtlib
+SRTLIB_LIB := -L$(SRT_DIR)/srtlib -lsrtlib

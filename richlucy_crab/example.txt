@@ -6,7 +6,7 @@
 # 2. mksrc
 # 3. mkbg
 # 4. simobs
-# 5. crab
+# 5. richlucy_crab
 
 
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
@@ -99,8 +99,8 @@ skyorg/crab_nebula_norm.fits
 
 imgfile1=skyorg/crab_pulsar_norm.fits
 imgfile2=skyorg/crab_nebula_norm.fits
-coeff1=10000
-coeff2=10000
+coeff1=1
+coeff2=10
 outfile=skyorg/crab_pulsar+nebula.fits
 ~/work/github/moriiism/srt/imgadd/imgadd \
 $imgfile1 \
@@ -157,10 +157,10 @@ $outfile_head
 
 ---> sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
 
-# 5. crab
+# 5. richlucy_crab
 
 datafile=sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
-crabfile=skyorg/crab_pulsar_norm.fits
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
@@ -168,19 +168,19 @@ nskyx=$nskyx
 nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
-outdir=crab
-outfile_head=crab_pulsar+nebula
+outdir=rl_crab
+outfile_head=src_50000
 nem=500
 tol_em=1.0e-5
 npm=100
 tol_pm=1.0e-5
 nnewton=100
 tol_newton=1.0e-5
-mu=1.0e7
+mu=1.0e5
 
-~/work/github/moriiism/srt/crab/crab \
+~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
 $datafile \
-$crabfile \
+$fixed_src_norm_file \
 $skyfile \
 $resp_file \
 $eff_file \

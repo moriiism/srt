@@ -1,10 +1,10 @@
-#include "arg_crab.h"
+#include "arg_richlucy_crab.h"
 
 // public
 
-void ArgValCrab::Init(int argc, char* argv[])
+void ArgValRichlucyCrab::Init(int argc, char* argv[])
 {
-    progname_ = "crab";
+    progname_ = "richlucy_crab";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -25,7 +25,7 @@ void ArgValCrab::Init(int argc, char* argv[])
     }
     int iarg = optind;
     datafile_       = argv[iarg]; iarg++;
-    crabfile_       = argv[iarg]; iarg++;    
+    fixed_src_norm_file_ = argv[iarg]; iarg++;    
     skyfile_        = argv[iarg]; iarg++;    
     resp_file_      = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
@@ -44,7 +44,7 @@ void ArgValCrab::Init(int argc, char* argv[])
     mu_             = atof(argv[iarg]); iarg++;
 }
 
-void ArgValCrab::Print(FILE* fp) const
+void ArgValRichlucyCrab::Print(FILE* fp) const
 {
     fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
     fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
@@ -52,7 +52,8 @@ void ArgValCrab::Print(FILE* fp) const
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: datafile_       : %s\n", __func__, datafile_.c_str());
-    fprintf(fp, "%s: crabfile_       : %s\n", __func__, crabfile_.c_str());    
+    fprintf(fp, "%s: fixed_src_norm_file_ : %s\n",
+            __func__, fixed_src_norm_file_.c_str());
     fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());    
     fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
@@ -73,11 +74,11 @@ void ArgValCrab::Print(FILE* fp) const
 
 // private
 
-void ArgValCrab::Null()
+void ArgValRichlucyCrab::Null()
 {
     progname_ = "";
     datafile_ = "";
-    crabfile_ = "";    
+    fixed_src_norm_file_ = "";
     skyfile_  = "";    
     resp_file_ = "";
     eff_file_ = "";
@@ -96,7 +97,7 @@ void ArgValCrab::Null()
     mu_         = 0.0;
 }
 
-void ArgValCrab::SetOption(int argc, char* argv[], option* long_options)
+void ArgValRichlucyCrab::SetOption(int argc, char* argv[], option* long_options)
 {
     if(0 < g_flag_verbose){
         MPrintInfo("start...");
@@ -146,11 +147,11 @@ void ArgValCrab::SetOption(int argc, char* argv[], option* long_options)
 }
 
 
-void ArgValCrab::Usage(FILE* fp) const
+void ArgValRichlucyCrab::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "datafile  crabfile  skyfile  "
+            "datafile  fixed_src_norm_file  skyfile  "
             "resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "

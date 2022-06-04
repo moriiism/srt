@@ -2,7 +2,7 @@
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
-#include "arg_crab.h"
+#include "arg_richlucy_crab.h"
 #include "sub.h"
 #include "TRandom3.h"
 
@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     
     double time_st = MiTime::GetTimeSec();
     
-    ArgValCrab* argval = new ArgValCrab;
+    ArgValRichlucyCrab* argval = new ArgValRichlucyCrab;
     argval->Init(argc, argv);
     argval->Print(stdout);
 
@@ -52,15 +52,18 @@ int main(int argc, char* argv[])
     int nph_data = MirMath::GetSum(ndet, data_arr);
     printf("N photon = %d\n", nph_data);
 
-    // load crab pulsar sky image with normalized flux
-    MifImgInfo* img_info_crab = new MifImgInfo;
-    img_info_crab->InitSetImg(1, 1, nskyx, nskyy);
-    int bitpix_crab = 0;
-    double* crab_sky_norm_arr = NULL;
-    MifFits::InFitsImageD(argval->GetCrabfile(), img_info_crab,
-                          &bitpix_crab, &crab_sky_norm_arr);
-    int nph_crab_sky = MirMath::GetSum(nsky, crab_sky_norm_arr);
-    printf("N photon crab sky = %d\n", nph_crab_sky);
+    // load sky image of fixed source with normalized flux
+    MifImgInfo* img_info_fixed_src_norm = new MifImgInfo;
+    img_info_fixed_src_norm->InitSetImg(1, 1, nskyx, nskyy);
+    int bitpix_fixed_src_norm = 0;
+    double* sky_fixed_src_norm_arr = NULL;
+    MifFits::InFitsImageD(argval->GetFixedSrcNormFile(),
+                          img_info_fixed_src_norm,
+                          &bitpix_fixed_src_norm,
+                          &sky_fixed_src_norm_arr);
+    int nph_fixed_src_norm = MirMath::GetSum(nsky, sky_fixed_src_norm_arr);
+    printf("N photon fixed source with normalized flux = %d\n",
+           nph_fixed_src_norm);
     
     // load response file
     int naxis = 2;
@@ -116,13 +119,12 @@ int main(int argc, char* argv[])
         }
     }
 
-    // det image of crab
-    double* crab_det_arr = new double[ndet];
-    GetDetArr(crab_sky_norm_arr,
+    // det image of fixed source with normalized flux
+    double* det_fixed_src_norm_arr = new double[ndet];
+    GetDetArr(sky_fixed_src_norm_arr,
               resp_norm_mat_arr,
               ndet, nsky,
-              crab_det_arr);
-    
+              det_fixed_src_norm_arr);
     
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
@@ -159,7 +161,8 @@ int main(int argc, char* argv[])
     double nu = 0.0;
     bitpix = -32;
     RichlucyBg2Smooth(rho_init_arr, nu_init,
-                      data_arr, crab_det_arr, resp_norm_mat_arr,
+                      data_arr, det_fixed_src_norm_arr,
+                      resp_norm_mat_arr,
                       ndet, nskyx, nskyy, argval->GetMu(),
                       argval->GetOutdir(),
                       argval->GetOutfileHead(),
@@ -184,24 +187,18 @@ int main(int argc, char* argv[])
     double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
     printf("sum_sky_new = %e\n", sum_sky_new);
 
-    // nebula + pulsar: sky_new_arr + B_val * crab_sky_norm_arr
-    double* crab_rec_arr = new double[nsky];
+    // nebula + pulsar: sky_new_arr + B_val * sky_fixed_src_norm_arr
+    double* sky_total_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
-        crab_rec_arr[isky] = sky_new_arr[isky]
-            + B_val * crab_sky_norm_arr[isky];
+        sky_total_arr[isky] = sky_new_arr[isky]
+            + B_val * sky_fixed_src_norm_arr[isky];
     }
     
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
-        crab_rec_arr[isky] /= eff_mat_arr[isky];
+        sky_total_arr[isky] /= eff_mat_arr[isky];
     }
-    double sum_eff = MirMath::GetSum(nsky, eff_mat_arr);
-    printf("ave_eff = %e\n", sum_eff / nsky);
-    
-    double sum_sky_new_effcorr = MirMath::GetSum(nsky, sky_new_arr);
-    printf("sum_sky_new_effcorr = %e\n", sum_sky_new_effcorr);
-    
 
     long naxes[2];
     naxes[0] = nskyx;
@@ -216,8 +213,7 @@ int main(int argc, char* argv[])
                            argval->GetOutfileHead(),
                            "pulsar+nebula", 2,
                            bitpix,
-                           naxes, crab_rec_arr);
-
+                           naxes, sky_total_arr);
 
     double time_ed = MiTime::GetTimeSec();
     printf("duration = %e sec.\n", time_ed - time_st);
