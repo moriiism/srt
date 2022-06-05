@@ -1,5 +1,5 @@
-#ifndef MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_NEWTON_H_
-#define MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_NEWTON_H_
+#ifndef MORIIISM_SRT_SRTLIB_SUB_NEWTON_H_
+#define MORIIISM_SRT_SRTLIB_SUB_NEWTON_H_
 
 #include "mib_blas.h"
 #include "mi_sort.h"
@@ -66,4 +66,4 @@ void GetRhoArrNu_ByNewton(const double* const vval_arr, double wval,
                           double* const lambda_new_ptr);
 
 
-#endif // MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_NEWTON_H_
+#endif // MORIIISM_SRT_SRTLIB_SUB_NEWTON_H_

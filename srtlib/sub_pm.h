@@ -1,5 +1,5 @@
-#ifndef MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_PM_H_
-#define MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_PM_H_
+#ifndef MORIIISM_SRT_SRTLIB_SUB_PM_H_
+#define MORIIISM_SRT_SRTLIB_SUB_PM_H_
 
 #include "mib_blas.h"
 #include "mi_sort.h"
@@ -14,12 +14,4 @@ void GetVvalArr(const double* const rho_arr,
 
 double GetWval(double nu);
 
-double GetTermV(const double* const rho_arr, int nskyx, int nskyy);
-
-void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
-                  double* const rho_diff_arr);
-
-int GetIbin(int ibinx, int ibiny, int nbinx);
-
-
-#endif // MORIIISM_SRT_RICHLUCY_BG2_SMOOTH_SUB_PM_H_
+#endif // MORIIISM_SRT_SRTLIB_SUB_PM_H_

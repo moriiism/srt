@@ -8,7 +8,7 @@ INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) $(MILIB_INC) $(CFIT
 
 TARGET := libsrtlib.a
 
-OBJ := sub.o  sub_pm.o  sub_newton.o
+OBJ := sub.o  sub_pm.o  sub_newton.o  sub_smooth.o
 
 all: $(TARGET) 
 
