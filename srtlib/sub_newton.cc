@@ -146,21 +146,27 @@ double GetLambda_ByNewton(double lambda_init,
 {
     double lambda = lambda_init;
     double lambda_new = lambda_init;
+    double sval = 0.0;
+    int flag_converge = 0;
     for(int inewton = 0; inewton < nnewton; inewton ++){
         lambda_new = GetLambdaNew_ByNewton(lambda,
                                            lip_const,
                                            vval_arr, wval,
                                            mval_arr, nval,
                                            nsky);
-        double sval = GetSval_FromLambda(lambda_new,
-                                         lip_const,
-                                         vval_arr, wval,
-                                         mval_arr, nval,
-                                         nsky);
+        sval = GetSval_FromLambda(lambda_new,
+                                  lip_const,
+                                  vval_arr, wval,
+                                  mval_arr, nval,
+                                  nsky);
         if(fabs(sval) < tol_newton){
+            flag_converge = 1;
             break;
         }
         lambda = lambda_new;
+    }
+    if(flag_converge != 1){
+        printf("newton: sval = %e\n", sval);
     }
     return lambda_new;
 }

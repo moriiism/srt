@@ -1,6 +1,7 @@
 #include "sub.h"
 #include "sub_pm.h"
 #include "sub_newton.h"
+#include "sub_smooth.h"
 
 void GetDetArr(const double* const rho_arr,
                const double* const resp_norm_mat_arr,
@@ -172,6 +173,7 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
                                                mval_arr, nval, mu,
                                                nskyx, nskyy, lip_const,
                                                lambda, nnewton, tol_newton);
+        // printf("lip_const_new = %e\n", lip_const_new);
         double* vval_arr = new double[nsky];        
         GetVvalArr(rho_pre_arr,
                    nskyx, nskyy,

@@ -1,4 +1,5 @@
 #include "sub_pm.h"
+#include "sub_smooth.h"
 
 void GetVvalArr(const double* const rho_arr,
                 int nskyx, int nskyy,

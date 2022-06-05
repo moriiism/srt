@@ -137,7 +137,7 @@ $ndety
 
 respfile=resp/arb_resp.fits
 srcfile=skyorg/crab_pulsar+nebula.fits
-nevt_src=50000
+nevt_src=5000
 bgfile=det/bg.fits
 nevt_bg=0
 rand_seed_det=1
@@ -159,7 +159,7 @@ $outfile_head
 
 # 5. richlucy_crab
 
-datafile=sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
+datafile=sim/crab_pulsar+nebula_obs_src_5000_bg_0_0001.fits
 fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
@@ -169,14 +169,14 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_crab
-outfile_head=src_50000
+outfile_head=src_5000
 nem=500
-tol_em=1.0e-5
+tol_em=1.0e-7
 npm=100
-tol_pm=1.0e-5
+tol_pm=1.0e-7
 nnewton=100
-tol_newton=1.0e-5
-mu=1.0e5
+tol_newton=1.0e-7
+mu=1e7
 
 ~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
 $datafile \
