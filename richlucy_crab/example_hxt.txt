@@ -1,0 +1,348 @@
+#
+# example_hxt.txt
+#
+
+# 1. mkresp
+# 2. mksrc
+# 3. mkbg
+# 4. simobs
+# 5. richlucy_crab
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+--->
+  resp/arb_eff.fits        : efficiency file
+  resp/arb_resp.fits       : response file
+  resp/arb_resp_norm.fits  : normalized response file
+
+# 2. mkimg_points
+
+mkdir skyorg
+cat << EOF > skyorg/crab_pulsar.dat
+# posx posy flux
+54 38 1000.0
+EOF
+
+infile=skyorg/crab_pulsar.dat
+outdir=skyorg
+outfile_head=crab_pulsar
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_points/mkimg_points \
+$infile \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+--> 
+skyorg/crab_pulsar.fits
+skyorg/crab_pulsar_norm.fits
+
+
+## 2. mkimg_diffuse
+#
+#cat << EOF > skyorg/crab_nebula.dat
+## model name
+## model parameters
+#quad
+#50 50 -1  0  0  1000
+#EOF
+#
+#model_file=skyorg/crab_nebula.dat
+#outdir=skyorg
+#outfile_head=crab_nebula
+#nskyx=$nskyx
+#nskyy=$nskyy
+#
+#~/work/github/moriiism/srt/mkimg_diffuse/mkimg_diffuse \
+#$model_file \
+#$outdir \
+#$outfile_head \
+#$nskyx \
+#$nskyy
+#
+#--> 
+#skyorg/crab_nebula.fits
+#skyorg/crab_nebula_norm.fits
+
+
+## add cab pulsar + crab nebula
+#
+#imgfile1=skyorg/crab_pulsar_norm.fits
+#imgfile2=skyorg/crab_nebula_norm.fits
+#coeff1=1
+#coeff2=10
+#outfile=skyorg/crab_pulsar+nebula.fits
+#~/work/github/moriiism/srt/imgadd/imgadd \
+#$imgfile1 \
+#$imgfile2 \
+#$coeff1 \
+#$coeff2 \
+#$outfile
+#
+#---> skyorg/crab_pulsar+nebula.fits
+
+## 4. simobs
+#
+## make dummy bg for simobs
+## dummy bg img
+#mkdir det
+#cat << EOF > det/bg.dat
+## background model name
+## background model parameters
+#quad
+#30 30 -1  0  0 10000
+#EOF
+#
+#model_file=det/bg.dat
+#outfile=det/bg.fits
+#ndetx=$ndetx
+#ndety=$ndety
+#
+#~/work/github/moriiism/srt/mkbg/mkbg \
+#$model_file \
+#$outfile \
+#$ndetx \
+#$ndety
+#
+#
+#respfile=resp/arb_resp.fits
+#srcfile=skyorg/crab_pulsar+nebula.fits
+#nevt_src=5000
+#bgfile=det/bg.fits
+#nevt_bg=0
+#rand_seed_det=1
+#outdir=sim
+#outfile_head=crab_pulsar+nebula
+#
+#~/work/github/moriiism/srt/simobs/simobs \
+#$respfile \
+#$srcfile \
+#$nevt_src \
+#$bgfile \
+#$nevt_bg \
+#$rand_seed_det \
+#$outdir \
+#$outfile_head
+#
+#
+#---> sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
+
+# 5. richlucy_crab
+
+
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_36_96_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits
+
+
+
+datafile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=hxt_crab
+outfile_head=hxt_151_300_mu1e0
+nem=300
+tol_em=1.0e-7
+npm=1000
+tol_pm=1.0e-7
+nnewton=100
+tol_newton=1.0e-7
+mu=1e2
+
+~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
+$datafile \
+$fixed_src_norm_file \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
+
+--> 
+  crab/crab_pulsar+nebula_rec.fits
+
+
+########################
+
+
+datafile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_36_96_x1175y1185_w80.fits
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=hxt_crab
+outfile_head=hxt_36_96
+nem=300
+tol_em=1.0e-7
+npm=100
+tol_pm=1.0e-7
+nnewton=100
+tol_newton=1.0e-7
+mu=1e3
+
+~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
+$datafile \
+$fixed_src_norm_file \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
+
+
+########################
+
+
+datafile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=hxt_crab
+outfile_head=hxt_301_700
+nem=300
+tol_em=1.0e-7
+npm=100
+tol_pm=1.0e-7
+nnewton=100
+tol_newton=1.0e-7
+mu=1e3
+
+~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
+$datafile \
+$fixed_src_norm_file \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
+
+
+################################
+
+~/bin/ds9 hxt_crab/hxt_301_700_1e0_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e0_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e1_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e1_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e2_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e2_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e3_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e3_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e4_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e4_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e5_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e5_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e6_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e6_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e7_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e7_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e8_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e8_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e9_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e9_pulsar+nebula.eps -quit
+
+convert hxt_crab/hxt_301_700_1e0_pulsar+nebula.eps hxt_crab/hxt_301_700_1e0_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e1_pulsar+nebula.eps hxt_crab/hxt_301_700_1e1_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e2_pulsar+nebula.eps hxt_crab/hxt_301_700_1e2_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e3_pulsar+nebula.eps hxt_crab/hxt_301_700_1e3_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e4_pulsar+nebula.eps hxt_crab/hxt_301_700_1e4_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e5_pulsar+nebula.eps hxt_crab/hxt_301_700_1e5_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e6_pulsar+nebula.eps hxt_crab/hxt_301_700_1e6_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e7_pulsar+nebula.eps hxt_crab/hxt_301_700_1e7_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e8_pulsar+nebula.eps hxt_crab/hxt_301_700_1e8_pulsar+nebula.png
+convert hxt_crab/hxt_301_700_1e9_pulsar+nebula.eps hxt_crab/hxt_301_700_1e9_pulsar+nebula.png
+
+
+
+
+
+
+
+
+
+~/bin/ds9 hxt_crab/hxt_301_700_1e1_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e1_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e2_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e2_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e3_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e3_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e4_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e4_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e5_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e5_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e6_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e6_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e7_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e7_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e8_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e8_pulsar+nebula.eps -quit
+~/bin/ds9 hxt_crab/hxt_301_700_1e9_pulsar+nebula.fits -zoom to fit -scale log -saveimage eps hxt_crab/hxt_301_700_1e9_pulsar+nebula.eps -quit
+
+
+
+# hxt_crab/hxt_301_700_1e10_pulsar+nebula.fits

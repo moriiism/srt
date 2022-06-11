@@ -1,0 +1,18 @@
+#
+# example_cv.txt
+#
+
+orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+rand_seed=1
+nfold=5
+outdir=hxt_crab_cv
+outfile_head=hxt_301_700
+
+~/work/github/moriiism/srt/script/richlucy_crab_cv.py \
+$orgfile \
+$rand_seed \
+$nfold \
+$outdir \
+$outfile_head
+
+
