@@ -4,11 +4,12 @@ include ../../mitool/miblaslib/Makefile.in
 include ../../mitool/mifitslib/Makefile.in
 include ../../mitool/mirootlib/Makefile.in
 
-INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) 
+INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
+$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
 TARGET := libsrtlib.a
 
-OBJ := sub.o  sub_pm.o  sub_newton.o  sub_smooth.o
+OBJ := sub.o  sub_pm.o  sub_newton.o  sub_smooth.o  sim.o
 
 all: $(TARGET) 
 
