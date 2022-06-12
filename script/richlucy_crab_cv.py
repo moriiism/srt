@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # richlucy_crab_cv.py
 #
@@ -7,11 +6,11 @@
 Overview:
 
 Input:
-    $KUZE_ANA_DIR/input/record_path_ndraw.txt
+
 Output:
-    $KUZE_ANA_DIR/record_path_ndraw/
+
 Data:
-      $KUZE_ANA_DIR/data/edge_weight_add_bench_jig.csv
+
 Details:
 
 '''
@@ -20,52 +19,56 @@ import sys
 import subprocess
 import pandas as pd
 
-## check environment variable
-#flag_set_env = 1
-#if not "KUZE_PROG_DIR" in os.environ:
-#    flag_set_env = 0
-#if not "KUZE_DATA_DIR" in os.environ:
-#    flag_set_env = 0
-#if not "KUZE_ANA_DIR" in os.environ:
-#    flag_set_env = 0
-#if flag_set_env == 0:
-#    print("Error: Set environment variables by source env.sh.")
-#    exit()
-
-#sys.path.append(os.environ["KUZE_PROG_DIR"])
-#from mkpath.script.func.file import isOnlyLatinFile
-#from mkpath.script.func.spec import Spec
-#from mkpath.script.func.load_edge import loadEdgeRecordDF
-#from mkpath.script.func.mk_path_fig import mkPathFigCSV_Record
-#from mkpath.script.func.mk_path_df_record import (
-#    getPathDFFromOptPath_Record)
-#from mkpath.script.task.record_path.func import getRecordPath_NumBA
-
 iarg = 1
-orgfile       = sys.argv[iarg]; iarg += 1
-rand_seed     = int(sys.argv[iarg]); iarg += 1
-nfold         = int(sys.argv[iarg]); iarg += 1
-outdir        = sys.argv[iarg]; iarg += 1
-outfile_head  = sys.argv[iarg]; iarg += 1
-nskyx         = int(sys.argv[iarg]); iarg += 1
-nskyy         = int(sys.argv[iarg]); iarg += 1
-ndetx         = int(sys.argv[iarg]); iarg += 1
-ndety         = int(sys.argv[iarg]); iarg += 1
-respdir       = sys.argv[iarg]; iarg += 1
-
-
+orgfile        = sys.argv[iarg]; iarg += 1
+rand_seed      = int(sys.argv[iarg]); iarg += 1
+nfold          = int(sys.argv[iarg]); iarg += 1
+outdir         = sys.argv[iarg]; iarg += 1
+outfile_head   = sys.argv[iarg]; iarg += 1
+nskyx          = int(sys.argv[iarg]); iarg += 1
+nskyy          = int(sys.argv[iarg]); iarg += 1
+ndetx          = int(sys.argv[iarg]); iarg += 1
+ndety          = int(sys.argv[iarg]); iarg += 1
+respdir        = sys.argv[iarg]; iarg += 1
+posx_point_src = int(sys.argv[iarg]); iarg += 1
+posy_point_src = int(sys.argv[iarg]); iarg += 1
+nem            = int(sys.argv[iarg]); iarg += 1
+tol_em         = float(sys.argv[iarg]); iarg += 1
+npm            = int(sys.argv[iarg]); iarg += 1
+tol_pm         = float(sys.argv[iarg]); iarg += 1
+nnewton        = int(sys.argv[iarg]); iarg += 1
+tol_newton     = float(sys.argv[iarg]); iarg += 1
 
 print("orgfile = ", orgfile)
 print("rand_seed = ", rand_seed)
 print("nfold = ", nfold)
 print("outdir = ", outdir)
 print("outfile_head = ", outfile_head)
+print("nskyx = ", nskyx)
+print("nskyy = ", nskyy)
+print("ndetx = ", ndetx)
+print("ndety = ", ndety)
+print("respdir = ", respdir)
+print("posx_point_src = ", posx_point_src)
+print("posy_point_src = ", posy_point_src)
+print("nem = ", nem)
+print("tol_em = ", tol_em)
+print("npm = ", npm)
+print("tol_pm = ", tol_pm)
+print("nnewton = ", nnewton)
+print("tol_newton = ", tol_newton)
 
 
-# 1. make response matrix, normed response matrix, 
-#    and efficiency matrix files
+# make observation image for cross-validation
+cmd = ["/home/morii/work/github/moriiism/srt/mkobs_cv/mkobs_cv",
+       orgfile, str(rand_seed), str(nfold), outdir, outfile_head]
+print(cmd)
+subprocess.call(cmd)
 
-outdir_resp = "resp"
+
+# make response matrix, normed response matrix, 
+# and efficiency matrix files
+outdir_resp = outdir + "/" + "resp"
 outfile_head_resp = "arb"
 nphoton_input_resp = 100
 cmd = ["/home/morii/work/github/moriiism/srt/mkresp/mkresp", 
@@ -75,10 +78,30 @@ print(cmd)
 subprocess.call(cmd)
 
 
-cmd = ["/home/morii/work/github/moriiism/srt/mkobs_cv/mkobs_cv",
-       orgfile, str(rand_seed), str(nfold), outdir, outfile_head]
+# mkimg_points
+cmd = ["mkdir", outdir + "/" + "skyorg"]
 print(cmd)
 subprocess.call(cmd)
+
+
+point_src_dat_file = outdir + "/" + "skyorg" + "/" + "point_src.dat"
+point_src_dat_file_fptr = open(point_src_dat_file, "w")
+print(f"{posx_point_src} {posy_point_src} 1.0", file=point_src_dat_file_fptr)
+point_src_dat_file_fptr.close()
+
+
+
+infile=skyorg/crab_pulsar.dat
+outdir=skyorg
+outfile_head=crab_pulsar
+nskyx=$nskyx
+nskyy=$nskyy
+
+cmd = ["/home/morii/work/github/moriiism/srt/mkimg_points/mkimg_points",
+       infile, outdir, outfile_head, nskyx, nskyy]
+
+
+
 
 
 for ifold in range(nfold):
