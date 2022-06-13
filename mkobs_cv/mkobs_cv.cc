@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     double nph = MirMath::GetSum(ndet, org_arr);
     printf("nph = %e\n", nph);
     int nph_int = ceil(nph);
-
+        
     // norm orgfile
     double* org_norm_arr = new double [ndet];
     for(int idet = 0; idet < ndet; idet ++){

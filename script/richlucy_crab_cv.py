@@ -105,11 +105,15 @@ print(cmd)
 subprocess.call(cmd)
 mu_heldist_file = f"{outdir}/smr/mu_heldist.dat"
 mu_heldist_file_fptr = open(mu_heldist_file, "w")
-print("! mu heldist\n", file=mu_heldist_file_fptr)
+print("! mu heldist", file=mu_heldist_file_fptr)
 
-mu_lst = [1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1]
-# 1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4]
-# 1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9]
+mu_lst = [1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9]
+# [1.0e3, 2e3, 6e3, 1.0e4, 2e4, 6e4, 1.0e5]
+# [1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4,
+# [1.0e-10, 1.0e-9, 1.0e-8, 1.0e-7, 1.0e-6]
+# [1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1]
+
+
 for mu in mu_lst:
     for ifold in range(nfold):
         print("ifold = ", ifold)

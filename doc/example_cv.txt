@@ -21,7 +21,7 @@ ndety=80
 respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
 posx_point_src=54
 posy_point_src=38
-nem=500
+nem=100
 tol_em=1.0e-7
 npm=1000
 tol_pm=1.0e-7
@@ -48,3 +48,7 @@ $npm \
 $tol_pm \
 $nnewton \
 $tol_newton
+
+
+
+
