@@ -17,12 +17,16 @@ LDLIBS_OPENBLAS  = ${SRTLIB_LIB} $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_L
 	$(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) \
 	$(MT_LIB) $(LIB) -lgfortran
 
-TARGET = richlucy_crab
+TARGET = richlucy_crab  eval_val
 
 all: $(TARGET) 
 
 richlucy_crab: richlucy_crab.o  arg_richlucy_crab.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+
+eval_val: eval_val.o  arg_eval_val.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+
 
 .SUFFIXES:
 .SUFFIXES: .o .c .f .F .cc

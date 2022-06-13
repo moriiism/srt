@@ -2,7 +2,7 @@
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
-#include "arg_eval.h"
+#include "arg_eval_val.h"
 #include "sub.h"
 
 // global variable 
@@ -10,11 +10,15 @@ int g_flag_debug = 0;
 int g_flag_help = 0;
 int g_flag_verbose = 0;
 
+double GetHellingerDist(const double* const det_arr, 
+                        const double* const val_norm_arr,
+                        int ndet);
+
 int main(int argc, char* argv[])
 {
     int status_prog = kRetNormal;
     
-    ArgValEval* argval = new ArgValEval;
+    ArgValEvalVal* argval = new ArgValEvalVal;
     argval->Init(argc, argv);
     argval->Print(stdout);
 
@@ -71,8 +75,12 @@ int main(int argc, char* argv[])
 
     // load response 
     double* resp_mat_arr = NULL;
-    LoadResp(argval->GetRespdir(), nskyx, nskyy,
-             &resp_mat_arr, &ndetx, &ndety);
+    int bitpix_resp = 0;
+    MifImgInfo* img_info_resp = new MifImgInfo;
+    img_info_resp->InitSetImg(1, 1, ndet, nsky);
+    MifFits::InFitsImageD(argval->GetRespFile(), img_info_resp,
+                          &bitpix_resp, &resp_mat_arr);
+
     // det_arr = R_mat %*% rec_norm_arr
     double* det_arr = new double[ndet];
     char* transa = new char [1];
@@ -87,26 +95,22 @@ int main(int argc, char* argv[])
     printf("nph_rec = %e\n", nph_rec);
     printf("nph_val = %e\n", nph_val);
 
-    int naxis = 2;
-    long* naxes = new long[naxis];
-    naxes[0] = nskyx;
-    naxes[1] = nskyy;
+
+    long naxes[2];
+    naxes[0] = ndetx;
+    naxes[1] = ndety;
     char tag[kLineSize];
     sprintf(tag, "val");
-
     int bitpix = -64;
     MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
                            tag, 2,
                            bitpix,
                            naxes, val_norm_arr);
-    
     sprintf(tag, "det");
     MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
                            tag, 2,
                            bitpix,
                            naxes, det_arr);
-    
-    delete [] naxes;
 
     char outfile[kLineSize];
     sprintf(outfile, "%s/%s_heldist.txt",
@@ -116,4 +120,18 @@ int main(int argc, char* argv[])
     fclose(fp_out);
     
     return status_prog;
+}
+
+
+double GetHellingerDist(const double* const det_arr, 
+                        const double* const val_norm_arr,
+                        int ndet)
+{
+    double sum = 0.0;
+    for(int idet = 0; idet < ndet; idet ++){
+        double diff = sqrt(det_arr[idet]) - sqrt(val_norm_arr[idet]);
+        sum += diff * diff;
+    }
+    double ans = sqrt(sum);
+    return (ans);
 }

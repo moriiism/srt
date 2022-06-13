@@ -6,11 +6,14 @@ source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh
 
 cd /home/morii/work/arb/ana/run
 
-orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+
+# orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+
+orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
 rand_seed=1
 nfold=5
 outdir=hxt_crab_cv
-outfile_head=hxt_301_700
+outfile_head=hxt_151_300
 nskyx=101
 nskyy=101
 ndetx=80
@@ -18,7 +21,7 @@ ndety=80
 respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
 posx_point_src=54
 posy_point_src=38
-nem=300
+nem=500
 tol_em=1.0e-7
 npm=1000
 tol_pm=1.0e-7

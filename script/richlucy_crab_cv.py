@@ -60,8 +60,11 @@ print("tol_newton = ", tol_newton)
 
 
 # make observation image for cross-validation
+outdir_mkobs_cv = outdir + "/" + "obs_cv"
+outfile_head_mkobs_cv = outfile_head
 cmd = ["/home/morii/work/github/moriiism/srt/mkobs_cv/mkobs_cv",
-       orgfile, str(rand_seed), str(nfold), outdir, outfile_head]
+       orgfile, str(rand_seed), str(nfold), outdir_mkobs_cv,
+       outfile_head_mkobs_cv]
 print(cmd)
 subprocess.call(cmd)
 
@@ -69,7 +72,7 @@ subprocess.call(cmd)
 # make response matrix, normed response matrix, 
 # and efficiency matrix files
 outdir_resp = outdir + "/" + "resp"
-outfile_head_resp = "arb"
+outfile_head_resp = "hxt"
 nphoton_input_resp = 100
 cmd = ["/home/morii/work/github/moriiism/srt/mkresp/mkresp", 
        respdir, outdir_resp, outfile_head_resp,
@@ -79,299 +82,88 @@ subprocess.call(cmd)
 
 
 # mkimg_points
-cmd = ["mkdir", outdir + "/" + "skyorg"]
+cmd = ["mkdir", outdir + "/" + "skysrc"]
 print(cmd)
 subprocess.call(cmd)
-
-
-point_src_dat_file = outdir + "/" + "skyorg" + "/" + "point_src.dat"
+point_src_dat_file = outdir + "/" + "skysrc" + "/" + "point_src.dat"
 point_src_dat_file_fptr = open(point_src_dat_file, "w")
 print(f"{posx_point_src} {posy_point_src} 1.0", file=point_src_dat_file_fptr)
 point_src_dat_file_fptr.close()
 
-
-
-infile=skyorg/crab_pulsar.dat
-outdir=skyorg
-outfile_head=crab_pulsar
-nskyx=$nskyx
-nskyy=$nskyy
-
+outdir_point_src = outdir + "/" + "skysrc"
+outfile_head_point_src = "point_src"
 cmd = ["/home/morii/work/github/moriiism/srt/mkimg_points/mkimg_points",
-       infile, outdir, outfile_head, nskyx, nskyy]
+       point_src_dat_file, outdir_point_src, outfile_head_point_src,
+       str(nskyx), str(nskyy)]
+print(cmd)
+subprocess.call(cmd)
 
 
 
+cmd = ["mkdir", outdir + "/" + "smr"]
+print(cmd)
+subprocess.call(cmd)
+mu_heldist_file = f"{outdir}/smr/mu_heldist.dat"
+mu_heldist_file_fptr = open(mu_heldist_file, "w")
+print("! mu heldist\n", file=mu_heldist_file_fptr)
+
+mu_lst = [1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1]
+# 1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4]
+# 1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9]
+for mu in mu_lst:
+    for ifold in range(nfold):
+        print("ifold = ", ifold)
+        datafile = (f"{outdir}/obs_cv/{outfile_head}_obs_{rand_seed:04}_" +
+                    f"{nfold:02}fold{ifold:02}_tr.fits")
+        fixed_src_norm_file = (f"{outdir}/skysrc/point_src_norm.fits")
+        skyfile = "none"
+        resp_file = f"{outdir}/resp/hxt_resp.fits"
+        eff_file = f"{outdir}/resp/hxt_eff.fits"
+        outdir_ifold = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}"
+        cmd = ["/home/morii/work/github/moriiism/srt/richlucy_crab/richlucy_crab",
+               datafile, fixed_src_norm_file, skyfile, resp_file, eff_file,
+               str(nskyx), str(nskyy), str(ndetx), str(ndety),
+               outdir_ifold, outfile_head,
+               str(nem), str(tol_em), str(npm), str(tol_pm),
+               str(nnewton), str(tol_newton), str(mu)]
+        print(cmd)
+        subprocess.call(cmd)
+
+    # eval
+    for ifold in range(nfold):
+        print("ifold = ", ifold)
+        resp_file = f"{outdir}/resp/hxt_resp.fits"
+        recfile = (f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/{outfile_head}_pulsar+nebula.fits")
+        valfile = (f"{outdir}/obs_cv/{outfile_head}_obs_{rand_seed:04}_" +
+                   f"{nfold:02}fold{ifold:02}_vl.fits")
+        outdir_eval = (f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}")
+        outfile_head_eval = "eval"
+        
+        cmd = ["/home/morii/work/github/moriiism/srt/richlucy_crab/eval_val", 
+               resp_file, recfile, valfile, outdir_eval, outfile_head_eval]
+        print(cmd)
+        subprocess.call(cmd)
+
+        
+    # average helldist
+    heldist_sum = 0.0
+    for ifold in range(nfold):
+        heldist = 0.0
+        helldist_file = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_heldist.txt"
+        helldist_file_fptr = open(helldist_file, "r")
+        for line in helldist_file_fptr:
+            heldist = line.rstrip('\n')
+        helldist_file_fptr.close()
+        heldist_sum += float(heldist)
+            
+    heldist_ave = heldist_sum / nfold
+    print(heldist_ave)
+    print(f"{mu:.1e} {heldist_ave}", file=mu_heldist_file_fptr)
+
+mu_heldist_file_fptr.close()
 
 
-for ifold in range(nfold):
-    print(ifold)
-    datafile = (f"{outdir}/{outfile_head}_obs_{rand_seed:04}_" +
-                f"{nfold:02}fold{ifold:02}_tr.fits")
-    cmd = ["/home/morii/work/github/moriiism/srt/richlucy_crab/richlucy_crab",
-           datafile, fixed_src_norm_file, skyfile, resp_file, eff_file,
-           nskyx, nskyy, ndetx, ndety, outdir, outfile_head,
-           nem, tol_em, npm, tol_pm, nnewton, tol_newton, mu]
-    print(cmd)
-    subprocess.call(cmd)
-
-
-# hxt_301_700_obs_0001_05fold00_tr.fits
-
-#
-#def exec_record_path_ndraw(exec_type: str,
-#                           inputs):
-#
-#    task_name = "record_path_ndraw"
-#    output_dir = None
-#    input_df = None
-#    if (exec_type == "term"):
-#        # output_dir
-#        output_dir = os.environ["KUZE_ANA_DIR"] + "/" + task_name
-#        if not os.path.exists(output_dir):
-#            os.makedirs(output_dir)
-#        
-#        # input_dir
-#        input_dir = os.environ["KUZE_ANA_DIR"] + "/" + "input"
-#        if not os.path.exists(input_dir):
-#            os.makedirs(input_dir)
-#            
-#        input_file = task_name + ".txt"
-#        input_file_full = input_dir + '/' + input_file
-#        if not os.path.exists(input_file_full):
-#            print(f"Error: Set input file at {input_dir}")
-#            exit()
-#        if not isOnlyLatinFile(input_file_full):
-#            print(f"Error: Contains invalid characters at " +
-#                  f"{input_file_full}")
-#            exit()
-#    
-#        # read input file
-#        input_df = pd.read_table(input_file_full, 
-#                                 header=None,
-#                                 sep=' *= *', 
-#                                 engine='python', 
-#                                 dtype=str, 
-#                                 comment='#')
-#        input_df.columns = ['name', 'val']
-#        input_df.set_index("name", inplace=True)
-#    
-#    elif (exec_type == "api"):
-#        from io import BytesIO
-#        import base64
-#
-#        path_data = []
-#        image_data = ""
-#        message = ""
-#
-#        input_array = []
-#        params = inputs.split('\n')
-#        for param in params:
-#            input_array.append(param.replace(' ', '').split('='))
-#        input_df = pd.DataFrame(data=input_array)
-#        input_df.columns = ['name', 'val']
-#        input_df.set_index("name", inplace=True)
-#
-#    else:
-#        print(f"Error: bad exec_type(={exec_type})")
-#        exit()
-#
-#    # 工程数
-#    ndraw = int(input_df.loc["ndraw", "val"])
-#    # 材料外径
-#    diam_org = float(input_df.loc["diam_org", "val"])
-#    # 材料肉厚
-#    thick_org = float(input_df.loc["thick_org", "val"])
-#    # 引上外径
-#    diam_prod = float(input_df.loc["diam_prod", "val"])
-#    # 引上肉厚
-#    thick_prod = float(input_df.loc["thick_prod", "val"])
-#    # 鋼種CD
-#    steel_cd = int(input_df.loc["steel_cd", "val"])
-#    # 規格CD
-#    spec_cd = int(input_df.loc["spec_cd", "val"])
-#    # BA引抜回数の最小値
-#    num_ba_min = int(input_df.loc["num_ba_min", "val"])
-#    # BA引抜回数の最大値
-#    num_ba_max = int(input_df.loc["num_ba_max", "val"])
-#    # 全引抜をBAにする
-#    flag_all_ba = int(input_df.loc["flag_all_ba", "val"])
-#    # 治具制約 (1-6)
-#    flag_jig = int(input_df.loc["flag_jig", "val"])
-#    # SKD材の治具
-#    flag_skd = int(input_df.loc["flag_skd", "val"])
-#    # 中間工程として算出
-#    flag_as_mid = int(input_df.loc["flag_as_mid", "val"])
-#    
-#    
-#    # print param
-#    print("ndraw = ", ndraw)
-#    print("diam_org = ", diam_org)
-#    print("thick_org = ", thick_org)
-#    print("diam_prod = ", diam_prod)
-#    print("thick_prod = ", thick_prod)
-#    print("steel_cd = ", steel_cd)
-#    print("spec_cd = ", spec_cd)
-#    print("num_ba_min = ", num_ba_min)
-#    print("num_ba_max = ", num_ba_max)
-#    print("flag_all_ba = ", flag_all_ba)
-#    print("flag_jig = ", flag_jig)
-#    print("flag_skd = ", flag_skd)
-#    print("flag_as_mid = ", flag_as_mid)
-#    print("------")
-#    
-#    # check ndraw
-#    if ndraw < 1:
-#        message = f"Error: bad ndraw(={ndraw})."
-#        if (exec_type == "term"):
-#            print(message)
-#            exit()
-#        elif (exec_type == "api"):
-#            return path_data, image_data, message
-#    else:
-#        pass
-#    
-#    if flag_all_ba == 0:
-#        # check spec_cd
-#        if spec_cd <= 0:
-#            if ((num_ba_min < 0) or (num_ba_max < 0)):
-#                message = "Error: spec_cd <= 0, " + \
-#                          "so set 0<= num_ba_min <= num_ba_max."
-#                if (exec_type == "term"):
-#                    print(message)
-#                    exit()
-#                elif (exec_type == "api"):
-#                    return path_data, image_data, message
-#            else:
-#                pass
-#            if (num_ba_min > num_ba_max):
-#                message = "Error: spec_cd <= 0, " + \
-#                          "so set 0<= num_ba_min <= num_ba_max."
-#                if (exec_type == "term"):
-#                    print(message)
-#                    exit()
-#                elif (exec_type == "api"):
-#                    return path_data, image_data, message
-#            else:
-#                pass
-#        else:
-#            if ((num_ba_min >= 0) or (num_ba_max >= 0)):
-#                message = f"Error: spec_cd is positive(={spec_cd}), " + \
-#                          "so set num_ba_min, num_ba_max < 0."
-#                if (exec_type == "term"):
-#                    print(message)
-#                    exit()
-#                elif (exec_type == "api"):
-#                    return path_data, image_data, message
-#            else:
-#                pass
-#            
-#            spec = Spec()
-#            num_ba_min = spec.getNumBA(spec_cd,
-#                                       diam_prod)
-#            num_ba_max = num_ba_min + 1
-#    elif flag_all_ba == 1:
-#        if ((spec_cd > 0) or
-#            (num_ba_min >= 0) or
-#            (num_ba_max >= 0)):
-#            message = f"Error: flag_all_ba == 1, " + \
-#                      "so set spec_cd <= 0, " + \
-#                      "num_ba_min < 0 and num_ba_max < 0."
-#            if (exec_type == "term"):
-#                print(message)
-#                exit()
-#            elif (exec_type == "api"):
-#                return path_data, image_data, message
-#        else:
-#            num_ba_min = ndraw
-#            num_ba_max = ndraw
-#    else:
-#        message = f"Error: bad flag_all_ba(={flag_all_ba})"
-#        if (exec_type == "term"):
-#            print(message)
-#            exit()
-#        elif (exec_type == "api"):
-#            return path_data, image_data, message
-#            
-#    print(f"num_ba_min = {num_ba_min}")
-#    print(f"num_ba_max = {num_ba_max}")
-#    
-#    # check num_ba_max, ndraw
-#    if num_ba_max > ndraw:
-#        message = f"Error: num_ba_max(={num_ba_max}) must be " + \
-#                  f"<= ndraw(={ndraw})."
-#        if (exec_type == "term"):
-#            print(message)
-#            exit()
-#        elif (exec_type == "api"):
-#            return path_data, image_data, message
-#    else:
-#        pass
-#    
-#    # check num_ba_min, ndraw
-#    if num_ba_min > ndraw:
-#        message = f"Error: num_ba_min(={num_ba_min}) must be " + \
-#                  f"<= ndraw(={ndraw})."
-#        if (exec_type == "term"):
-#            print(message)
-#            exit()
-#        elif (exec_type == "api"):
-#            return path_data, image_data, message
-#    else:
-#        pass
-#    
-#    (edge_mid_ap_df,
-#     edge_mid_ba_df,
-#     edge_last_ap_df,
-#     edge_last_ba_df) = loadEdgeRecordDF(steel_cd,
-#                                         flag_jig,
-#                                         flag_skd,
-#                                         flag_as_mid)
-#    (flag_ok,
-#     opt_path_lst,
-#     path_graph,
-#     path_df) = getRecordPath_NumBA(edge_mid_ap_df,
-#                                    edge_mid_ba_df,
-#                                    edge_last_ap_df,
-#                                    edge_last_ba_df,
-#                                    diam_org,
-#                                    thick_org,
-#                                    diam_prod,
-#                                    thick_prod,
-#                                    num_ba_min,
-#                                    num_ba_max,
-#                                    flag_jig,
-#                                    flag_skd,
-#                                    ndraw)
-#    if (flag_ok == 1):
-#        (path_data,
-#         image_data) = mkPathFigCSV_Record(exec_type,
-#                                           opt_path_lst,
-#                                           path_graph,
-#                                           edge_mid_ap_df,
-#                                           edge_mid_ba_df,
-#                                           edge_last_ap_df,
-#                                           edge_last_ba_df,
-#                                           task_name,
-#                                           output_dir,
-#                                           flag_jig,
-#                                           flag_skd,
-#                                           flag_as_mid,
-#                                           steel_cd)
-#        message = "record_path_ndraw.py: successfully done."
-#    else:
-#        message = f"Failed to get optimal path."
-#
-#    if (exec_type == "term"):
-#        print(message)
-#        exit()
-#    elif (exec_type == "api"):
-#        return path_data, image_data, message
-#
 #
 #if __name__ == "__main__":
 #    main()
-#
-#
-#
 
