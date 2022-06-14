@@ -161,9 +161,9 @@ void RichlucyBg(const double* const rho_init_arr,
         nu_pre = nu_new;
 
         double sum_rho = 0.0;
-        //for(int isky = 0; isky < nsky; isky ++){
-        //    sum_rho += rho_new_arr[isky];
-        //}
+        for(int isky = 0; isky < nsky; isky ++){
+            sum_rho += rho_new_arr[isky];
+        }
         double lval = 0.0;
         if (iiter % 100 == 0){
             lval = GetFuncL(data_arr, bg_arr,
