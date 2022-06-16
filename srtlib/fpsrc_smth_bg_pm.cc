@@ -1,3 +1,4 @@
+#include "fpsrc_smth_bg_pm.h"
 
 void GetVvalArr(const double* const rho_arr,
                 int nskyx, int nskyy,
@@ -32,8 +33,14 @@ double GetZval(double phi,
 }
 
 
-double GetFindLipConst(const double* const rho_arr, double nu,
-                       const double* const mval_arr, double nval,
+double GetFindLipConst(const double* const rho_arr,
+                       const double* const nu_arr,
+                       double phi,
+                       const double* const mval_arr,
+                       const double* const nval_arr,
+                       double pval,
+                       double phi_val,
+                       int nph, double B_val,
                        double mu,
                        int nskyx, int nskyy,
                        double lip_const, double lambda,
@@ -44,7 +51,8 @@ double GetFindLipConst(const double* const rho_arr, double nu,
     double eta = 1.2;
 
     double* rho_new_arr = new double[nsky];
-    double nu_new = 0.0;
+    double* nu_new_arr = new double[nsrc];
+    double phi_new = 0.0;
     for(int ik = 0; ik < ik_max; ik ++){
         lip_const = lip_const * pow(eta, ik);
 
@@ -53,61 +61,87 @@ double GetFindLipConst(const double* const rho_arr, double nu,
                    nskyx, nskyy,
                    mu, lip_const,
                    vval_arr);
-        double wval = GetWval(nu);
+        double* wval_arr = new double[nsrc];
+        GetWvalArr(nu_arr,
+                   nsrc,
+                   wval_arr);
+        double zval = GetZval(phi,
+                              lip_const,
+                              B_val);
         double lambda_new = 0.0;
-        GetRhoArrNu_ByNewton(vval_arr, wval,
-                             mval_arr, nval,
-                             nsky,
-                             lip_const,
-                             nnewton, tol_newton,
-                             lambda,
-                             rho_new_arr,
-                             &nu_new,
-                             &lambda_new);
-        double qminusf = GetQMinusF(rho_new_arr, nu_new,
-                                    rho_arr, nu, 
+        GetRhoArrNuArrPhi_ByNewton(vval_arr, wval_arr, zval,
+                                   mval_arr, nval_arr, pval,
+                                   phi_val,
+                                   nsky, nsrc, nph,
+                                   lip_const,
+                                   nnewton, tol_newton,
+                                   lambda,
+                                   rho_new_arr,
+                                   &nu_new_arr,
+                                   &phi_new,
+                                   &lambda_new);
+        double qminusf = GetQMinusF(rho_new_arr, nu_new_arr, phi_new,
+                                    rho_arr, nu_arr, phi,
                                     mu, lip_const,
                                     nskyx, nskyy);
         delete [] vval_arr;
+        delete [] wval_arr;        
         if(qminusf >= 0.0){
             break;
         }
     }
     delete [] rho_new_arr;
+    delete [] nu_new_arr;
     return lip_const;
 }
 
 
-double GetQMinusF(const double* const rho_new_arr, double nu_new,
-                  const double* const rho_arr, double nu,
+double GetQMinusF(const double* const rho_new_arr,
+                  const double* const nu_new_arr,
+                  double phi_new,
+                  const double* const rho_arr,
+                  const double* const nu_arr,
+                  double phi,
                   double mu, double lip_const,
                   int nskyx, int nskyy)
 {
-    double term1 = GetFuncF(rho_arr, mu, nskyx, nskyy);
-    double term2 = -1 * GetFuncF(rho_new_arr, mu, nskyx, nskyy);
+    double term1 = GetFuncF(rho_arr, phi, mu, B_val, nskyx, nskyy);
+    double term2 = -1 * GetFuncF(rho_new_arr, phi_new, mu,
+                                 B_val, nskyx, nskyy);
     int nsky = nskyx * nskyy;
     double* diff_rho_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, diff_rho_arr, 1);
     daxpy_(nsky, -1.0, const_cast<double*>(rho_arr), 1, diff_rho_arr, 1);
+
     double* diff_f_arr = new double[nsky];
     GetDiffF(rho_arr, mu, nskyx, nskyy, diff_f_arr);
     double term3 = ddot_(nsky, const_cast<double*>(diff_rho_arr), 1,
                          const_cast<double*>(diff_f_arr), 1);
+    double term3 += -1 * (phi_new - phi) * B_val / (phi * phi);
+
+    double* diff_nu_arr = new double[nsrc];
+    dcopy_(nsrc, const_cast<double*>(nu_new_arr), 1, diff_nu_arr, 1);
+    daxpy_(nsrc, -1.0, const_cast<double*>(nu_arr), 1, diff_nu_arr, 1);
+    
     double term4 = lip_const / 2.0 *
         (ddot_(nsky, const_cast<double*>(diff_rho_arr), 1,
-               const_cast<double*>(diff_rho_arr), 1) + pow(nu_new - nu, 2));
+               const_cast<double*>(diff_rho_arr), 1)
+         + ddot_(nsrc, const_cast<double*>(diff_nu_arr), 1,
+               const_cast<double*>(diff_nu_arr), 1)
+         + pow(phi_new - phi, 2));
     double ans = term1 + term2 + term3 + term4;
     delete [] diff_rho_arr;
     delete [] diff_f_arr;
+    delete [] diff_nu_arr;
     return(ans);
 }
 
 
-double GetFuncF(const double* const rho_arr,
-                double mu,
+double GetFuncF(const double* const rho_arr, double phi,
+                double mu, double B_val, 
                 int nskyx, int nskyy)
 {
-    double ans = mu * GetTermV(rho_arr, nskyx, nskyy);
+    double ans = mu * GetTermV(rho_arr, nskyx, nskyy) + B_val / phi;
     return(ans);
 }
 
@@ -127,7 +161,6 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                       const double* const mval_arr,
                       const double* const nval_arr,
                       double pval,
-                      double phi_val,
                       int nph, double B_val,
                       int ndet, int nskyx, int nskyy, int nsrc,
                       double mu,
@@ -137,6 +170,8 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                       double* const nu_new_arr,
                       double* const phi_new_ptr)
 {
+    double phi_val = phi;
+    
     int nsky = nskyx * nskyy;
     double* rho_pre_arr = new double[nsky];
     double* nu_pre_arr = new double[nsrc];    
@@ -148,8 +183,9 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
     double lambda = 0.0;
     double lip_const = 1.0;
     for(int ipm = 0; ipm < npm; ipm++){
-        double lip_const_new = GetFindLipConst(rho_pre_arr, nu_pre,
-                                               mval_arr, nval, mu,
+        double lip_const_new = GetFindLipConst(rho_pre_arr, nu_pre_arr, phi_pre,
+                                               mval_arr, nval_arr, pval,
+                                               phi_val, nph, B_val, mu,
                                                nskyx, nskyy, lip_const,
                                                lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);

@@ -49,10 +49,10 @@ int main(int argc, char* argv[])
     // load data
     MifImgInfo* img_info_data = new MifImgInfo;
     img_info_data->InitSetImg(1, 1, ndetx, ndety);
-    int bitpix = 0;
+    int bitpix_data = 0;
     double* data_arr = NULL;
     MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
-                          &bitpix, &data_arr);
+                          &bitpix_data, &data_arr);
     int nph_data = MirMath::GetSum(ndet, data_arr);
     printf("N photon = %d\n", nph_data);
 
@@ -105,12 +105,24 @@ int main(int argc, char* argv[])
         }
     }
 
+    // b_v^{(k)}
+    double** det_fpsrc_arr = NULL;
+    int nsrc = 0;
+    GenFixedPointSrcDetImg(argval->GetFixedSrcList(),
+                           resp_norm_mat_arr,
+                           nskyx, nxkyy, ndet,
+                           &nsrc,
+                           &det_fpsrc_arr);
+    
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
-    double nu_init = 0.0;
+    double* nu_init_arr = new double[nsrc];
+    double phi_init = 1.0/3.0;
     for(int isky = 0; isky < nsky; isky ++){
-        rho_init_arr[isky] = 0.5 / nsky;
-        nu_init = 0.5;
+        rho_init_arr[isky] = (1.0/3.0)/nsky;
+    }
+    for(int isrc = 0; isrc < nsrc; isrc ++){
+        nu_init_arr[isrc] = (1.0/3.0)/nsrc;
     }
     if("none" != argval->GetSkyfile()){
         printf("not implimented, yet.");
@@ -136,14 +148,6 @@ int main(int argc, char* argv[])
         //delete img_info_sky;
     }
 
-
-    double** det_fpsrc_arr = NULL;
-    GenFixedPointSrcDetImg(argval->GetFixedSrcList(),
-                           resp_norm_mat_arr,
-                           nskyx, nxkyy, ndet,
-                           &nsrc,
-                           &det_fpsrc_arr);
-
     // load bg data
     int bitpix_bg = 0;
     double* bg_arr = NULL;
@@ -157,7 +161,7 @@ int main(int argc, char* argv[])
 
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nsrc];
-    double phi_init = 0.0;
+    double phi_new = 0.0;
     RichlucyFpsrcSmthBg(rho_init_arr, nu_init_arr, phi_init,
                         data_arr, bg_arr, det_fpsrc_arr,
                         resp_norm_mat_arr,
@@ -169,7 +173,7 @@ int main(int argc, char* argv[])
                         argval->GetNdc(), argval->GetTolDc(),
                         argval->GetNpm(), argval->GetTolPm(),
                         argval->GetNnewton(), argval->GetTolNewton(),
-                        rho_new_arr, nu_new_arr, &phi);
+                        rho_new_arr, nu_new_arr, &phi_new);
 
     double B_val = MibBlas::Sum(bg_arr, ndet);
     printf("B_val = %e\n", B_val);

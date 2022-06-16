@@ -1,3 +1,4 @@
+#include "fpsrc_smth_bg_dc.h"
 
 void GetRhoNuPhi_ByDC(const double* const rho_arr,
                       const double* const nu_arr,
@@ -25,7 +26,6 @@ void GetRhoNuPhi_ByDC(const double* const rho_arr,
     for(int idc = 0; idc < ndc; idc++){
         GetRhoNuPhi_ByPM(rho_pre_arr, nu_pre_arr, phi_pre,
                          mval_arr, nval_arr, pval,
-                         phi_pre,
                          nph, B_val,
                          ndet, nskyx, nskyy, nsrc,
                          mu,

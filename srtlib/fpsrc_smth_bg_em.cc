@@ -1,12 +1,27 @@
+#include "fpsrc_smth_bg_em.h"
+
+void GetDetArr(const double* const rho_arr,
+               const double* const resp_norm_mat_arr,
+               int ndet, int nsky,
+               double* const det_arr) // ndet
+{
+    // det_arr = R_mat %*% rho_arr
+    char transa[1];
+    strcpy(transa, "N");
+    dgemv_(transa, ndet, nsky, 1.0,
+           const_cast<double*>(resp_norm_mat_arr), ndet,
+           const_cast<double*>(rho_arr), 1,
+           0.0, det_arr, 1);
+}
 
 // get mval_arr, nval_arr, pval
 void GetMvalArrNvalArrPval(const double* const rho_arr,
                            const double* const nu_arr,
                            double phi,
                            const double* const data_arr,
-                           const double* const resp_norm_mat_arr,
-                           const double* const* const bval_arr,
                            const double* const bg_arr,
+                           const double* const* const det_fpsrc_arr,
+                           const double* const resp_norm_mat_arr,
                            int ndet, int nsky, int nsrc,
                            double* const mval_arr,
                            double* const nval_arr,
@@ -17,7 +32,14 @@ void GetMvalArrNvalArrPval(const double* const rho_arr,
         den_arr[idet] = 0.0;
     }
     GetDetArr(rho_arr, resp_norm_mat_arr, ndet, nsky, den_arr);
-    daxpy_(ndet, nu, const_cast<double*>(bg_arr), 1, den_arr, 1);
+    for(int isrc = 0; isrc < nsrc; isrc++){
+        daxpy_(ndet, nu_arr[isrc],
+               const_cast<double*>(det_fpsrc_arr[isrc]), 1,
+               den_arr, 1);
+    }
+    double B_val = MibBlas::Sum(bg_arr, ndet);    
+    daxpy_(ndet, phi/B_val, const_cast<double*>(bg_arr), 1, den_arr, 1);
+    
     double* div_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet++){
         div_arr[idet] = data_arr[idet] / den_arr[idet];
@@ -31,12 +53,18 @@ void GetMvalArrNvalArrPval(const double* const rho_arr,
            0.0, tmp_arr, 1);
     MibBlas::ElmWiseMul(nsky, 1.0,
                         tmp_arr, rho_arr, mval_arr);
-    double nval = ddot_(ndet, div_arr, 1, const_cast<double*>(bg_arr), 1) * nu;
+    for(int isrc = 0; isrc < nsrc; isrc++){
+        nval_arr[isrc] = ddot_(ndet, div_arr, 1,
+                               const_cast<double*>(det_fpsrc_arr[isrc]), 1)
+            * nu_arr[isrc];
+    }
+    double pval = ddot_(ndet, div_arr, 1, const_cast<double*>(bg_arr), 1)
+        * phi / B_val;
 
     delete [] den_arr;
     delete [] div_arr;
     delete [] tmp_arr;
-    *nval_ptr = nval;
+    *pval_ptr = pval;
 }
 
 
@@ -59,34 +87,39 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
                          double* const nu_new_arr,
                          double* const phi_new_ptr)
 {
+    double B_val = MibBlas::Sum(bg_arr, ndet);
+    int nph = MibBlas::Sum(data_arr, ndet);
     int nsky = nskyx * nskyy;
     double* rho_pre_arr = new double[nsky];
+    double* nu_pre_arr = new double[nsrc];
     dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_pre_arr, 1);
-    double nu_pre = nu_init;
-    double nu_new = nu_init;
+    dcopy_(nsrc, const_cast<double*>(nu_init_arr), 1, nu_pre_arr, 1);
+    double phi_pre = phi_init;
+    double phi_new = 0.0;
     for(int iem = 0; iem < nem; iem ++){
         double* mval_arr = new double[nsky];
         double* nval_arr = new double[nsrc];
-        GetMArrNval(rho_arr, nu, data_arr, resp_norm_mat_arr, bg_arr,
-                    ndet, nsky, mval_arr, &nval);
-
-        double pval = GetPval();
-        
+        double pval = 0.0;
+        GetMvalArrNvalArrPval(rho_pre_arr, nu_pre_arr, phi_pre,
+                              data_arr, bg_arr, det_fpsrc_arr, resp_norm_mat_arr, 
+                              ndet, nsky, nsrc,
+                              mval_arr, nval_arr, &pval);
         GetRhoNuPhi_ByDC(rho_pre_arr, nu_pre_arr, phi_pre,
-                        data_arr,
-                        resp_norm_mat_arr,
-                        bg_arr,
-                        ndet, nskyx, nskyy,
-                        mu,
-                        ndc, tol_dc,
-                        npm, tol_pm,
-                        nnewton, tol_newton,
-                        rho_new_arr,
-                        nu_new_arr,
-                        &phi_new);
-        
-        double helldist  = GetHellingerDist(rho_pre_arr, nu_pre,
-                                            rho_new_arr, nu_new, nsky);
+                         mval_arr, nval_arr, pval,
+                         nph, B_val,
+                         ndet, nskyx, nskyy, nsrc,
+                         mu,
+                         ndc, tol_dc,
+                         npm, tol_pm,
+                         nnewton, tol_newton,
+                         rho_new_arr,
+                         nu_new_arr,
+                         &phi_new);
+        delete [] mval_arr;
+        delete [] nval_arr;
+        double helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
+                                            rho_new_arr, nu_new_arr, phi_new,
+                                            nsky, nsrc);
         if (helldist < tol_em){
             printf("iem = %d, helldist = %e\n",
                    iem, helldist);
@@ -94,7 +127,7 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
         dcopy_(nsrc, const_cast<double*>(nu_new_arr), 1, nu_pre_arr, 1);
-        nu_pre = nu_new;
+        phi_pre = phi_new;
 
         double lval = 0.0;        
         if (iem % 100 == 0){
@@ -108,8 +141,32 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
             printf("iem = %d, helldist = %e\n",
                    iem, helldist);
         }
-o    }
+    }
     delete [] rho_pre_arr;
-    *nu_new_ptr = nu_new;
+    delete [] nu_pre_arr;
+    *phi_new_ptr = phi_new;
+}
+
+double GetHellingerDist(const double* const rho_arr,
+                        const double* const nu_arr,
+                        double phi,
+                        const double* const rho_new_arr,
+                        const double* const nu_new_arr,
+                        double phi_new,
+                        int nsky, int nsrc)
+{
+    double sum = 0.0;
+    for(int isky = 0; isky < nsky; isky ++){
+        double diff = sqrt(rho_arr[isky]) - sqrt(rho_new_arr[isky]);
+        sum += diff * diff;
+    }
+    for(int isrc = 0; isrc < nsrc; isrc ++){
+        double diff = sqrt(nu_arr[isrc]) - sqrt(nu_new_arr[isrc]);
+        sum += diff * diff;
+    }
+    double diff = sqrt(phi) - sqrt(phi_new);
+    sum += diff * diff;
+    double ans = sqrt(sum);
+    return (ans);
 }
 
