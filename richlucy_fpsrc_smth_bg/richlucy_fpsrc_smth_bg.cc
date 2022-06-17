@@ -158,6 +158,7 @@ int main(int argc, char* argv[])
                           &bitpix_bg, &bg_arr);
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
     printf("N bg = %d\n", nph_bg);
+
     
 
     double* rho_new_arr = new double[nsky];

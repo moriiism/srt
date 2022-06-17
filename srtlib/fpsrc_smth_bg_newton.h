@@ -64,16 +64,16 @@ double GetDerivSval_FromLambda(double lambda,
                                const double* const nval_arr,
                                int nsky, int nsrc);
 
-double GetLambdaNew_ByNewton(double lambda,
-                             double lip_const,
-                             const double* const vval_arr,
-                             const double* const wval_arr,
-                             double zval,
-                             const double* const mval_arr,
-                             const double* const nval_arr,
-                             double pval,
-                             double phi_val,
-                             int nsky, int nsrc, int nph);
+double GetLambdaUpdate_ByNewton(double lambda,
+                                double lip_const,
+                                const double* const vval_arr,
+                                const double* const wval_arr,
+                                double zval,
+                                const double* const mval_arr,
+                                const double* const nval_arr,
+                                double pval,
+                                double phi_val,
+                                int nsky, int nsrc, int nph);
 
 double GetLambda_ByNewton(double lambda_init,
                           const double* const vval_arr,

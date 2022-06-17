@@ -11,7 +11,8 @@
 
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
 
-cd /home/morii/work/arb/ana/run
+cd /home/morii/work/arb/ana/run/hxt_fpsrc_smth_bg
+
 
 # response format
 nskyx=101
@@ -45,14 +46,16 @@ $nphoton_input
 # 2. mkimg_points
 
 mkdir skyorg
-cat << EOF > skyorg/crab_pulsar.dat
+cat << EOF > skyorg/fpsrc.dat
 # posx posy flux
-50 50 1000.0
+50 50 1.0
+25 50 10.0
+75 25 5.0
 EOF
 
-infile=skyorg/crab_pulsar.dat
+infile=skyorg/fpsrc.dat
 outdir=skyorg
-outfile_head=crab_pulsar
+outfile_head=fpsrc
 nskyx=$nskyx
 nskyy=$nskyy
 
@@ -64,22 +67,22 @@ $nskyx \
 $nskyy
 
 --> 
-skyorg/crab_pulsar.fits
-skyorg/crab_pulsar_norm.fits
+skyorg/fpsrc.fits
+skyorg/fpsrc_norm.fits
 
 
 # 2. mkimg_diffuse
 
-cat << EOF > skyorg/crab_nebula.dat
+cat << EOF > skyorg/diffuse.dat
 # model name
 # model parameters
 quad
 50 50 -1  0  0  1000
 EOF
 
-model_file=skyorg/crab_nebula.dat
+model_file=skyorg/diffuse.dat
 outdir=skyorg
-outfile_head=crab_nebula
+outfile_head=diffuse
 nskyx=$nskyx
 nskyy=$nskyy
 
@@ -91,17 +94,18 @@ $nskyx \
 $nskyy
 
 --> 
-skyorg/crab_nebula.fits
-skyorg/crab_nebula_norm.fits
+skyorg/diffuse.fits
+skyorg/diffuse_norm.fits
 
 
-# add cab pulsar + crab nebula
+# add fpsrc + diffuse
 
-imgfile1=skyorg/crab_pulsar_norm.fits
-imgfile2=skyorg/crab_nebula_norm.fits
+imgfile1=skyorg/fpsrc_norm.fits
+imgfile2=skyorg/diffuse_norm.fits
 coeff1=1
 coeff2=10
-outfile=skyorg/crab_pulsar+nebula.fits
+outfile=skyorg/fpsrc+diffuse.fits
+
 ~/work/github/moriiism/srt/imgadd/imgadd \
 $imgfile1 \
 $imgfile2 \
@@ -109,7 +113,7 @@ $coeff1 \
 $coeff2 \
 $outfile
 
----> skyorg/crab_pulsar+nebula.fits
+---> skyorg/fpsrc+diffuse.fits
 
 # 4. simobs
 
@@ -136,13 +140,13 @@ $ndety
 
 
 respfile=resp/arb_resp.fits
-srcfile=skyorg/crab_pulsar+nebula.fits
-nevt_src=5000
+srcfile=skyorg/fpsrc+diffuse.fits
+nevt_src=500000
 bgfile=det/bg.fits
-nevt_bg=0
+nevt_bg=100
 rand_seed_det=1
 outdir=sim
-outfile_head=crab_pulsar+nebula
+outfile_head=fpsrc+diffuse
 
 ~/work/github/moriiism/srt/simobs/simobs \
 $respfile \
@@ -155,12 +159,21 @@ $outdir \
 $outfile_head
 
 
----> sim/crab_pulsar+nebula_obs_src_50000_bg_0_0001.fits
+---> sim/fpsrc+diffuse_obs_src_50000_bg_100_0001.fits
 
-# 5. richlucy_crab
+# 5. richlucy_fpsrc_smth_bg
 
-datafile=sim/crab_pulsar+nebula_obs_src_5000_bg_0_0001.fits
-fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+
+cat << EOF > skyorg/fpsrc_tmp.dat
+# posx posy
+50 50
+25 50
+75 25
+EOF
+
+datafile=sim/fpsrc+diffuse_obs_src_500000_bg_100_0001.fits
+fixed_src_list=skyorg/fpsrc_tmp.dat
+bgfile=det/bg.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
@@ -168,19 +181,22 @@ nskyx=$nskyx
 nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
-outdir=rl_crab
-outfile_head=src_5000
+outdir=rl_fpsrc_smth_bg
+outfile_head=src_500000_bg_100
 nem=500
 tol_em=1.0e-7
+ndc=100
+tol_dc=1.0e-7
 npm=100
 tol_pm=1.0e-7
 nnewton=100
 tol_newton=1.0e-7
 mu=1e7
 
-~/work/github/moriiism/srt/richlucy_crab/richlucy_crab \
+~/work/github/moriiism/srt/richlucy_fpsrc_smth_bg/richlucy_fpsrc_smth_bg \
 $datafile \
-$fixed_src_norm_file \
+$fixed_src_list \
+$bgfile \
 $skyfile \
 $resp_file \
 $eff_file \
@@ -192,6 +208,8 @@ $outdir \
 $outfile_head \
 $nem \
 $tol_em \
+$ndc \
+$tol_dc \
 $npm \
 $tol_pm \
 $nnewton \
@@ -200,5 +218,4 @@ $mu
 
 
 --> 
-  crab/crab_pulsar+nebula_rec.fits
-
+  rl_fpsrc_smth_bg/src_5000_bg_100_rec.fits

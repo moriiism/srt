@@ -179,16 +179,16 @@ double GetDerivSval_FromLambda(double lambda,
     return deriv_sval;
 }
 
-double GetLambdaNew_ByNewton(double lambda,
-                             double lip_const,
-                             const double* const vval_arr,
-                             const double* const wval_arr,
-                             double zval,
-                             const double* const mval_arr,
-                             const double* const nval_arr,
-                             double pval,
-                             double phi_val,
-                             int nsky, int nsrc, int nph)
+double GetLambdaUpdate_ByNewton(double lambda,
+                                double lip_const,
+                                const double* const vval_arr,
+                                const double* const wval_arr,
+                                double zval,
+                                const double* const mval_arr,
+                                const double* const nval_arr,
+                                double pval,
+                                double phi_val,
+                                int nsky, int nsrc, int nph)
 {
     double sval = GetSval_FromLambda(lambda,
                                      lip_const,
@@ -219,15 +219,15 @@ double GetLambda_ByNewton(double lambda_init,
 {
     double lambda = lambda_init;
     double lambda_new = lambda_init;
-    double sval = 0.0;
     int flag_converge = 0;
+    double sval = 0.0;
     for(int inewton = 0; inewton < nnewton; inewton ++){
-        lambda_new = GetLambdaNew_ByNewton(lambda,
-                                           lip_const,
-                                           vval_arr, wval_arr, zval,
-                                           mval_arr, nval_arr, pval,
-                                           phi_val,
-                                           nsky, nsrc, nph);
+        lambda_new = GetLambdaUpdate_ByNewton(lambda,
+                                              lip_const,
+                                              vval_arr, wval_arr, zval,
+                                              mval_arr, nval_arr, pval,
+                                              phi_val,
+                                              nsky, nsrc, nph);
         sval = GetSval_FromLambda(lambda_new,
                                   lip_const,
                                   vval_arr, wval_arr, zval,
@@ -243,6 +243,9 @@ double GetLambda_ByNewton(double lambda_init,
     if(flag_converge != 1){
         printf("newton: sval = %e\n", sval);
     }
+
+    printf("sval = %e\n", sval);
+    
     return lambda_new;
 }
 

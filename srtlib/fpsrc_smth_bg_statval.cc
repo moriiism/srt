@@ -17,8 +17,9 @@ double GetHellingerDist(const double* const rho_arr,
         double diff = sqrt(nu_arr[isrc]) - sqrt(nu_new_arr[isrc]);
         sum += diff * diff;
     }
-    double diff = sqrt(phi) - sqrt(phi_new);
-    sum += diff * diff;
+    // debug
+    //double diff = sqrt(phi) - sqrt(phi_new);
+    //sum += diff * diff;
     double ans = sqrt(sum);
     return (ans);
 }

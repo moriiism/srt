@@ -184,8 +184,13 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
     double phi_pre = phi;
     double phi_new = 0.0;
 
-    double lambda = 0.0;
+    // debug
     double lip_const = 1.0;
+    // debug
+    double lambda = (pval - nph) / phi_val
+        + lip_const * GetZval(phi_pre, lip_const, B_val) - 1.0e3;
+    printf("debug: lambda = %e\n", lambda);
+    
     for(int ipm = 0; ipm < npm; ipm++){
         double lip_const_new = GetFindLipConst(rho_pre_arr, nu_pre_arr, phi_pre,
                                                mval_arr, nval_arr, pval,
@@ -205,6 +210,7 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
         double zval = GetZval(phi_pre,
                               lip_const_new,
                               B_val);
+        
         double lambda_new = 0.0;
         GetRhoArrNuArrPhi_ByNewton(vval_arr, wval_arr, zval,
                                    mval_arr, nval_arr, pval,
@@ -217,6 +223,9 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                                    nu_new_arr,
                                    &phi_new,
                                    &lambda_new);
+
+        printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
+        
         double helldist  = GetHellingerDist(rho_pre_arr,
                                             nu_pre_arr,
                                             phi_pre,
@@ -226,6 +235,8 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                                             nsky, nsrc);
         delete [] vval_arr;
         delete [] wval_arr;
+
+        // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
             printf("ipm = %d, helldist = %e\n",
                    ipm, helldist);
@@ -238,6 +249,6 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
         lip_const = lip_const_new;
     }
     *phi_new_ptr = phi_new;
-    delete [] mval_arr;
     delete [] rho_pre_arr;
+    delete [] nu_pre_arr;
 }
