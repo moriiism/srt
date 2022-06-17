@@ -21,8 +21,8 @@ TARGET = richlucy_fpsrc_smth_bg
 
 all: $(TARGET) 
 
-richlucy_fpsrc_smth_bg: richlucy_fpsrc_smth_bg.o  arg_richlucy_fpsrc_smth_bg.o
-	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+richlucy_fpsrc_smth_bg: richlucy_fpsrc_smth_bg.o  arg_richlucy_fpsrc_smth_bg.o  fpsrc.o
+	$(CXXN) $@.o arg_$@.o fpsrc.o ${LDLIBS_OPENBLAS} -o $@
 
 eval_val: eval_val.o  arg_eval_val.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@

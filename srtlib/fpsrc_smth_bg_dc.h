@@ -1,6 +1,10 @@
 #ifndef MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_DC_H_
 #define MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_DC_H_
 
+#include "mib_blas.h"
+#include "mif_fits.h"
+//#include "mir_math.h"
+
 void GetRhoNuPhi_ByDC(const double* const rho_arr,
                       const double* const nu_arr,
                       double phi,

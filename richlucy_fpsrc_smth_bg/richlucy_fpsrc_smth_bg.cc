@@ -7,8 +7,9 @@
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "arg_richlucy_fpsrc_smth_bg.h"
-#include "sub.h"
+#include "fpsrc.h"
 #include "TRandom3.h"
+#include "fpsrc_smth_bg_em.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -110,7 +111,7 @@ int main(int argc, char* argv[])
     int nsrc = 0;
     GenFixedPointSrcDetImg(argval->GetFixedSrcList(),
                            resp_norm_mat_arr,
-                           nskyx, nxkyy, ndet,
+                           nskyx, nskyy, ndet,
                            &nsrc,
                            &det_fpsrc_arr);
     
@@ -177,7 +178,7 @@ int main(int argc, char* argv[])
 
     double B_val = MibBlas::Sum(bg_arr, ndet);
     printf("B_val = %e\n", B_val);
-    double N_prime = B_val / phi;
+    double N_prime = B_val / phi_new;
     printf("N_prime = %e\n", N_prime);
     
     // output reconstructed sky image: lambda for diffuse
@@ -216,16 +217,17 @@ int main(int argc, char* argv[])
     long naxes[2];
     naxes[0] = nskyx;
     naxes[1] = nskyy;
+    int bitpix_out = -32;
     MifFits::OutFitsImageD(argval->GetOutdir(),
                            argval->GetOutfileHead(),
                            "diffuse", 2,
-                           bitpix,
+                           bitpix_out,
                            naxes, sky_new_arr);
 
     MifFits::OutFitsImageD(argval->GetOutdir(),
                            argval->GetOutfileHead(),
                            "diffuse+fpsrc", 2,
-                           bitpix,
+                           bitpix_out,
                            naxes, sky_total_arr);
 
     double time_ed = MiTime::GetTimeSec();

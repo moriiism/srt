@@ -1,6 +1,10 @@
 #ifndef MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_NEWTON_H_
 #define MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_NEWTON_H_
 
+#include "mib_blas.h"
+#include "mif_fits.h"
+//#include "mir_math.h"
+
 void GetRhoArr_FromLambda(double lambda,
                           double lip_const,
                           const double* const vval_arr,

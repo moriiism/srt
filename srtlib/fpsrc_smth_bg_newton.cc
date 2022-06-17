@@ -1,4 +1,5 @@
 #include "fpsrc_smth_bg_newton.h"
+//#include "fpsrc_smth_bg_statval.h"
 
 void GetRhoArr_FromLambda(double lambda,
                           double lip_const,
@@ -87,8 +88,8 @@ void GetDerivNuArr_FromLambda(double lambda,
     for(int isrc = 0; isrc < nsrc; isrc++){
         double bval = lambda - lip_const * wval_arr[isrc];
         double den = sqrt(bval * bval + 4 * lip_const * nval_arr[isrc]);
-        double num = -1 * nu_arr[isky];
-        deriv_nu_arr[isky] = num / den;
+        double num = -1 * nu_arr[isrc];
+        deriv_nu_arr[isrc] = num / den;
     }
     delete [] nu_arr;
 }

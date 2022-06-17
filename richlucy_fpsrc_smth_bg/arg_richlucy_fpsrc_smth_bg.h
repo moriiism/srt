@@ -23,7 +23,7 @@ public:
         nem_(0),
         tol_em_(0.0),
         ndc_(0),
-        tol_cd_(0.0),
+        tol_dc_(0.0),
         npm_(0),
         tol_pm_(0.0),
         nnewton_(0),
@@ -62,6 +62,7 @@ private:
     string progname_;
     string datafile_;
     string fixed_src_list_;
+    string bgfile_;
     string skyfile_;
     string resp_file_;
     string eff_file_;

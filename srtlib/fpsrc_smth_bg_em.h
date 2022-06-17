@@ -1,6 +1,10 @@
 #ifndef MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_EM_H_
 #define MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_EM_H_
 
+#include "mib_blas.h"
+#include "mif_fits.h"
+//#include "mir_math.h"
+
 void GetDetArr(const double* const rho_arr,
                const double* const resp_norm_mat_arr,
                int ndet, int nsky,
@@ -37,13 +41,5 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
                          double* const rho_new_arr,
                          double* const nu_new_arr,
                          double* const phi_new_ptr);
-
-double GetHellingerDist(const double* const rho_arr,
-                        const double* const nu_arr,
-                        double phi,
-                        const double* const rho_new_arr,
-                        const double* const nu_new_arr,
-                        double phi_new,
-                        int nsky, int nsrc);
 
 #endif // MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_EM_H_

@@ -1,4 +1,6 @@
 #include "fpsrc_smth_bg_dc.h"
+#include "fpsrc_smth_bg_pm.h"
+#include "fpsrc_smth_bg_statval.h"
 
 void GetRhoNuPhi_ByDC(const double* const rho_arr,
                       const double* const nu_arr,

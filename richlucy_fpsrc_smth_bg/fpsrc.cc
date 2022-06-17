@@ -1,11 +1,13 @@
-
+#include "fpsrc.h"
 
 void GenFixedPointSrcDetImg(string fixed_src_list,
                             const double* const resp_norm_mat_arr,
-                            int nskyx, int nxkyy, int ndet,
+                            int nskyx, int nskyy, int ndet,
                             int* const nsrc_ptr,
                             double*** const det_fpsrc_arr_ptr)
 {
+    int nsky = nskyx * nskyy;
+    
     // fixed point source list
     string* lines_arr = NULL;
     long nline = 0;
@@ -27,7 +29,7 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
 
     double** det_fpsrc_arr = new double*[nsrc];
     for(int isrc = 0; isrc < nsrc; isrc++){
-        det_arr[isrc] = new double[ndet];
+        det_fpsrc_arr[isrc] = new double[ndet];
     }
 
     for(int isrc = 0; isrc < nsrc; isrc++){
@@ -45,7 +47,7 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
         dgemv_(transa, ndet, nsky, 1.0,
                const_cast<double*>(resp_norm_mat_arr), ndet,
                const_cast<double*>(sky_arr), 1,
-               0.0, det_arr[isrc], 1);
+               0.0, det_fpsrc_arr[isrc], 1);
         delete [] sky_arr;
     }
 
