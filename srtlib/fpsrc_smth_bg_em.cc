@@ -99,8 +99,6 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
     double phi_pre = phi_init;
     double phi_new = 0.0;
     for(int iem = 0; iem < nem; iem ++){
-        printf("iem = %d\n", iem);
-
         double* mval_arr = new double[nsky];
         double* nval_arr = new double[nsrc];
         double pval = 0.0;
@@ -108,17 +106,6 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
                               data_arr, bg_arr, det_fpsrc_arr, resp_norm_mat_arr, 
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-
-        //        for(int isky = 0; isky < nsky; isky ++){
-        //    //if(rho_pre_arr[isky] <= 0.0){
-        //    printf("rho_pre_arr[isky] = %e\n", rho_pre_arr[isky]);
-        //    //}
-        //}
-        //for(int isrc = 0; isrc < nsrc; isrc ++){
-        //    //if(nu_pre_arr[isrc] <= 0.0){
-        //    printf("nu_pre_arr[isrc] = %e\n", nu_pre_arr[isrc]);
-        //    //}
-        //}
         GetRhoNuPhi_ByDC(rho_pre_arr, nu_pre_arr, phi_pre,
                          mval_arr, nval_arr, pval,
                          nph, B_val,

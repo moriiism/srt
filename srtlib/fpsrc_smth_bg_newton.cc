@@ -241,10 +241,8 @@ double GetLambda_ByNewton(double lambda_init,
         lambda = lambda_new;
     }
     if(flag_converge != 1){
-        printf("newton: sval = %e\n", sval);
+        printf("newton not converge: sval = %e\n", sval);
     }
-
-    printf("sval = %e\n", sval);
     
     return lambda_new;
 }

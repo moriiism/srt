@@ -4,6 +4,8 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
                             const double* const resp_norm_mat_arr,
                             int nskyx, int nskyy, int ndet,
                             int* const nsrc_ptr,
+                            int** const xpos_src_arr_ptr,
+                            int** const ypos_src_arr_ptr,
                             double*** const det_fpsrc_arr_ptr)
 {
     int nsky = nskyx * nskyy;
@@ -51,8 +53,8 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
         delete [] sky_arr;
     }
 
-    delete [] xpos_arr;
-    delete [] ypos_arr;
     *nsrc_ptr = nsrc;
+    *xpos_src_arr_ptr = xpos_arr;
+    *ypos_src_arr_ptr = ypos_arr;
     *det_fpsrc_arr_ptr = det_fpsrc_arr;
 }

@@ -9,6 +9,8 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
                             const double* const resp_norm_mat_arr,
                             int nskyx, int nskyy, int ndet,
                             int* const nsrc_ptr,
+                            int** const xpos_src_arr_ptr,
+                            int** const ypos_src_arr_ptr,
                             double*** const det_fpsrc_arr_ptr);
 
 #endif // MORIIISM_SRT_RICHLUCY_FPSRC_SMTH_BG_FPSRC_H_

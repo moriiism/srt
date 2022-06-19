@@ -11,7 +11,8 @@ TARGET := libsrtlib.a
 
 OBJ := sub.o  sub_pm.o  sub_newton.o  sub_smooth.o  sim.o \
 	fpsrc_smth_bg_em.o  fpsrc_smth_bg_dc.o  fpsrc_smth_bg_pm.o  \
-	fpsrc_smth_bg_newton.o  fpsrc_smth_bg_statval.o
+	fpsrc_smth_bg_newton.o  fpsrc_smth_bg_newton_phi0.o \
+	fpsrc_smth_bg_statval.o
 
 all: $(TARGET) 
 

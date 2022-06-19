@@ -108,11 +108,15 @@ int main(int argc, char* argv[])
 
     // b_v^{(k)}
     double** det_fpsrc_arr = NULL;
+    int* xpos_src_arr = NULL;
+    int* ypos_src_arr = NULL;
     int nsrc = 0;
     GenFixedPointSrcDetImg(argval->GetFixedSrcList(),
                            resp_norm_mat_arr,
                            nskyx, nskyy, ndet,
                            &nsrc,
+                           &xpos_src_arr,
+                           &ypos_src_arr,
                            &det_fpsrc_arr);
     
     // sky image to be reconstructed
@@ -201,13 +205,12 @@ int main(int argc, char* argv[])
     for(int isky = 0; isky < nsky; isky ++){
         sky_total_arr[isky] = sky_new_arr[isky];
     }
+
+    // debug
     for(int isrc = 0; isrc < nsrc; isrc ++){
-        
-
+        int isky_pos = ypos_src_arr[isrc] * nskyx + xpos_src_arr[isrc];
+        sky_total_arr[isky_pos] += flux_arr[isrc];
     }
-
-    
-
     
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){

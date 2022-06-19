@@ -103,7 +103,7 @@ skyorg/diffuse_norm.fits
 imgfile1=skyorg/fpsrc_norm.fits
 imgfile2=skyorg/diffuse_norm.fits
 coeff1=1
-coeff2=10
+coeff2=100
 outfile=skyorg/fpsrc+diffuse.fits
 
 ~/work/github/moriiism/srt/imgadd/imgadd \
@@ -141,9 +141,9 @@ $ndety
 
 respfile=resp/arb_resp.fits
 srcfile=skyorg/fpsrc+diffuse.fits
-nevt_src=500000
+nevt_src=50000
 bgfile=det/bg.fits
-nevt_bg=100
+nevt_bg=1000
 rand_seed_det=1
 outdir=sim
 outfile_head=fpsrc+diffuse
@@ -159,7 +159,7 @@ $outdir \
 $outfile_head
 
 
----> sim/fpsrc+diffuse_obs_src_50000_bg_100_0001.fits
+---> sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
 
 # 5. richlucy_fpsrc_smth_bg
 
@@ -171,7 +171,7 @@ cat << EOF > skyorg/fpsrc_tmp.dat
 75 25
 EOF
 
-datafile=sim/fpsrc+diffuse_obs_src_500000_bg_100_0001.fits
+datafile=sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
 fixed_src_list=skyorg/fpsrc_tmp.dat
 bgfile=det/bg.fits
 skyfile=none
@@ -182,16 +182,16 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_fpsrc_smth_bg
-outfile_head=src_500000_bg_100
-nem=500
-tol_em=1.0e-7
+outfile_head=src_50000_bg_1000_mu1.0e5
+nem=100
+tol_em=1.0e-8
 ndc=100
-tol_dc=1.0e-7
+tol_dc=1.0e-8
 npm=100
-tol_pm=1.0e-7
+tol_pm=1.0e-8
 nnewton=100
-tol_newton=1.0e-7
-mu=1e7
+tol_newton=1.0e-4
+mu=1.0e5
 
 ~/work/github/moriiism/srt/richlucy_fpsrc_smth_bg/richlucy_fpsrc_smth_bg \
 $datafile \
