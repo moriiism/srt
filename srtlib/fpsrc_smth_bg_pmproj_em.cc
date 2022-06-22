@@ -1,5 +1,5 @@
-#include "fpsrc_smth_bg_em.h"
-#include "fpsrc_smth_bg_dc.h"
+#include "fpsrc_smth_bg_pmproj_em.h"
+#include "fpsrc_smth_bg_pmproj_dc.h"
 #include "fpsrc_smth_bg_statval.h"
 
 void GetDetArr(const double* const rho_arr,
