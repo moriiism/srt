@@ -1,6 +1,7 @@
 #include "fpsrc.h"
 
-void GenFixedPointSrcDetImg(string fixed_src_list,
+void GenFixedPointSrcDetImg(FILE* const fp_log,
+                            string fixed_src_list,
                             const double* const resp_norm_mat_arr,
                             int nskyx, int nskyy, int ndet,
                             int* const nsrc_ptr,
@@ -24,7 +25,8 @@ void GenFixedPointSrcDetImg(string fixed_src_list,
         MiStr::GenSplit(lines_arr[iline], &nsplit, &split_arr);
         xpos_arr[iline] = atoi(split_arr[0].c_str());
         ypos_arr[iline] = atoi(split_arr[1].c_str());
-        printf("%d  %d\n", xpos_arr[iline], ypos_arr[iline]);
+        MiIolib::Printf2(fp_log, 
+                         "%d  %d\n", xpos_arr[iline], ypos_arr[iline]);
         delete [] split_arr;
     }
     delete [] lines_arr;

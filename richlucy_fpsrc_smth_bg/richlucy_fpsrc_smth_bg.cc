@@ -111,7 +111,8 @@ int main(int argc, char* argv[])
     int* xpos_src_arr = NULL;
     int* ypos_src_arr = NULL;
     int nsrc = 0;
-    GenFixedPointSrcDetImg(argval->GetFixedSrcList(),
+    GenFixedPointSrcDetImg(fp_log,
+                           argval->GetFixedSrcList(),
                            resp_norm_mat_arr,
                            nskyx, nskyy, ndet,
                            &nsrc,

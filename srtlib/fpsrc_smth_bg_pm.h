@@ -18,7 +18,8 @@ double GetZval(double phi,
                double lip_const,
                double B_val);
 
-double GetFindLipConst(const double* const rho_arr,
+double GetFindLipConst(FILE* const fp_log,
+                       const double* const rho_arr,
                        const double* const nu_arr,
                        double phi,
                        const double* const mval_arr,

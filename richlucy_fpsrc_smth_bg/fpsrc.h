@@ -5,7 +5,8 @@
 #include "mib_blas.h"
 #include "mir_math.h"
 
-void GenFixedPointSrcDetImg(string fixed_src_list,
+void GenFixedPointSrcDetImg(FILE* const fp_log,
+                            string fixed_src_list,
                             const double* const resp_norm_mat_arr,
                             int nskyx, int nskyy, int ndet,
                             int* const nsrc_ptr,

@@ -75,7 +75,8 @@ double GetLambdaUpdate_ByNewton(double lambda,
                                 double phi_val,
                                 int nsky, int nsrc, int nph);
 
-double GetLambda_ByNewton(double lambda_init,
+double GetLambda_ByNewton(FILE* const fp_log,
+                          double lambda_init,
                           const double* const vval_arr,
                           const double* const wval_arr,
                           double zval,
@@ -87,7 +88,8 @@ double GetLambda_ByNewton(double lambda_init,
                           double lip_const,
                           int nnewton, double tol_newton);
 
-void GetRhoArrNuArrPhi_ByNewton(const double* const vval_arr,
+void GetRhoArrNuArrPhi_ByNewton(FILE* const fp_log,
+                                const double* const vval_arr,
                                 const double* const wval_arr,
                                 double zval,
                                 const double* const mval_arr,

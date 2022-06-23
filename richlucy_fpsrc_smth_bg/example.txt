@@ -115,10 +115,7 @@ $outfile
 
 ---> skyorg/fpsrc+diffuse.fits
 
-# 4. simobs
-
-# make dummy bg for simobs
-# dummy bg img
+# make bg
 mkdir det
 cat << EOF > det/bg.dat
 # background model name
@@ -139,9 +136,10 @@ $ndetx \
 $ndety
 
 
+# simobs
 respfile=resp/arb_resp.fits
 srcfile=skyorg/fpsrc+diffuse.fits
-nevt_src=50000
+nevt_src=5000
 bgfile=det/bg.fits
 nevt_bg=1000
 rand_seed_det=1
@@ -159,20 +157,12 @@ $outdir \
 $outfile_head
 
 
----> sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
+---> sim/fpsrc+diffuse_obs_src_500_bg_1000_0001.fits
 
 # 5. richlucy_fpsrc_smth_bg
 
-
-cat << EOF > skyorg/fpsrc_tmp.dat
-# posx posy
-50 50
-25 50
-75 25
-EOF
-
-datafile=sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
-fixed_src_list=skyorg/fpsrc_tmp.dat
+datafile=sim/fpsrc+diffuse_obs_src_5000_bg_1000_0001.fits
+fixed_src_list=skyorg/fpsrc.dat
 bgfile=det/bg.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
@@ -182,7 +172,7 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_fpsrc_smth_bg
-outfile_head=src_50000_bg_1000_mu1.0e5
+outfile_head=src_5000_bg_1000_mu1.0e1
 nem=100
 tol_em=1.0e-8
 ndc=100
@@ -191,7 +181,7 @@ npm=100
 tol_pm=1.0e-8
 nnewton=100
 tol_newton=1.0e-4
-mu=1.0e5
+mu=1.0e1
 
 ~/work/github/moriiism/srt/richlucy_fpsrc_smth_bg/richlucy_fpsrc_smth_bg \
 $datafile \

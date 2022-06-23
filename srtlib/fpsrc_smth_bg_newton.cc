@@ -205,7 +205,8 @@ double GetLambdaUpdate_ByNewton(double lambda,
     return lambda_new;
 }
 
-double GetLambda_ByNewton(double lambda_init,
+double GetLambda_ByNewton(FILE* const fp_log,
+                          double lambda_init,
                           const double* const vval_arr,
                           const double* const wval_arr,
                           double zval,
@@ -241,14 +242,16 @@ double GetLambda_ByNewton(double lambda_init,
         lambda = lambda_new;
     }
     if(flag_converge != 1){
-        printf("newton not converge: sval = %e\n", sval);
+        MiIolib::Printf2(fp_log,
+                         "      newton: not converge: sval = %e\n", sval);
     }
     
     return lambda_new;
 }
 
 
-void GetRhoArrNuArrPhi_ByNewton(const double* const vval_arr,
+void GetRhoArrNuArrPhi_ByNewton(FILE* const fp_log,
+                                const double* const vval_arr,
                                 const double* const wval_arr,
                                 double zval,
                                 const double* const mval_arr,
@@ -264,7 +267,8 @@ void GetRhoArrNuArrPhi_ByNewton(const double* const vval_arr,
                                 double* const phi_new_ptr,
                                 double* const lambda_new_ptr)
 {
-    double lambda_new = GetLambda_ByNewton(lambda,
+    double lambda_new = GetLambda_ByNewton(fp_log,
+                                           lambda,
                                            vval_arr, wval_arr, zval,
                                            mval_arr, nval_arr, pval,
                                            phi_val,

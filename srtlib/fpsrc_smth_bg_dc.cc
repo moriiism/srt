@@ -26,6 +26,8 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
     dcopy_(nsrc, const_cast<double*>(nu_arr), 1, nu_pre_arr, 1);
     double phi_pre = phi;
     double phi_new = 0.0;
+    int flag_converge = 0;
+    double helldist  = 0.0;
     for(int idc = 0; idc < ndc; idc++){
         GetRhoNuPhi_ByPM(fp_log,
                          rho_pre_arr, nu_pre_arr, phi_pre,
@@ -38,10 +40,11 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
                          rho_new_arr,
                          nu_new_arr,
                          &phi_new);
-        double helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
-                                            rho_new_arr, nu_new_arr, phi_new,
-                                            nsky, nsrc);
+        helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
+                                     rho_new_arr, nu_new_arr, phi_new,
+                                     nsky, nsrc);
         if (helldist < tol_dc){
+            flag_converge = 1;
             MiIolib::Printf2(fp_log, "  idc = %d, helldist = %.2e\n",
                              idc, helldist);
             break;
@@ -49,6 +52,10 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
         dcopy_(nsrc, const_cast<double*>(nu_new_arr), 1, nu_pre_arr, 1);
         phi_pre = phi_new;
+    }
+    if (flag_converge == 0){
+        MiIolib::Printf2(fp_log, "  dc: not converged: helldist = %.2e\n",
+                         helldist);
     }
     delete [] rho_pre_arr;
     delete [] nu_pre_arr;
