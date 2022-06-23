@@ -23,7 +23,8 @@ void GetMvalArrNvalArrPval(const double* const rho_arr,
                            double* const nval_arr,
                            double* const pval_ptr);
 
-void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
+void RichlucyFpsrcSmthBg(FILE* const fp_log,
+                         const double* const rho_init_arr,
                          const double* const nu_init_arr,
                          double phi_init,
                          const double* const data_arr,

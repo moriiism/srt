@@ -5,7 +5,8 @@
 #include "mif_fits.h"
 //#include "mir_math.h"
 
-void GetRhoNuPhi_ByDC(const double* const rho_arr,
+void GetRhoNuPhi_ByDC(FILE* const fp_log,
+                      const double* const rho_arr,
                       const double* const nu_arr,
                       double phi,
                       const double* const mval_arr,

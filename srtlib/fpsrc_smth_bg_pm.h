@@ -51,7 +51,8 @@ void GetDiffF(const double* const rho_arr,
               double* const out_arr);
 
 
-void GetRhoNuPhi_ByPM(const double* const rho_arr,
+void GetRhoNuPhi_ByPM(FILE* const fp_log,
+                      const double* const rho_arr,
                       const double* const nu_arr,
                       double phi,
                       const double* const mval_arr,

@@ -160,7 +160,8 @@ void GetDiffF(const double* const rho_arr,
     dscal_(nsky, mu, out_arr, 1);
 }
 
-void GetRhoNuPhi_ByPM(const double* const rho_arr,
+void GetRhoNuPhi_ByPM(FILE* const fp_log,
+                      const double* const rho_arr,
                       const double* const nu_arr,
                       double phi,
                       const double* const mval_arr,
@@ -186,10 +187,6 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
     double phi_new = 0.0;
 
     double lip_const = 1.0;
-    // debug
-    //double lambda = (pval - nph) / phi_val
-    //    + lip_const * GetZval(phi_pre, lip_const, B_val) - 1.0e3;
-    //printf("debug: lambda = %e\n", lambda);
     double lambda = 0.0;
     double lambda_new = 0.0;
     double lip_const_new = 1.0;
@@ -289,8 +286,10 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                                             nsky, nsrc);
         // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
-            printf("    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
-                   ipm, helldist, lip_const_new);
+            MiIolib::Printf2(
+                fp_log,
+                "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
+                ipm, helldist, lip_const_new);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);

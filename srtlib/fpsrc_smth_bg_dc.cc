@@ -2,7 +2,8 @@
 #include "fpsrc_smth_bg_pm.h"
 #include "fpsrc_smth_bg_statval.h"
 
-void GetRhoNuPhi_ByDC(const double* const rho_arr,
+void GetRhoNuPhi_ByDC(FILE* const fp_log,
+                      const double* const rho_arr,
                       const double* const nu_arr,
                       double phi,
                       const double* const mval_arr,
@@ -26,8 +27,8 @@ void GetRhoNuPhi_ByDC(const double* const rho_arr,
     double phi_pre = phi;
     double phi_new = 0.0;
     for(int idc = 0; idc < ndc; idc++){
-
-        GetRhoNuPhi_ByPM(rho_pre_arr, nu_pre_arr, phi_pre,
+        GetRhoNuPhi_ByPM(fp_log,
+                         rho_pre_arr, nu_pre_arr, phi_pre,
                          mval_arr, nval_arr, pval,
                          nph, B_val,
                          ndet, nskyx, nskyy, nsrc,
@@ -41,8 +42,8 @@ void GetRhoNuPhi_ByDC(const double* const rho_arr,
                                             rho_new_arr, nu_new_arr, phi_new,
                                             nsky, nsrc);
         if (helldist < tol_dc){
-            printf("  idc = %d, helldist = %.2e\n",
-                   idc, helldist);
+            MiIolib::Printf2(fp_log, "  idc = %d, helldist = %.2e\n",
+                             idc, helldist);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);

@@ -1,6 +1,7 @@
 #include "fpsrc_smth_bg_em.h"
 #include "fpsrc_smth_bg_dc.h"
 #include "fpsrc_smth_bg_statval.h"
+#include<unistd.h>
 
 void GetDetArr(const double* const rho_arr,
                const double* const resp_norm_mat_arr,
@@ -69,8 +70,8 @@ void GetMvalArrNvalArrPval(const double* const rho_arr,
     *pval_ptr = pval;
 }
 
-
-void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
+void RichlucyFpsrcSmthBg(FILE* const fp_log,
+                         const double* const rho_init_arr,
                          const double* const nu_init_arr,
                          double phi_init,
                          const double* const data_arr,
@@ -107,7 +108,8 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
                               resp_norm_mat_arr, 
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-        GetRhoNuPhi_ByDC(rho_pre_arr, nu_pre_arr, phi_pre,
+        GetRhoNuPhi_ByDC(fp_log,
+                         rho_pre_arr, nu_pre_arr, phi_pre,
                          mval_arr, nval_arr, pval,
                          nph, B_val,
                          ndet, nskyx, nskyy, nsrc,
@@ -123,9 +125,15 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
         double helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
                                             rho_new_arr, nu_new_arr, phi_new,
                                             nsky, nsrc);
+        if (access( "/tmp/fpsrc_smth_bg_em_stop", R_OK ) != -1){
+            MiIolib::Printf2(
+                fp_log,
+                "/tmp/fpsrc_smth_bg_em_stop file is found, then stop.\n");
+            break;
+        }
         if (helldist < tol_em){
-            printf("iem = %d, helldist = %e\n",
-                   iem, helldist);
+            MiIolib::Printf2(fp_log, "iem = %d, helldist = %.2e\n",
+                             iem, helldist);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
@@ -141,8 +149,8 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
             //printf("iem = %d, helldist = %e, lval = %e\n",
             //       iem, helldist, lval);
         } else {
-            printf("iem = %d, helldist = %.2e\n",
-                   iem, helldist);
+            MiIolib::Printf2(fp_log, "iem = %d, helldist = %.2e\n",
+                             iem, helldist);
         }
     }
     delete [] rho_pre_arr;
