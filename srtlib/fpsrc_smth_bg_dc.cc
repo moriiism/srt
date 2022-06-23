@@ -41,7 +41,7 @@ void GetRhoNuPhi_ByDC(const double* const rho_arr,
                                             rho_new_arr, nu_new_arr, phi_new,
                                             nsky, nsrc);
         if (helldist < tol_dc){
-            printf("idc = %d, helldist = %e\n",
+            printf("  idc = %d, helldist = %.2e\n",
                    idc, helldist);
             break;
         }

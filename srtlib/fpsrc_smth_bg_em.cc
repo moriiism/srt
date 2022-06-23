@@ -141,7 +141,7 @@ void RichlucyFpsrcSmthBg(const double* const rho_init_arr,
             //printf("iem = %d, helldist = %e, lval = %e\n",
             //       iem, helldist, lval);
         } else {
-            printf("iem = %d, helldist = %e\n",
+            printf("iem = %d, helldist = %.2e\n",
                    iem, helldist);
         }
     }

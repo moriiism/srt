@@ -187,8 +187,10 @@ double GetFindLipConst(const double* const rho_arr,
                                     mu, lip_const, B_val,
                                     nskyx, nskyy, nsrc);
         delete [] vval_arr;
-        delete [] wval_arr;        
+        delete [] wval_arr;
+        // debug
         if(qminusf >= 0.0 && phi_new > 0.0){
+        // if(qminusf >= 0.0){
             break;
         }
     }
@@ -341,8 +343,8 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
                                             nsky, nsrc);
         // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
-            //printf("ipm = %d, helldist = %e\n",
-            //       ipm, helldist);
+            printf("    ipm = %d, helldist = %e, lip_const_new = %e\n",
+                   ipm, helldist, lip_const_new);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
