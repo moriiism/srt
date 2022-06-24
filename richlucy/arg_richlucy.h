@@ -8,18 +8,18 @@ public:
     ArgValRichlucy() :
         MiArgBase(),
         progname_(""),
-        respdir_(""),
         datafile_(""),
         skyfile_(""),
+        resp_file_(""),
+        eff_file_(""),
+        nskyx_(0),
+        nskyy_(0),
+        ndetx_(0),
+        ndety_(0),
         outdir_(""),
         outfile_head_(""),
         nem_(0),
-        tol_em_(0.0),
-        tol_diff_l_var_(0.0),
-        flag_line_search_(0),
-        epsilon_(0.0),
-        skyx_(0),
-        skyy_(0) {}
+        tol_em_(0.0) {}
     ~ArgValRichlucy(){
         Null();
     }
@@ -27,33 +27,33 @@ public:
     void Print(FILE* fp) const;
 
     string GetProgname() const {return progname_;};
-    string GetRespdir() const {return respdir_;};
     string GetDatafile() const {return datafile_;};
     string GetSkyfile() const {return skyfile_;};
+    string GetRespFile() const {return resp_file_;};
+    string GetEffFile() const {return eff_file_;};
+    int    GetNskyx() const {return nskyx_;};
+    int    GetNskyy() const {return nskyy_;};
+    int    GetNdetx() const {return ndetx_;};
+    int    GetNdety() const {return ndety_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
     int    GetNem() const {return nem_;};
     double GetTolEm() const {return tol_em_;};
-    double GetTolDiffLVar() const {return tol_diff_l_var_;};
-    int    GetFlagLineSearch() const {return flag_line_search_;};
-    double GetEpsilon() const {return epsilon_;};
-    int    GetSkyx() const {return skyx_;};
-    int    GetSkyy() const {return skyy_;};
 
 private:
     string progname_;
-    string respdir_;
     string datafile_;
     string skyfile_;
+    string resp_file_;
+    string eff_file_;
+    int nskyx_;
+    int nskyy_;
+    int ndetx_;
+    int ndety_;
     string outdir_;
     string outfile_head_;
     int    nem_;
     double tol_em_;
-    double tol_diff_l_var_;
-    int    flag_line_search_;
-    double epsilon_;
-    int    skyx_;
-    int    skyy_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);
