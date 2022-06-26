@@ -127,13 +127,24 @@ int main(int argc, char* argv[])
     }
     
     double* rho_new_arr = new double[nsky];
-    Richlucy(fp_log,
-             rho_init_arr,
-             data_arr, resp_norm_mat_arr,
-             ndet, nsky,
-             argval->GetOutdir(), argval->GetOutfileHead(),             
-             argval->GetNem(), argval->GetTolEm(),
-             rho_new_arr);
+    //Richlucy(fp_log,
+    //         rho_init_arr,
+    //         data_arr, resp_norm_mat_arr,
+    //         ndet, nsky,
+    //         argval->GetOutdir(), argval->GetOutfileHead(),             
+    //          argval->GetNem(), argval->GetTolEm(),
+    //         rho_new_arr);
+    
+    int k_restart = 2;
+    double delta_restart = 1.0;
+    RichlucyAcc(fp_log,
+                rho_init_arr,
+                data_arr, resp_norm_mat_arr,
+                ndet, nsky,
+                argval->GetOutdir(), argval->GetOutfileHead(),
+                argval->GetNem(), argval->GetTolEm(),
+                k_restart, delta_restart,
+                rho_new_arr);
 
     // output reconstructed sky image
     double* sky_new_arr = new double[nsky];
