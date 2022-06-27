@@ -68,4 +68,21 @@ void GetRhoNuPhi_ByPM(FILE* const fp_log,
                       double* const nu_new_arr,
                       double* const phi_new_ptr);
 
+// nesterov
+void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
+                               const double* const rho_arr,
+                               const double* const nu_arr,
+                               double phi,
+                               const double* const mval_arr,
+                               const double* const nval_arr,
+                               double pval,
+                               int nph, double B_val,
+                               int ndet, int nskyx, int nskyy, int nsrc,
+                               double mu,
+                               int npm, double tol_pm,
+                               int nnewton, double tol_newton,
+                               double* const rho_new_arr,
+                               double* const nu_new_arr,
+                               double* const phi_new_ptr);
+
 #endif // MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_PM_H_

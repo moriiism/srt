@@ -11,7 +11,7 @@
 
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
 
-cd /home/morii/work/arb/ana/run/hxt_fpsrc_smth_bg
+cd /home/morii/work/arb/ana/run/hxt/sim/fpsrc_smth_bg
 
 
 # response format
@@ -115,7 +115,7 @@ $outfile
 
 ---> skyorg/fpsrc+diffuse.fits
 
-# make bg
+# 4. mkbg
 mkdir det
 cat << EOF > det/bg.dat
 # background model name
@@ -157,9 +157,9 @@ $outdir \
 $outfile_head
 
 
----> sim/fpsrc+diffuse_obs_src_500_bg_1000_0001.fits
+---> sim/fpsrc+diffuse_obs_src_5000_bg_1000_0001.fits
 
-# 5. richlucy_fpsrc_smth_bg
+# 6. richlucy_fpsrc_smth_bg
 
 datafile=sim/fpsrc+diffuse_obs_src_5000_bg_1000_0001.fits
 fixed_src_list=skyorg/fpsrc.dat
@@ -172,7 +172,7 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_fpsrc_smth_bg
-outfile_head=src_5000_bg_1000_mu1.0e1
+outfile_head=src_50000_bg_1000_mu1.0e1
 nem=100
 tol_em=1.0e-8
 ndc=100

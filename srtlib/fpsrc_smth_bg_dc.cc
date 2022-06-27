@@ -29,17 +29,17 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
     int flag_converge = 0;
     double helldist  = 0.0;
     for(int idc = 0; idc < ndc; idc++){
-        GetRhoNuPhi_ByPM(fp_log,
-                         rho_pre_arr, nu_pre_arr, phi_pre,
-                         mval_arr, nval_arr, pval,
-                         nph, B_val,
-                         ndet, nskyx, nskyy, nsrc,
-                         mu,
-                         npm, tol_pm,
-                         nnewton, tol_newton,
-                         rho_new_arr,
-                         nu_new_arr,
-                         &phi_new);
+        GetRhoNuPhi_ByPM_Nesterov(fp_log,
+                                  rho_pre_arr, nu_pre_arr, phi_pre,
+                                  mval_arr, nval_arr, pval,
+                                  nph, B_val,
+                                  ndet, nskyx, nskyy, nsrc,
+                                  mu,
+                                  npm, tol_pm,
+                                  nnewton, tol_newton,
+                                  rho_new_arr,
+                                  nu_new_arr,
+                                  &phi_new);
         helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
                                      rho_new_arr, nu_new_arr, phi_new,
                                      nsky, nsrc);

@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
                         argval->GetNpm(), argval->GetTolPm(),
                         argval->GetNnewton(), argval->GetTolNewton(),
                         rho_new_arr, nu_new_arr, &phi_new);
-
+    
     double B_val = MibBlas::Sum(bg_arr, ndet);
     MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);
     double N_prime = B_val / phi_new;
