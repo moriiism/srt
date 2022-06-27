@@ -2,6 +2,127 @@
 #include "rl.h"
 #include "rl_statval.h"
 
+
+// accerelated richardson lucy (SQUAREM)
+void RichlucyAccSQUAREM(FILE* const fp_log,
+                        const double* const rho_init_arr,
+                        const double* const data_arr,
+                        const double* const resp_norm_mat_arr,
+                        int ndet, int nsky,
+                        string outdir, string outfile_head,
+                        int nem, double tol_em,
+                        double* const rho_new_arr)
+{
+    double* rho_0_arr  = new double[nsky];
+    double* rho_1_arr  = new double[nsky];
+    double* rho_2_arr  = new double[nsky];
+    double* rho_dash_arr  = new double[nsky];
+    double* r_arr  = new double[nsky];
+    double* r2_arr  = new double[nsky];
+    double* v_arr  = new double[nsky];
+    double* rho_0_new_arr  = new double[nsky];
+    double* diff_rho_0_arr = new double[nsky];
+    
+    dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_0_arr, 1);    
+    
+    for(int iem = 0; iem < nem; iem ++){
+        GetRhoNewArr(rho_0_arr, data_arr, resp_norm_mat_arr,
+                     ndet, nsky, rho_1_arr);
+        GetRhoNewArr(rho_1_arr, data_arr, resp_norm_mat_arr,
+                     ndet, nsky, rho_2_arr);
+        MibBlas::Sub(rho_1_arr, rho_0_arr, nsky, r_arr);
+        MibBlas::Sub(rho_2_arr, rho_1_arr, nsky, r2_arr);
+        MibBlas::Sub(r2_arr, r_arr, nsky, v_arr);
+
+        double r_norm2 = ddot_(nsky, r_arr, 1, r_arr, 1);
+        double v_norm2 = ddot_(nsky, v_arr, 1, v_arr, 1);
+        double alpha = -1.0 * sqrt(r_norm2 / v_norm2);
+        // printf("alpha = %e\n", alpha);
+
+        int nk = 100;
+        double eta = 0.8;
+        double negloglike_pre = 0.0;
+        double epsilon = 1e-20;
+        int ifind = 0;
+        int ifind_nonneg = 0;
+        for (int ik = 0; ik < nk; ik ++){
+            double alpha0 = alpha * pow(eta, ik);
+            dcopy_(nsky, rho_0_arr, 1, rho_dash_arr, 1);
+            daxpy_(nsky, -2 * alpha0, r_arr, 1, rho_dash_arr, 1);
+            daxpy_(nsky, alpha * alpha0, v_arr, 1, rho_dash_arr, 1);
+            GetRhoNewArr(rho_dash_arr, data_arr, resp_norm_mat_arr,
+                         ndet, nsky, rho_0_new_arr);
+            int nneg = 0;
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_0_new_arr[isky] < 0.0){
+                    nneg ++;
+                }
+            }
+            if (nneg == 0){
+                ifind_nonneg = 1;
+                break;
+                //                if (ifind == 0){
+                //                    negloglike_pre = GetNegLogLike(rho_0_new_arr,
+                //                                                   data_arr,
+                //                                                   resp_norm_mat_arr,
+                //                                                   ndet, nsky, epsilon);
+                //                    ifind = 1;
+                //                } else if (ifind == 1){
+                //                    double negloglike = GetNegLogLike(rho_0_new_arr,
+                //                                                      data_arr,
+                //                                                      resp_norm_mat_arr,
+                //                                                      ndet, nsky, epsilon);
+                //                    //MiIolib::Printf2(fp_log,
+                //                    //"ik = %d, alpha0 = %e, negloglike = %e\n",
+                //                    //ik, alpha0, negloglike);
+                //                    if(negloglike > negloglike_pre){
+                //                        break;
+                //                    }
+                //                    negloglike_pre = negloglike;
+                // }
+            }
+        }
+        if(ifind_nonneg == 0){
+            MiIolib::Printf2(fp_log, "warning: iem = %d, ifind_nonneg == 0\n", iem);
+        }
+        
+        // double sum = MibBlas::Sum(rho_0_new_arr, nsky);
+        // printf("sum = %e\n", sum);
+        double helldist  = GetHellingerDist(rho_0_arr, rho_0_new_arr, nsky);
+        
+        //MibBlas::Sub(rho_0_new_arr, rho_0_arr, nsky, diff_rho_0_arr);
+        //double diff = sqrt(ddot_(nsky, diff_rho_0_arr, 1,
+        //                         diff_rho_0_arr, 1));
+        MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n", iem, helldist);
+        if (helldist < tol_em){
+            break;
+        }
+        dcopy_(nsky, rho_0_new_arr, 1, rho_0_arr, 1);
+        if (access( "/tmp/rl_stop", R_OK ) != -1){
+            MiIolib::Printf2(
+                fp_log,
+                "/tmp/rl_stop file is found, then stop.\n");
+            break;
+        }
+       
+    }
+    dcopy_(nsky, rho_0_new_arr, 1, rho_new_arr, 1);
+
+    delete [] rho_0_arr;
+    delete [] rho_1_arr;
+    delete [] rho_2_arr;
+    delete [] rho_dash_arr;
+    delete [] r_arr;
+    delete [] r2_arr;
+    delete [] v_arr;
+    delete [] rho_0_new_arr;
+    delete [] diff_rho_0_arr;
+}
+
+
+
+
+
 void GetInvVec(const double* const vec_arr, int nelm,
                double* const inv_arr)
 {
@@ -12,7 +133,7 @@ void GetInvVec(const double* const vec_arr, int nelm,
 }
 
 
-// accerelated richardson lucy
+// accerelated richardson lucy (Kuroda)
 void RichlucyAcc(FILE* const fp_log,
                  const double* const rho_init_arr,
                  const double* const data_arr,

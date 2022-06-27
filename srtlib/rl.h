@@ -7,6 +7,17 @@
 #include "mif_fits.h"
 #include "mir_math.h"
 
+
+// accerelated richardson lucy (SQUAREM)
+void RichlucyAccSQUAREM(FILE* const fp_log,
+                        const double* const rho_init_arr,
+                        const double* const data_arr,
+                        const double* const resp_norm_mat_arr,
+                        int ndet, int nsky,
+                        string outdir, string outfile_head,
+                        int nem, double tol_em,
+                        double* const rho_new_arr);
+
 void GetInvVec(const double* const vec_arr, int nelm,
                double* const inv_arr);
 

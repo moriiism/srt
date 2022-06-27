@@ -171,8 +171,8 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl
-outfile_head=src_50000_bg_0
-nem=100
+outfile_head=src_50000_bg_0_acc
+nem=3000
 tol_em=1.0e-8
 
 ~/work/github/moriiism/srt/richlucy/richlucy \
