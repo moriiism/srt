@@ -18,7 +18,7 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 12;
+    int narg = 13;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -36,6 +36,7 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     outfile_head_   = argv[iarg]; iarg++;
     nem_            = atoi(argv[iarg]); iarg++;
     tol_em_         = atof(argv[iarg]); iarg++;
+    acc_method_     = argv[iarg]; iarg++;
 }
 
 void ArgValRichlucy::Print(FILE* fp) const
@@ -57,6 +58,7 @@ void ArgValRichlucy::Print(FILE* fp) const
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
     fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
     fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
+    fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
 }
 
 // private
@@ -76,6 +78,7 @@ void ArgValRichlucy::Null()
     outfile_head_ = "";
     nem_      = 0;    
     tol_em_   = 0.0;
+    acc_method_ = "";
 }
 
 void ArgValRichlucy::SetOption(int argc, char* argv[], option* long_options)
@@ -133,7 +136,7 @@ void ArgValRichlucy::Usage(FILE* fp) const
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
             "datafile  skyfile  resp_file  eff_file  outdir  outfile_head  "
-            "nem  tol_em \n",
+            "nem  tol_em  acc_method\n",
             progname_.c_str());
     abort();
 }

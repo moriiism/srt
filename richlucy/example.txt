@@ -171,9 +171,10 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl
-outfile_head=src_50000_bg_0_acc
+outfile_head=src_50000_bg_0_acc_squarem
 nem=3000
 tol_em=1.0e-8
+acc_method=squarem
 
 ~/work/github/moriiism/srt/richlucy/richlucy \
 $datafile \
@@ -187,7 +188,8 @@ $ndety \
 $outdir \
 $outfile_head \
 $nem \
-$tol_em
+$tol_em \
+$acc_method
 
 
 --> 

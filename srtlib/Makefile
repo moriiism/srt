@@ -9,7 +9,7 @@ $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
 TARGET := libsrtlib.a
 
-OBJ := rl.o  rl_statval.o
+OBJ := rl.o  rl_statval.o  sim.o
 
 #sub_smooth.o  sim.o \
 #	fpsrc_smth_bg_newton.o  \

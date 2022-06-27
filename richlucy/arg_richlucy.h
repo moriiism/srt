@@ -19,7 +19,8 @@ public:
         outdir_(""),
         outfile_head_(""),
         nem_(0),
-        tol_em_(0.0) {}
+        tol_em_(0.0),
+        acc_method_("") {}
     ~ArgValRichlucy(){
         Null();
     }
@@ -39,6 +40,7 @@ public:
     string GetOutfileHead() const {return outfile_head_;};
     int    GetNem() const {return nem_;};
     double GetTolEm() const {return tol_em_;};
+    string GetAccMethod() const {return acc_method_;};
 
 private:
     string progname_;
@@ -54,6 +56,7 @@ private:
     string outfile_head_;
     int    nem_;
     double tol_em_;
+    string acc_method_;
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

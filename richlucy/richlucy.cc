@@ -125,34 +125,49 @@ int main(int argc, char* argv[])
         delete [] sky_ref_arr;
         delete img_info_sky;
     }
+    
     double* rho_new_arr = new double[nsky];
-    double* rho_tmp_arr = new double[nsky];    
-    //Richlucy(fp_log,
-    //         rho_init_arr,
-    //         data_arr, resp_norm_mat_arr,
-    //         ndet, nsky,
-    //         argval->GetOutdir(), argval->GetOutfileHead(),             
-    //         argval->GetNem(), argval->GetTolEm(),
-    //         rho_new_arr);
-    
-    //int k_restart = 2;
-    //double delta_restart = 1.0;
-    //RichlucyAcc(fp_log,
-    //            rho_init_arr,
-    //            data_arr, resp_norm_mat_arr,
-    //            ndet, nsky,
-    //            argval->GetOutdir(), argval->GetOutfileHead(),
-    //            argval->GetNem(), argval->GetTolEm(),
-    //           k_restart, delta_restart,
-    //            rho_new_arr);
-    
-    RichlucyAccSQUAREM(fp_log,
-                       rho_init_arr,
-                       data_arr, resp_norm_mat_arr,
-                       ndet, nsky,
-                       argval->GetOutdir(), argval->GetOutfileHead(),
-                       argval->GetNem(), argval->GetTolEm(),
-                       rho_new_arr);
+    if (argval->GetAccMethod() == "none"){
+        Richlucy(fp_log,
+                 rho_init_arr,
+                 data_arr, resp_norm_mat_arr,
+                 ndet, nsky,
+                 argval->GetOutdir(), argval->GetOutfileHead(),             
+                 argval->GetNem(), argval->GetTolEm(),
+                 rho_new_arr);
+    } else if (argval->GetAccMethod() == "kuroda"){
+        int k_restart = 2;
+        double delta_restart = 1.0;
+        RichlucyAcc(fp_log,
+                    rho_init_arr,
+                    data_arr, resp_norm_mat_arr,
+                    ndet, nsky,
+                    argval->GetOutdir(), argval->GetOutfileHead(),
+                    argval->GetNem(), argval->GetTolEm(),
+                    k_restart, delta_restart,
+                    rho_new_arr);
+    } else if (argval->GetAccMethod() == "squarem"){
+        RichlucyAccSQUAREM(fp_log,
+                           rho_init_arr,
+                           data_arr, resp_norm_mat_arr,
+                           ndet, nsky,
+                           argval->GetOutdir(), argval->GetOutfileHead(),
+                           argval->GetNem(), argval->GetTolEm(),
+                           rho_new_arr);
+    } else if (argval->GetAccMethod() == "ikeda"){
+        int rand_seed = 1;
+        RichlucyAccIkeda(fp_log,
+                         rho_init_arr,
+                         data_arr, resp_norm_mat_arr,
+                         ndet, nsky,
+                         argval->GetOutdir(), argval->GetOutfileHead(),
+                         argval->GetNem(), argval->GetTolEm(),
+                         nph_data, rand_seed,
+                         rho_new_arr);
+    } else {
+        printf("bad acc_method\n");
+        abort();
+    }
     
     // output reconstructed sky image
     double* sky_new_arr = new double[nsky];

@@ -1,6 +1,128 @@
 #include<unistd.h>
 #include "rl.h"
 #include "rl_statval.h"
+#include "sim.h"
+
+// accerelated richardson lucy (Ikeda)
+void RichlucyAccIkeda(FILE* const fp_log,
+                      const double* const rho_init_arr,
+                      const double* const data_arr,
+                      const double* const resp_norm_mat_arr,
+                      int ndet, int nsky,
+                      string outdir, string outfile_head,
+                      int nem, double tol_em,
+                      int nph_data, int rand_seed,
+                      double* const rho_new_arr)
+{
+    double* rho_arr = new double[nsky];
+    double* rho_dash_arr = new double[nsky];    
+    double* rho_rand_arr = new double[nsky];
+    double* rho_dash_bar_arr = new double[nsky];
+    double* diff_arr = new double[nsky];
+
+    int* evt_rand_arr = new int[nph_data];
+    double* data_rand_arr = new double[ndet];
+
+    dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_arr, 1);
+    
+    for(int iem = 0; iem < nem; iem ++){
+        GetRhoNewArr(rho_arr, data_arr, resp_norm_mat_arr,
+                     ndet, nsky, rho_dash_arr);
+        GenRandomEvtFromProbDist(rho_dash_arr, nsky,
+                                 nph_data, rand_seed,
+                                 rho_rand_arr,
+                                 evt_rand_arr);
+        dscal_(nsky, 1.0 / nph_data, rho_rand_arr, 1);
+        GetDetArr(rho_rand_arr,
+                  resp_norm_mat_arr,
+                  ndet, nsky,
+                  data_rand_arr);
+        GetRhoNewArr(rho_arr, data_rand_arr,
+                     resp_norm_mat_arr,
+                     ndet, nsky, rho_dash_bar_arr);
+        MibBlas::Sub(rho_dash_arr, rho_dash_bar_arr, nsky, diff_arr);
+
+        
+        int nk = 100;
+        double eta = 0.8;
+        double negloglike_pre = 0.0;
+        double epsilon = 1e-20;
+        int ifind = 0;
+        int ifind_nonneg = 0;
+        double alpha = 1.0;
+        for (int ik = 0; ik < nk; ik ++){
+            double alpha0 = alpha * pow(eta, ik);
+            dcopy_(nsky, rho_dash_arr, 1, rho_new_arr, 1);
+            daxpy_(nsky, alpha0, diff_arr, 1, rho_new_arr, 1);
+
+            int nneg = 0;
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_new_arr[isky] < 0.0){
+                    nneg ++;
+                }
+            }
+            if (nneg == 0){
+                ifind_nonneg = 1;
+                break;
+                //                if (ifind == 0){
+                //                    negloglike_pre = GetNegLogLike(rho_0_new_arr,
+                //                                                   data_arr,
+                //                                                   resp_norm_mat_arr,
+                //                                                   ndet, nsky, epsilon);
+                //                    ifind = 1;
+                //                } else if (ifind == 1){
+                //                    double negloglike = GetNegLogLike(rho_0_new_arr,
+                //                                                      data_arr,
+                //                                                      resp_norm_mat_arr,
+                //                                                      ndet, nsky, epsilon);
+                //                    //MiIolib::Printf2(fp_log,
+                //                    //"ik = %d, alpha0 = %e, negloglike = %e\n",
+                //                    //ik, alpha0, negloglike);
+                //                    if(negloglike > negloglike_pre){
+                //                        break;
+                //                    }
+                //                    negloglike_pre = negloglike;
+                // }
+            }
+        }
+        if(ifind_nonneg == 0){
+            MiIolib::Printf2(fp_log, "warning: iem = %d, ifind_nonneg == 0\n", iem);
+        }
+        
+        // double sum = MibBlas::Sum(rho_0_new_arr, nsky);
+        // printf("sum = %e\n", sum);
+        double helldist  = GetHellingerDist(rho_arr, rho_new_arr, nsky);
+        
+        //MibBlas::Sub(rho_0_new_arr, rho_0_arr, nsky, diff_rho_0_arr);
+        //double diff = sqrt(ddot_(nsky, diff_rho_0_arr, 1,
+        //                         diff_rho_0_arr, 1));
+        MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n", iem, helldist);
+        if (helldist < tol_em){
+            break;
+        }
+        
+        dcopy_(nsky, rho_new_arr, 1, rho_arr, 1);
+        if (access( "/tmp/rl_stop", R_OK ) != -1){
+            MiIolib::Printf2(
+                fp_log,
+                "/tmp/rl_stop file is found, then stop.\n");
+            break;
+        }
+       
+    }
+
+    delete [] rho_arr;
+    delete [] rho_dash_arr;
+    delete [] rho_rand_arr;
+    delete [] rho_dash_bar_arr;
+    delete [] diff_arr;
+    delete [] evt_rand_arr;
+    delete [] data_rand_arr;
+}
+
+
+
+
 
 
 // accerelated richardson lucy (SQUAREM)
