@@ -324,6 +324,9 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
                                         nskyx, nskyy, nsrc, lip_const,
                                         lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);
+        if(lip_const_new > 1.0e+30){
+            break;
+        }
         double* vval_arr = new double[nsky];
         GetVvalArr(rho_y_arr,
                    nskyx, nskyy,
@@ -368,7 +371,7 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
             dcopy_(nsrc, nu_x_arr, 1, nu_y_new_arr, 1);
             daxpy_(nsky, coeff0, rho_diff_arr, 1, rho_y_new_arr, 1);
             daxpy_(nsrc, coeff0, nu_diff_arr, 1, nu_y_new_arr, 1);
-            phi_y_new = phi_y + coeff0 * phi_diff;
+            phi_y_new = phi_x + coeff0 * phi_diff;
             int nneg = 0;
             for(int isky = 0; isky < nsky; isky ++){
                 if(rho_y_new_arr[isky] < 0.0){
@@ -390,6 +393,10 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
         }
         if(ifind_nonneg == 0){
             MiIolib::Printf2(fp_log, "warning: ipm = %d, ifind_nonneg == 0\n", ipm);
+            dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
+            dcopy_(nsrc, nu_x_arr, 1, nu_y_new_arr, 1);
+            phi_y_new = phi_x;
+            tval_new = tval;
         }
         
         // printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
@@ -403,10 +410,10 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
         // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
             flag_converge = 1;
-            MiIolib::Printf2(
-                fp_log,
-                "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
-                ipm, helldist, lip_const_new);
+            //MiIolib::Printf2(
+            //    fp_log,
+            //    "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
+            //    ipm, helldist, lip_const_new);
             break;
         }
         dcopy_(nsky, rho_y_new_arr, 1, rho_y_arr, 1);

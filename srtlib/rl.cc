@@ -171,7 +171,17 @@ void RichlucyAccSQUAREM(FILE* const fp_log,
             double alpha0 = alpha * pow(eta, ik);
             dcopy_(nsky, rho_0_arr, 1, rho_dash_arr, 1);
             daxpy_(nsky, -2 * alpha0, r_arr, 1, rho_dash_arr, 1);
-            daxpy_(nsky, alpha * alpha0, v_arr, 1, rho_dash_arr, 1);
+            daxpy_(nsky, alpha0 * alpha0, v_arr, 1, rho_dash_arr, 1);
+
+            int nneg_tmp = 0;
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_dash_arr[isky] < 0.0){
+                    nneg_tmp ++;
+                }
+            }
+            if (nneg_tmp > 0){
+                continue;
+            }
             GetRhoNewArr(rho_dash_arr, data_arr, resp_norm_mat_arr,
                          ndet, nsky, rho_0_new_arr);
             int nneg = 0;
