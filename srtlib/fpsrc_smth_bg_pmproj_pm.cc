@@ -1,4 +1,5 @@
 #include "fpsrc_smth_bg_pmproj_pm.h"
+#include "fpsrc_smth_bg_pm.h"
 #include "fpsrc_smth_bg_newton.h"
 #include "sub_smooth.h"
 #include "fpsrc_smth_bg_statval.h"
@@ -58,10 +59,10 @@ void GetProjectedDerivFpm(const double* const deriv_fpm_sky_arr,
     *proj_deriv_fpm_phi_ptr = proj_deriv_fpm_phi;
 }
 
-void GetVvalArr(const double* const rho_arr,
-                const double* const proj_deriv_fpm_rho_arr,
-                int nsky, double lip_const,
-                double* const vval_arr)
+void GetVvalArr_Pmproj(const double* const rho_arr,
+                       const double* const proj_deriv_fpm_rho_arr,
+                       int nsky, double lip_const,
+                       double* const vval_arr)
 {
     for(int isky = 0; isky < nsky; isky++){
         vval_arr[isky] = rho_arr[isky]
@@ -69,10 +70,10 @@ void GetVvalArr(const double* const rho_arr,
     }
 }
 
-void GetWvalArr(const double* const nu_arr,
-                const double* const proj_deriv_fpm_nu_arr,
-                int nsrc, double lip_const,
-                double* const wval_arr)
+void GetWvalArr_Pmproj(const double* const nu_arr,
+                       const double* const proj_deriv_fpm_nu_arr,
+                       int nsrc, double lip_const,
+                       double* const wval_arr)
 {
     for(int isrc = 0; isrc < nsrc; isrc++){
         wval_arr[isrc] = nu_arr[isrc]
@@ -80,23 +81,23 @@ void GetWvalArr(const double* const nu_arr,
     }
 }
 
-double GetZval(double phi,
-               double proj_deriv_fpm_phi,
-               double lip_const)
+double GetZval_Pmproj(double phi,
+                      double proj_deriv_fpm_phi,
+                      double lip_const)
 {
     double zval = phi - proj_deriv_fpm_phi / lip_const;
     return zval;
 }
 
-void GetVvalArrWvalArrZval(const double* const rho_arr,
-                           const double* const nu_arr,
-                           double phi,
-                           int nskyx, int nskyy, int nsrc,
-                           double mu, double B_val,
-                           double lip_const,
-                           double* const vval_arr,
-                           double* const wval_arr,
-                           double* const zval_ptr)
+void GetVvalArrWvalArrZval_Pmproj(const double* const rho_arr,
+                                  const double* const nu_arr,
+                                  double phi,
+                                  int nskyx, int nskyy, int nsrc,
+                                  double mu, double B_val,
+                                  double lip_const,
+                                  double* const vval_arr,
+                                  double* const wval_arr,
+                                  double* const zval_ptr)
 {
     int nsky = nskyx * nskyy;    
     double* deriv_fpm_sky_arr = new double[nsky];
@@ -119,17 +120,17 @@ void GetVvalArrWvalArrZval(const double* const rho_arr,
                          proj_deriv_fpm_sky_arr,
                          proj_deriv_fpm_src_arr,
                          &proj_deriv_fpm_phi);
-    GetVvalArr(rho_arr,
-               proj_deriv_fpm_sky_arr,
-               nsky, lip_const,
-               vval_arr);
-    GetWvalArr(nu_arr,
-               proj_deriv_fpm_src_arr,
-               nsrc, lip_const,
-               wval_arr);
-    double zval = GetZval(phi,
-                          proj_deriv_fpm_phi,
-                          lip_const);
+    GetVvalArr_Pmproj(rho_arr,
+                      proj_deriv_fpm_sky_arr,
+                      nsky, lip_const,
+                      vval_arr);
+    GetWvalArr_Pmproj(nu_arr,
+                      proj_deriv_fpm_src_arr,
+                      nsrc, lip_const,
+                      wval_arr);
+    double zval = GetZval_Pmproj(phi,
+                                 proj_deriv_fpm_phi,
+                                 lip_const);
     delete [] deriv_fpm_sky_arr;
     delete [] deriv_fpm_src_arr;
     delete [] proj_deriv_fpm_sky_arr;
@@ -137,78 +138,86 @@ void GetVvalArrWvalArrZval(const double* const rho_arr,
     *zval_ptr = zval;
 }
 
-double GetFindLipConst(const double* const rho_arr,
-                       const double* const nu_arr,
-                       double phi,
-                       const double* const mval_arr,
-                       const double* const nval_arr,
-                       double pval,
-                       double phi_val,
-                       int nph, double B_val,
-                       double mu,
-                       int nskyx, int nskyy, int nsrc,
-                       double lip_const, double lambda,
-                       int nnewton, double tol_newton)
+double GetFindLipConst_Pmproj(FILE* const fp_log,
+                              const double* const rho_arr,
+                              const double* const nu_arr,
+                              double phi,
+                              const double* const mval_arr,
+                              const double* const nval_arr,
+                              double pval,
+                              double phi_val,
+                              int nph, double B_val,
+                              double mu,
+                              int nskyx, int nskyy, int nsrc,
+                              double lip_const, double lambda,
+                              int nnewton, double tol_newton)
 {
     int nsky = nskyx * nskyy;
-    int ik_max = 100;
+    int ik_max = 1000;
     double eta = 1.2;
 
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nsrc];
     double phi_new = 0.0;
+    double lip_const_new = 1.0;
+    int flag_find_lip_const = 0;    
     for(int ik = 0; ik < ik_max; ik ++){
-        lip_const = lip_const * pow(eta, ik);
+        lip_const_new = lip_const * pow(eta, ik);
 
         double* vval_arr = new double[nsky];
         double* wval_arr = new double[nsrc];
         double zval = 0.0;
-        GetVvalArrWvalArrZval(rho_arr, nu_arr, phi,
-                              nskyx, nskyy, nsrc,
-                              mu, B_val,
-                              lip_const,
-                              vval_arr,
-                              wval_arr,
-                              &zval);
+        GetVvalArrWvalArrZval_Pmproj(rho_arr, nu_arr, phi,
+                                     nskyx, nskyy, nsrc,
+                                     mu, B_val,
+                                     lip_const_new,
+                                     vval_arr,
+                                     wval_arr,
+                                     &zval);
         double lambda_new = 0.0;
-        GetRhoArrNuArrPhi_ByNewton(vval_arr, wval_arr, zval,
+        GetRhoArrNuArrPhi_ByNewton(fp_log,
+                                   vval_arr, wval_arr, zval,
                                    mval_arr, nval_arr, pval,
                                    phi_val,
                                    nsky, nsrc, nph,
-                                   lip_const,
+                                   lip_const_new,
                                    nnewton, tol_newton,
                                    lambda,
                                    rho_new_arr,
                                    nu_new_arr,
                                    &phi_new,
                                    &lambda_new);
-        double qminusf = GetQMinusF(rho_new_arr, nu_new_arr, phi_new,
-                                    rho_arr, nu_arr, phi,
-                                    mu, lip_const, B_val,
-                                    nskyx, nskyy, nsrc);
+        double qminusf = GetQMinusF_Pmproj(rho_new_arr, nu_new_arr, phi_new,
+                                           rho_arr, nu_arr, phi,
+                                           mu, lip_const_new, B_val,
+                                           nskyx, nskyy, nsrc);
         delete [] vval_arr;
         delete [] wval_arr;
-        // debug
         if(qminusf >= 0.0 && phi_new > 0.0){
-        // if(qminusf >= 0.0){
+            flag_find_lip_const = 1;            
             break;
         }
     }
+    if (flag_find_lip_const == 0){
+        printf("warning: GetFindLipConst: no lip_const is found.\n");
+        printf("warning: lip_const_new = %e\n", lip_const_new);
+    }
+    
     delete [] rho_new_arr;
     delete [] nu_new_arr;
-    return lip_const;
+    return lip_const_new;
 }
 
 
-double GetQMinusF(const double* const rho_new_arr,
-                  const double* const nu_new_arr,
-                  double phi_new,
-                  const double* const rho_arr,
-                  const double* const nu_arr,
-                  double phi,
-                  double mu, double lip_const,
-                  double B_val,
-                  int nskyx, int nskyy, int nsrc)
+double GetQMinusF_Pmproj(const double* const rho_new_arr,
+                         const double* const nu_new_arr,
+                         double phi_new,
+                         const double* const rho_arr,
+                         const double* const nu_arr,
+                         double phi,
+                         double mu, double lip_const,
+                         double B_val,
+                         int nskyx, int nskyy, int nsrc)
 {
     double term1 = GetFuncF(rho_arr, phi, mu, B_val, nskyx, nskyy);
     double term2 = -1 * GetFuncF(rho_new_arr, phi_new, mu,
@@ -264,29 +273,23 @@ double GetQMinusF(const double* const rho_new_arr,
     return ans;
 }
 
-
-double GetFuncF(const double* const rho_arr, double phi,
-                double mu, double B_val, 
-                int nskyx, int nskyy)
-{
-    double ans = mu * GetTermV(rho_arr, nskyx, nskyy) + B_val / phi;
-    return(ans);
-}
-
-void GetRhoNuPhi_ByPM(const double* const rho_arr,
-                      const double* const nu_arr,
-                      double phi,
-                      const double* const mval_arr,
-                      const double* const nval_arr,
-                      double pval,
-                      int nph, double B_val,
-                      int ndet, int nskyx, int nskyy, int nsrc,
-                      double mu,
-                      int npm, double tol_pm,
-                      int nnewton, double tol_newton,
-                      double* const rho_new_arr,
-                      double* const nu_new_arr,
-                      double* const phi_new_ptr)
+void GetRhoNuPhi_ByPM_Pmproj(FILE* const fp_log,
+                             const double* const rho_arr,
+                             const double* const nu_arr,
+                             double phi,
+                             const double* const mval_arr,
+                             const double* const nval_arr,
+                             double pval,
+                             int nph, double B_val,
+                             int ndet, int nskyx, int nskyy, int nsrc,
+                             double mu,
+                             int npm, double tol_pm,
+                             int nnewton, double tol_newton,
+                             double* const rho_new_arr,
+                             double* const nu_new_arr,
+                             double* const phi_new_ptr,
+                             double* const helldist_ptr,
+                             int* const flag_converge_ptr)
 {
     double phi_val = phi;
     
@@ -302,24 +305,28 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
     double lambda = 0.0;
     double lambda_new = 0.0;
     double lip_const_new = 1.0;
+    int flag_converge = 0;
+    double helldist = 0.0;
     for(int ipm = 0; ipm < npm; ipm++){
-        lip_const_new = GetFindLipConst(rho_pre_arr, nu_pre_arr, phi_pre,
-                                        mval_arr, nval_arr, pval,
-                                        phi_val, nph, B_val, mu,
-                                        nskyx, nskyy, nsrc, lip_const,
-                                        lambda, nnewton, tol_newton);
+        lip_const_new = GetFindLipConst_Pmproj(fp_log,
+                                               rho_pre_arr, nu_pre_arr, phi_pre,
+                                               mval_arr, nval_arr, pval,
+                                               phi_val, nph, B_val, mu,
+                                               nskyx, nskyy, nsrc, lip_const,
+                                               lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);
         double* vval_arr = new double[nsky];
         double* wval_arr = new double[nsrc];
         double zval = 0.0;
-        GetVvalArrWvalArrZval(rho_arr, nu_arr, phi,
-                              nskyx, nskyy, nsrc,
-                              mu, B_val,
-                              lip_const,
-                              vval_arr,
-                              wval_arr,
-                              &zval);
-        GetRhoArrNuArrPhi_ByNewton(vval_arr, wval_arr, zval,
+        GetVvalArrWvalArrZval_Pmproj(rho_arr, nu_arr, phi,
+                                     nskyx, nskyy, nsrc,
+                                     mu, B_val,
+                                     lip_const_new,
+                                     vval_arr,
+                                     wval_arr,
+                                     &zval);
+        GetRhoArrNuArrPhi_ByNewton(fp_log,
+                                   vval_arr, wval_arr, zval,
                                    mval_arr, nval_arr, pval,
                                    phi_val,
                                    nsky, nsrc, nph,
@@ -333,18 +340,20 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
         delete [] vval_arr;
         delete [] wval_arr;
         // printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
-        
-        double helldist  = GetHellingerDist(rho_pre_arr,
-                                            nu_pre_arr,
-                                            phi_pre,
-                                            rho_new_arr,
-                                            nu_new_arr,
-                                            phi_new,
-                                            nsky, nsrc);
+        helldist  = GetHellingerDist(rho_pre_arr,
+                                     nu_pre_arr,
+                                     phi_pre,
+                                     rho_new_arr,
+                                     nu_new_arr,
+                                     phi_new,
+                                     nsky, nsrc);
         // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
-            printf("    ipm = %d, helldist = %e, lip_const_new = %e\n",
-                   ipm, helldist, lip_const_new);
+            flag_converge = 1;
+            MiIolib::Printf2(
+                fp_log,
+                "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
+                ipm, helldist, lip_const_new);
             break;
         }
         dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
@@ -353,8 +362,14 @@ void GetRhoNuPhi_ByPM(const double* const rho_arr,
         lambda = lambda_new;
         lip_const = lip_const_new;
     }
-
+    if (flag_converge == 0){
+        MiIolib::Printf2(
+            fp_log, "    pm: not converged: helldist = %.2e\n",
+            helldist);        
+    }
     delete [] rho_pre_arr;
     delete [] nu_pre_arr;
     *phi_new_ptr = phi_new;
+    *helldist_ptr = helldist;
+    *flag_converge_ptr = flag_converge;
 }

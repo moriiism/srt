@@ -51,26 +51,29 @@ double GetFindLipConst(FILE* const fp_log,
                        int nnewton, double tol_newton)
 {
     int nsky = nskyx * nskyy;
-    int ik_max = 100;
-    double eta = 1.2;
+    int ik_max = 1000;
+    double eta = 2.0;
 
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nsrc];
     double phi_new = 0.0;
+    double lip_const_new = 1.0;
+    int flag_find_lip_const = 0;
     for(int ik = 0; ik < ik_max; ik ++){
-        lip_const = lip_const * pow(eta, ik);
+        // printf("loop in findlipconst: ik = %d\n", ik);
+        lip_const_new = lip_const * pow(eta, ik);
 
         double* vval_arr = new double[nsky];
         GetVvalArr(rho_arr,
                    nskyx, nskyy,
-                   mu, lip_const,
+                   mu, lip_const_new,
                    vval_arr);
         double* wval_arr = new double[nsrc];
         GetWvalArr(nu_arr,
                    nsrc,
                    wval_arr);
         double zval = GetZval(phi,
-                              lip_const,
+                              lip_const_new,
                               B_val);
         double lambda_new = 0.0;
         GetRhoArrNuArrPhi_ByNewton(fp_log,
@@ -78,7 +81,7 @@ double GetFindLipConst(FILE* const fp_log,
                                    mval_arr, nval_arr, pval,
                                    phi_val,
                                    nsky, nsrc, nph,
-                                   lip_const,
+                                   lip_const_new,
                                    nnewton, tol_newton,
                                    lambda,
                                    rho_new_arr,
@@ -87,17 +90,26 @@ double GetFindLipConst(FILE* const fp_log,
                                    &lambda_new);
         double qminusf = GetQMinusF(rho_new_arr, nu_new_arr, phi_new,
                                     rho_arr, nu_arr, phi,
-                                    mu, lip_const, B_val,
+                                    mu, lip_const_new, B_val,
                                     nskyx, nskyy, nsrc);
         delete [] vval_arr;
         delete [] wval_arr;        
         if(qminusf >= 0.0 && phi_new > 0.0){
+            flag_find_lip_const = 1;
+            // debug
+            //printf("in find lip const: phi_new = %e\n", phi_new);
+            //printf("in find lip const: lip_const_new = %e\n", lip_const_new);
             break;
         }
     }
+    if (flag_find_lip_const == 0){
+        printf("warning: GetFindLipConst: no lip_const is found.\n");
+        printf("warning: lip_const_new = %e\n", lip_const_new);
+    }
+    
     delete [] rho_new_arr;
     delete [] nu_new_arr;
-    return lip_const;
+    return lip_const_new;
 }
 
 
@@ -277,7 +289,9 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
                                int nnewton, double tol_newton,
                                double* const rho_new_arr,
                                double* const nu_new_arr,
-                               double* const phi_new_ptr)
+                               double* const phi_new_ptr,
+                               double* const helldist_ptr,
+                               int* const flag_converge_ptr)
 {
     double phi_val = phi;
     
@@ -317,6 +331,24 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
     int flag_converge = 0;
     double helldist = 0.0;
     for(int ipm = 0; ipm < npm; ipm++){
+        // printf("ipm = %d\n", ipm);
+        // check value
+        //double max_rho_y_arr = MirMath::GetMax(nsky, rho_y_arr);
+        //double max_nu_y_arr = MirMath::GetMax(nsrc, nu_y_arr);
+        //double min_rho_y_arr = MirMath::GetMin(nsky, rho_y_arr);
+        //double min_nu_y_arr = MirMath::GetMin(nsrc, nu_y_arr);        
+        //printf("max_rho_y_arr = %e\n", max_rho_y_arr);
+        //printf("min_rho_y_arr = %e\n", min_rho_y_arr);        
+        //printf("max_nu_y_arr = %e\n", max_nu_y_arr);
+        //printf("min_nu_y_arr = %e\n", min_nu_y_arr);
+        //printf("phi_y = %e\n", phi_y);
+        //double sum_y = MirMath::GetSum(nsky, rho_y_arr)
+        //    + MirMath::GetSum(nsrc, nu_y_arr) + phi_y;
+        //printf("sum_y = %e\n", sum_y);
+
+        // reset
+        // lip_const = 1.0e-5;
+        
         lip_const_new = GetFindLipConst(fp_log,
                                         rho_y_arr, nu_y_arr, phi_y,
                                         mval_arr, nval_arr, pval,
@@ -324,9 +356,12 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
                                         nskyx, nskyy, nsrc, lip_const,
                                         lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);
-        if(lip_const_new > 1.0e+30){
-            break;
-        }
+        //if(lip_const_new > 1.0e+30){
+        //    printf("lip_const_new(= %e) is large, then break.\n",
+        //           lip_const_new);
+        //    lip_const = 1.0;
+        //    break;
+        //}
         double* vval_arr = new double[nsky];
         GetVvalArr(rho_y_arr,
                    nskyx, nskyy,
@@ -356,6 +391,8 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
         delete [] wval_arr;
 
         double tval_new = ( 1.0 + sqrt(1.0 + 4.0 * tval * tval) ) / 2.0;
+        // printf("ipm = %d, tval_new = %e, phi_x = %e\n", ipm, tval_new, phi_x);
+        // something is wrong.
 
         double coeff = (tval - 1.0) / tval_new;
         MibBlas::Sub(rho_x_arr, rho_x_pre_arr, nsky, rho_diff_arr);
@@ -392,11 +429,31 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
             }
         }
         if(ifind_nonneg == 0){
-            MiIolib::Printf2(fp_log, "warning: ipm = %d, ifind_nonneg == 0\n", ipm);
+            MiIolib::Printf2(fp_log,
+                             "warning: ipm = %d, ifind_nonneg == 0\n", ipm);
             dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
             dcopy_(nsrc, nu_x_arr, 1, nu_y_new_arr, 1);
             phi_y_new = phi_x;
-            tval_new = tval;
+
+            // debug
+            //double max_rho_y_new_arr = MirMath::GetMax(nsky, rho_y_new_arr);
+            //double max_nu_y_new_arr = MirMath::GetMax(nsrc, nu_y_new_arr);
+            //double min_rho_y_new_arr = MirMath::GetMin(nsky, rho_y_new_arr);
+            //double min_nu_y_new_arr = MirMath::GetMin(nsrc, nu_y_new_arr);        
+            //printf("max_rho_y_new_arr = %e\n", max_rho_y_new_arr);
+            //printf("min_rho_y_new_arr = %e\n", min_rho_y_new_arr);        
+            //printf("max_nu_y_new_arr = %e\n", max_nu_y_new_arr);
+            //printf("min_nu_y_new_arr = %e\n", min_nu_y_new_arr);
+            //printf("phi_y_new = %e\n", phi_y_new);
+            //double sum_y_new = MirMath::GetSum(nsky, rho_y_new_arr)
+            //    + MirMath::GetSum(nsrc, nu_y_new_arr) + phi_y_new;
+            //printf("sum_y_new = %e\n", sum_y_new);
+            
+
+            // reset tval, lip_const, lambda
+            tval_new = 1.0;
+            lip_const_new = 1.0;
+            lambda_new = 0.0;
         }
         
         // printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
@@ -429,11 +486,6 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
         lambda = lambda_new;
         lip_const = lip_const_new;
     }
-    if (flag_converge == 0){
-        MiIolib::Printf2(
-            fp_log, "    pm: not converged: helldist = %.2e\n",
-            helldist);        
-    }
 
     dcopy_(nsky, rho_y_new_arr, 1, rho_new_arr, 1);
     dcopy_(nsrc, nu_y_new_arr, 1, nu_new_arr, 1);
@@ -451,4 +503,6 @@ void GetRhoNuPhi_ByPM_Nesterov(FILE* const fp_log,
     delete [] nu_diff_arr;
     
     *phi_new_ptr = phi_new;
+    *helldist_ptr = helldist;
+    *flag_converge_ptr = flag_converge;
 }

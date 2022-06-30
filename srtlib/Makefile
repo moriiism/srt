@@ -13,6 +13,8 @@ OBJ := rl.o  rl_statval.o  sim.o  sub_smooth.o \
 	fpsrc_smth_bg_newton.o  \
 	fpsrc_smth_bg_statval.o \
 	fpsrc_smth_bg_em.o  fpsrc_smth_bg_dc.o  fpsrc_smth_bg_pm.o  \
+	fpsrc_smth_bg_pmproj_em.o  fpsrc_smth_bg_pmproj_dc.o \
+	fpsrc_smth_bg_pmproj_pm.o
 
 
 #sub_smooth.o  sim.o \

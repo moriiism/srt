@@ -11,7 +11,7 @@
 
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
 
-cd /home/morii/work/arb/ana/run/hxt_fpsrc_smth_bg_pmproj
+cd /home/morii/work/arb/ana/run/hxt/sim/fpsrc_smth_bg_pmproj
 
 
 # response format
@@ -115,7 +115,7 @@ $outfile
 
 ---> skyorg/fpsrc+diffuse.fits
 
-# 4. simobs
+# 4. mkbg
 
 mkdir det
 cat << EOF > det/bg.dat
@@ -136,6 +136,7 @@ $outfile \
 $ndetx \
 $ndety
 
+# simobs
 
 respfile=resp/arb_resp.fits
 srcfile=skyorg/fpsrc+diffuse.fits
@@ -161,16 +162,8 @@ $outfile_head
 
 # 5. richlucy_fpsrc_smth_bg_pmproj
 
-
-cat << EOF > skyorg/fpsrc_tmp.dat
-# posx posy
-50 50
-25 50
-75 25
-EOF
-
 datafile=sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
-fixed_src_list=skyorg/fpsrc_tmp.dat
+fixed_src_list=skyorg/fpsrc.dat
 bgfile=det/bg.fits
 skyfile=none
 resp_file=resp/arb_resp.fits
@@ -180,7 +173,7 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_fpsrc_smth_bg_pmproj
-outfile_head=src_50000_bg_1000_mu1.0e-2
+outfile_head=src_50000_bg_1000_mu1.0e4
 nem=100
 tol_em=1.0e-8
 ndc=100
@@ -189,7 +182,7 @@ npm=100
 tol_pm=1.0e-8
 nnewton=100
 tol_newton=1.0e-4
-mu=1.0e-2
+mu=1.0e4
 
 ~/work/github/moriiism/srt/richlucy_fpsrc_smth_bg_pmproj/richlucy_fpsrc_smth_bg_pmproj \
 $datafile \

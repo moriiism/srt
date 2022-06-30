@@ -38,6 +38,8 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
                       int nnewton, double tol_newton,
                       double* const rho_new_arr,
                       double* const nu_new_arr,
-                      double* const phi_new_ptr);
+                      double* const phi_new_ptr,
+                      double* const helldist_ptr,
+                      int* const flag_converge_ptr);
 
 #endif // MORIIISM_SRT_SRTLIB_FPSRC_SMTH_BG_DC_H_

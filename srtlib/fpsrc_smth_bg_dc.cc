@@ -56,6 +56,8 @@ void GetRhoNuPhi_ByDC_Acc(FILE* const fp_log,
     int flag_converge = 0;
     double helldist  = 0.0;
     for(int idc = 0; idc < ndc; idc++){
+        double helldist_pm1 = 0.0;
+        int flag_converge_pm1 = 0;
         GetRhoNuPhi_ByPM_Nesterov(fp_log,
                                   rho_0_arr, nu_0_arr, phi_0,
                                   mval_arr, nval_arr, pval,
@@ -66,7 +68,11 @@ void GetRhoNuPhi_ByDC_Acc(FILE* const fp_log,
                                   nnewton, tol_newton,
                                   rho_1_arr,
                                   nu_1_arr,
-                                  &phi_1);
+                                  &phi_1,
+                                  &helldist_pm1,
+                                  &flag_converge_pm1);
+        double helldist_pm2 = 0.0;
+        int flag_converge_pm2 = 0;
         GetRhoNuPhi_ByPM_Nesterov(fp_log,
                                   rho_1_arr, nu_1_arr, phi_1,
                                   mval_arr, nval_arr, pval,
@@ -77,7 +83,9 @@ void GetRhoNuPhi_ByDC_Acc(FILE* const fp_log,
                                   nnewton, tol_newton,
                                   rho_2_arr,
                                   nu_2_arr,
-                                  &phi_2);
+                                  &phi_2,
+                                  &helldist_pm2,
+                                  &flag_converge_pm2);
         MibBlas::Sub(rho_1_arr, rho_0_arr, nsky, r_rho_arr);
         MibBlas::Sub(rho_2_arr, rho_1_arr, nsky, r2_rho_arr);
         MibBlas::Sub(r2_rho_arr, r_rho_arr, nsky, v_rho_arr);
@@ -131,6 +139,8 @@ void GetRhoNuPhi_ByDC_Acc(FILE* const fp_log,
                 continue;
             }
 
+            double helldist_pm3 = 0.0;
+            int flag_converge_pm3 = 0;
             GetRhoNuPhi_ByPM_Nesterov(fp_log,
                                       rho_dash_arr, nu_dash_arr, phi_dash,
                                       mval_arr, nval_arr, pval,
@@ -141,7 +151,9 @@ void GetRhoNuPhi_ByDC_Acc(FILE* const fp_log,
                                       nnewton, tol_newton,
                                       rho_0_new_arr,
                                       nu_0_new_arr,
-                                      &phi_0_new);
+                                      &phi_0_new,
+                                      &helldist_pm3,
+                                      &flag_converge_pm3);
             int nneg = 0;
             for(int isky = 0; isky < nsky; isky ++){
                 if(rho_0_new_arr[isky] < 0.0){
@@ -227,7 +239,9 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
                       int nnewton, double tol_newton,
                       double* const rho_new_arr,
                       double* const nu_new_arr,
-                      double* const phi_new_ptr)
+                      double* const phi_new_ptr,
+                      double* const helldist_ptr,
+                      int* const flag_converge_ptr)
 {
     int nsky = nskyx * nskyy;    
     double* rho_pre_arr = new double[nsky];
@@ -239,35 +253,42 @@ void GetRhoNuPhi_ByDC(FILE* const fp_log,
     int flag_converge = 0;
     double helldist  = 0.0;
     for(int idc = 0; idc < ndc; idc++){
-        GetRhoNuPhi_ByPM(fp_log,
-                         rho_pre_arr, nu_pre_arr, phi_pre,
-                         mval_arr, nval_arr, pval,
-                         nph, B_val,
-                         ndet, nskyx, nskyy, nsrc,
-                         mu,
-                         npm, tol_pm,
-                         nnewton, tol_newton,
-                         rho_new_arr,
-                         nu_new_arr,
-                         &phi_new);
-        helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
-                                     rho_new_arr, nu_new_arr, phi_new,
-                                     nsky, nsrc);
+        double helldist_pm = 0.0;
+        int flag_converge_pm = 0;
+        GetRhoNuPhi_ByPM_Nesterov(fp_log,
+                                  rho_pre_arr, nu_pre_arr, phi_pre,
+                                  mval_arr, nval_arr, pval,
+                                  nph, B_val,
+                                  ndet, nskyx, nskyy, nsrc,
+                                  mu,
+                                  npm, tol_pm,
+                                  nnewton, tol_newton,
+                                  rho_new_arr,
+                                  nu_new_arr,
+                                  &phi_new,
+                                  &helldist_pm,
+                                  &flag_converge_pm);
+        if (flag_converge_pm == 0){
+            MiIolib::Printf2(
+                fp_log, "  idc = %d: pm: not converged: helldist = %.2e\n",
+                idc, helldist_pm);
+        }
+        helldist = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
+                                    rho_new_arr, nu_new_arr, phi_new,
+                                    nsky, nsrc);
         if (helldist < tol_dc){
             flag_converge = 1;
             MiIolib::Printf2(fp_log, "  idc = %d, helldist = %.2e\n",
                              idc, helldist);
             break;
         }
-        dcopy_(nsky, const_cast<double*>(rho_new_arr), 1, rho_pre_arr, 1);
-        dcopy_(nsrc, const_cast<double*>(nu_new_arr), 1, nu_pre_arr, 1);
+        dcopy_(nsky, rho_new_arr, 1, rho_pre_arr, 1);
+        dcopy_(nsrc, nu_new_arr, 1, nu_pre_arr, 1);
         phi_pre = phi_new;
-    }
-    if (flag_converge == 0){
-        MiIolib::Printf2(fp_log, "  dc: not converged: helldist = %.2e\n",
-                         helldist);
     }
     delete [] rho_pre_arr;
     delete [] nu_pre_arr;
     *phi_new_ptr = phi_new;
+    *helldist_ptr = helldist;
+    *flag_converge_ptr = flag_converge;
 }

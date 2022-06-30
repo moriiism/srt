@@ -164,24 +164,25 @@ int main(int argc, char* argv[])
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
     printf("N bg = %d\n", nph_bg);
 
-    
+   
 
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nsrc];
     double phi_new = 0.0;
-    RichlucyFpsrcSmthBg(rho_init_arr, nu_init_arr, phi_init,
-                        data_arr, bg_arr, det_fpsrc_arr,
-                        resp_norm_mat_arr,
-                        ndet, nskyx, nskyy, nsrc,
-                        argval->GetMu(),
-                        argval->GetOutdir(),
-                        argval->GetOutfileHead(),
-                        argval->GetNem(), argval->GetTolEm(),
-                        argval->GetNdc(), argval->GetTolDc(),
-                        argval->GetNpm(), argval->GetTolPm(),
-                        argval->GetNnewton(), argval->GetTolNewton(),
-                        rho_new_arr, nu_new_arr, &phi_new);
-
+    RichlucyFpsrcSmthBg_Pmproj(fp_log,
+                               rho_init_arr, nu_init_arr, phi_init,
+                               data_arr, bg_arr, det_fpsrc_arr,
+                               resp_norm_mat_arr,
+                               ndet, nskyx, nskyy, nsrc,
+                               argval->GetMu(),
+                               argval->GetOutdir(),
+                               argval->GetOutfileHead(),
+                               argval->GetNem(), argval->GetTolEm(),
+                               argval->GetNdc(), argval->GetTolDc(),
+                               argval->GetNpm(), argval->GetTolPm(),
+                               argval->GetNnewton(), argval->GetTolNewton(),
+                               rho_new_arr, nu_new_arr, &phi_new);
+    
     double B_val = MibBlas::Sum(bg_arr, ndet);
     printf("B_val = %e\n", B_val);
     double N_prime = B_val / phi_new;

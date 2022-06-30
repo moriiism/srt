@@ -108,18 +108,22 @@ void RichlucyFpsrcSmthBg(FILE* const fp_log,
                               resp_norm_mat_arr, 
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-        GetRhoNuPhi_ByDC_Acc(fp_log,
-                             rho_pre_arr, nu_pre_arr, phi_pre,
-                             mval_arr, nval_arr, pval,
-                             nph, B_val,
-                             ndet, nskyx, nskyy, nsrc,
-                             mu,
-                             ndc, tol_dc,
-                             npm, tol_pm,
-                             nnewton, tol_newton,
-                             rho_new_arr,
-                             nu_new_arr,
-                             &phi_new);
+        double helldist_dc = 0.0;
+        int flag_converge_dc = 0;
+        GetRhoNuPhi_ByDC(fp_log,
+                         rho_pre_arr, nu_pre_arr, phi_pre,
+                         mval_arr, nval_arr, pval,
+                         nph, B_val,
+                         ndet, nskyx, nskyy, nsrc,
+                         mu,
+                         ndc, tol_dc,
+                         npm, tol_pm,
+                         nnewton, tol_newton,
+                         rho_new_arr,
+                         nu_new_arr,
+                         &phi_new,
+                         &helldist_dc,
+                         &flag_converge_dc);
         delete [] mval_arr;
         delete [] nval_arr;
         double helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
@@ -218,6 +222,9 @@ void RichlucyFpsrcSmthBg_Acc(FILE* const fp_log,
         double* mval_arr = new double[nsky];
         double* nval_arr = new double[nsrc];
         double pval = 0.0;
+
+        double helldist_dc1 = 0.0;
+        int flag_converge_dc1 = 0;
         GetMvalArrNvalArrPval(rho_0_arr, nu_0_arr, phi_0,
                               data_arr, bg_arr, det_fpsrc_arr,
                               resp_norm_mat_arr,
@@ -234,8 +241,17 @@ void RichlucyFpsrcSmthBg_Acc(FILE* const fp_log,
                          nnewton, tol_newton,
                          rho_1_arr,
                          nu_1_arr,
-                         &phi_1);
-        
+                         &phi_1,
+                         &helldist_dc1,
+                         &flag_converge_dc1);
+        if (flag_converge_dc1 == 0){
+            MiIolib::Printf2(fp_log,
+                             "iem = %d: dc1: not converged: helldist_dc1 = %.2e\n",
+                             iem,
+                             helldist_dc1);
+        }
+        double helldist_dc2 = 0.0;
+        int flag_converge_dc2 = 0;
         GetMvalArrNvalArrPval(rho_1_arr, nu_1_arr, phi_1,
                               data_arr, bg_arr, det_fpsrc_arr,
                               resp_norm_mat_arr,
@@ -252,7 +268,15 @@ void RichlucyFpsrcSmthBg_Acc(FILE* const fp_log,
                          nnewton, tol_newton,
                          rho_2_arr,
                          nu_2_arr,
-                         &phi_2);
+                         &phi_2,
+                         &helldist_dc2,
+                         &flag_converge_dc2);
+        if (flag_converge_dc2 == 0){
+            MiIolib::Printf2(fp_log,
+                             "iem = %d: dc2: not converged: helldist_dc2 = %.2e\n",
+                             iem,
+                             helldist_dc2);
+        }
 
         MibBlas::Sub(rho_1_arr, rho_0_arr, nsky, r_rho_arr);
         MibBlas::Sub(rho_2_arr, rho_1_arr, nsky, r2_rho_arr);
@@ -307,6 +331,9 @@ void RichlucyFpsrcSmthBg_Acc(FILE* const fp_log,
             if (nneg_tmp > 0){
                 continue;
             }
+
+            double helldist_dc3 = 0.0;
+            int flag_converge_dc3 = 0;
             GetMvalArrNvalArrPval(rho_dash_arr, nu_dash_arr, phi_dash,
                                   data_arr, bg_arr, det_fpsrc_arr,
                                   resp_norm_mat_arr,
@@ -323,7 +350,15 @@ void RichlucyFpsrcSmthBg_Acc(FILE* const fp_log,
                              nnewton, tol_newton,
                              rho_0_new_arr,
                              nu_0_new_arr,
-                             &phi_0_new);
+                             &phi_0_new,
+                             &helldist_dc3,
+                             &flag_converge_dc3);
+            if (flag_converge_dc3 == 0){
+                MiIolib::Printf2(fp_log,
+                                 "iem = %d: dc3: not converged: helldist_dc3 = %.2e\n",
+                                 iem,
+                                 helldist_dc3);
+            }
             int nneg = 0;
             for(int isky = 0; isky < nsky; isky ++){
                 if(rho_0_new_arr[isky] < 0.0){
