@@ -19,8 +19,9 @@ public:
         ndety_(0),
         outdir_(""),
         outfile_head_(""),
-        nloop_(0),
-        tol_(0.0) {}
+        nem_(0),
+        tol_em_(0.0),
+        acc_method_("") {}
     ~ArgValRichlucyBg(){
         Null();
     }
@@ -30,7 +31,7 @@ public:
     string GetProgname() const {return progname_;};
     string GetDatafile() const {return datafile_;};
     string GetBgfile() const {return bgfile_;};
-    string GetSkyfile() const {return skyfile_;};    
+    string GetSkyfile() const {return skyfile_;};
     string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
@@ -39,8 +40,9 @@ public:
     int    GetNdety() const {return ndety_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
-    int    GetNloop() const {return nloop_;};
-    double GetTol() const {return tol_;};
+    int    GetNem() const {return nem_;};
+    double GetTolEm() const {return tol_em_;};
+    string GetAccMethod() const {return acc_method_;};    
 
 private:
     string progname_;
@@ -55,8 +57,9 @@ private:
     int ndety_;
     string outdir_;
     string outfile_head_;
-    int    nloop_;
-    double tol_;
+    int    nem_;
+    double tol_em_;
+    string acc_method_;    
 
     void Null();
     void SetOption(int argc, char* argv[], option* long_options);

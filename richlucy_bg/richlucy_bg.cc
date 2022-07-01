@@ -1,9 +1,14 @@
+//
+// Image reconstruction by Richardson-Lucy method
+// with non-X-ray background
+//
+
 #include "mir_math.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "arg_richlucy_bg.h"
-#include "sub_bg.h"
+#include "rl_bg.h"
 #include "TRandom3.h"
 
 // global variable 
@@ -14,7 +19,7 @@ int g_flag_verbose = 0;
 int main(int argc, char* argv[])
 {
     int status_prog = kRetNormal;
-    
+
     double time_st = MiTime::GetTimeSec();
     
     ArgValRichlucyBg* argval = new ArgValRichlucyBg;
@@ -32,8 +37,8 @@ int main(int argc, char* argv[])
             argval->GetOutfileHead().c_str(),
             argval->GetProgname().c_str());
     FILE* fp_log = fopen(logfile, "w");
-    MiIolib::Printf2(fp_log, "-----------------------------\n");
     argval->Print(fp_log);
+    MiIolib::Printf2(fp_log, "-----------------------------\n");
 
     int nskyx = argval->GetNskyx();
     int nskyy = argval->GetNskyy();
@@ -45,31 +50,28 @@ int main(int argc, char* argv[])
     // load data
     MifImgInfo* img_info_data = new MifImgInfo;
     img_info_data->InitSetImg(1, 1, ndetx, ndety);
-    int bitpix = 0;
+    int bitpix_data = 0;
     double* data_arr = NULL;
     MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
-                          &bitpix, &data_arr);
+                          &bitpix_data, &data_arr);
     int nph_data = MirMath::GetSum(ndet, data_arr);
-    printf("N photon = %d\n", nph_data);
+    MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);
 
     // load bg model data
-    bitpix = 0;
-    double* bg_arr = NULL;
     MifImgInfo* img_info_bg = new MifImgInfo;
     img_info_bg->InitSetImg(1, 1, ndetx, ndety);
+    int bitpix_bg = 0;
+    double* bg_arr = NULL;
     MifFits::InFitsImageD(argval->GetBgfile(), img_info_bg,
-                          &bitpix, &bg_arr);
+                          &bitpix_bg, &bg_arr);
     int nph_bg = MirMath::GetSum(ndet, bg_arr);
-    printf("N bg = %d\n", nph_bg);
-
+    MiIolib::Printf2(fp_log, "N bg = %d\n", nph_bg);
 
     // load response file
-    int naxis = 2;
-    int* naxes_arr = new int[naxis];
-    for(int iaxis = 0; iaxis < naxis; iaxis ++){
-        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespFile(), iaxis);
-    }
-    if ((naxes_arr[0] != ndet) || (naxes_arr[1] != nsky)){
+    int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
+    int naxis1 = MifFits::GetAxisSize(argval->GetRespFile(), 1);
+    if ((naxis0 != ndet) || (naxis1 != nsky)){
+        MiIolib::Printf2(fp_log, "Error: response file size error.\n");
         abort();
     }
     double* resp_mat_arr = NULL;
@@ -80,9 +82,6 @@ int main(int argc, char* argv[])
                           &bitpix_resp, &resp_mat_arr);
 
     // load efficiency file
-    for(int iaxis = 0; iaxis < naxis; iaxis ++){
-        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetEffFile(), iaxis);
-    }
     double* eff_mat_arr = NULL;
     int bitpix_eff = 0;
     MifImgInfo* img_info_eff = new MifImgInfo;
@@ -106,8 +105,8 @@ int main(int argc, char* argv[])
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
     double nu_init = 0.0;
-    double B_val = GetB(bg_arr, ndet);
-    printf("B_val = %e\n", B_val);
+    double B_val = MibBlas::Sum(bg_arr, ndet);
+    MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);
     for(int isky = 0; isky < nsky; isky ++){
         rho_init_arr[isky] = (nph_data - B_val) / nph_data / nsky;
         nu_init = B_val / nph_data;
@@ -136,25 +135,39 @@ int main(int argc, char* argv[])
 
     double* rho_new_arr = new double[nsky];
     double nu = 0.0;
-    bitpix = -32;
-    RichlucyBg(rho_init_arr, nu_init,
-               data_arr, bg_arr, resp_norm_mat_arr,
-               ndet, nsky,
-               argval->GetNloop(),
-               argval->GetOutdir(),
-               argval->GetOutfileHead(),
-               argval->GetTol(),
-               rho_new_arr, &nu);
+    if (argval->GetAccMethod() == "none"){
+        RichlucyBg(fp_log,
+                   rho_init_arr, nu_init,
+                   data_arr, bg_arr, resp_norm_mat_arr,
+                   ndet, nsky,
+                   argval->GetOutdir(),
+                   argval->GetOutfileHead(),
+                   argval->GetNem(),
+                   argval->GetTolEm(),
+                   rho_new_arr, &nu);
+    } else if (argval->GetAccMethod() == "squarem"){
+        RichlucyBgAccSQUAREM(fp_log,
+                             rho_init_arr, nu_init,
+                             data_arr, bg_arr, resp_norm_mat_arr,
+                             ndet, nsky,
+                             argval->GetOutdir(),
+                             argval->GetOutfileHead(),
+                             argval->GetNem(),                             
+                             argval->GetTolEm(),
+                             rho_new_arr, &nu);
+    } else {
+        printf("bad acc_method\n");
+        abort();
+    }
 
     // check
     double sum_one = nu;
     for(int isky = 0; isky < nsky; isky ++){
         sum_one += rho_new_arr[isky];
     }
-    printf("sum_one = %e\n", sum_one);
-    
-    printf("B_val = %e\n", B_val);
-    double N_B = GetB(bg_arr, ndet) / nu;
+    MiIolib::Printf2(fp_log, "sum_one = %e\n", sum_one);
+
+    double N_B = MibBlas::Sum(bg_arr, ndet) / nu;
     // output reconstructed sky image: lambda
     double* sky_new_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
@@ -163,21 +176,22 @@ int main(int argc, char* argv[])
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
-    }    
-    naxis = 2;
-    long* naxes = new long[naxis];
+    }
+    
+    long naxes[2];
     naxes[0] = nskyx;
     naxes[1] = nskyy;
+    int bitpix_out = -32;    
     MifFits::OutFitsImageD(argval->GetOutdir(),
                            argval->GetOutfileHead(),
                            "rec", 2,
-                           bitpix,
+                           bitpix_out,
                            naxes, sky_new_arr);
 
     double time_ed = MiTime::GetTimeSec();
-    printf("duration = %e sec.\n", time_ed - time_st);
-    double sum_sky = MirMath::GetSum(nsky, sky_new_arr);
-    printf("sum_sky = %e\n", sum_sky);
-    
+    MiIolib::Printf2(fp_log, "duration = %e sec.\n", time_ed - time_st);
+
+    fclose(fp_log);
+
     return status_prog;
 }

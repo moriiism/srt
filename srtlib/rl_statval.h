@@ -8,6 +8,10 @@ double GetHellingerDist(const double* const rho_arr,
                         const double* const rho_new_arr,
                         int nsky);
 
+double GetHellingerDist(const double* const rho_arr, double nu, 
+                        const double* const rho_new_arr, double nu_new,
+                        int nsky);
+
 double GetNegLogLike(const double* const rho_arr,
                      const double* const data_arr,
                      const double* const resp_norm_mat_arr,

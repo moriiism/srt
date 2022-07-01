@@ -3,22 +3,26 @@ include ../../mitool/milib/Makefile.in
 include ../../mitool/miblaslib/Makefile.in
 include ../../mitool/mifitslib/Makefile.in
 include ../../mitool/mirootlib/Makefile.in
+include ../Makefile.in
 
-INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) \
-	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(BLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
+INCLUDE = ${SRTLIB_INC} $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
+	$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
+LDLIBS  = ${SRTLIB_LIB} $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) \
+	$(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) $(LAPACK_LIB) $(BLAS_LIB) \
+	$(MT_LIB) $(LIB) -lgfortran
 
-INCLUDE_OPENBLAS = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS_OPENBLAS  = $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) \
-	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
-
+INCLUDE_OPENBLAS = ${SRTLIB_INC} $(MIROOTLIB_INC) $(MIFITSLIB_INC) \
+	$(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
+LDLIBS_OPENBLAS = ${SRTLIB_LIB} $(MIROOTLIB_LIB) $(MIFITSLIB_LIB) \
+	$(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) \
+	$(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
 TARGET = richlucy_bg
 
 all: $(TARGET) 
 
-richlucy_bg: richlucy_bg.o  arg_richlucy_bg.o  sub_bg.o
-	$(CXXN) $@.o arg_$@.o sub_bg.o ${LDLIBS_OPENBLAS} -o $@
+richlucy_bg: richlucy_bg.o  arg_richlucy_bg.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
 
 
 .SUFFIXES:

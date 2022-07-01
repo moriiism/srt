@@ -18,7 +18,7 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 13;
+    int narg = 14;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -35,8 +35,9 @@ void ArgValRichlucyBg::Init(int argc, char* argv[])
     ndety_          = atoi(argv[iarg]); iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
-    nloop_          = atoi(argv[iarg]); iarg++;
-    tol_            = atof(argv[iarg]); iarg++;
+    nem_            = atoi(argv[iarg]); iarg++;
+    tol_em_         = atof(argv[iarg]); iarg++;
+    acc_method_     = argv[iarg]; iarg++;    
 }
 
 void ArgValRichlucyBg::Print(FILE* fp) const
@@ -57,8 +58,9 @@ void ArgValRichlucyBg::Print(FILE* fp) const
     fprintf(fp, "%s: ndety_          : %d\n", __func__, ndety_);
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
-    fprintf(fp, "%s: nloop_          : %d\n", __func__, nloop_);
-    fprintf(fp, "%s: tol_            : %f\n", __func__, tol_);
+    fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
+    fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
+    fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());    
 }
 
 // private
@@ -68,7 +70,7 @@ void ArgValRichlucyBg::Null()
     progname_ = "";
     datafile_ = "";
     bgfile_   = "";
-    skyfile_  = "";    
+    skyfile_  = "";
     resp_file_ = "";
     eff_file_ = "";
     nskyx_    = 0;
@@ -77,8 +79,9 @@ void ArgValRichlucyBg::Null()
     ndety_    = 0;
     outdir_   = "";
     outfile_head_ = "";
-    nloop_   = 0;    
-    tol_     = 0.0;
+    nem_      = 0;    
+    tol_em_   = 0.0;
+    acc_method_ = "";    
 }
 
 void ArgValRichlucyBg::SetOption(int argc, char* argv[], option* long_options)
@@ -138,7 +141,7 @@ void ArgValRichlucyBg::Usage(FILE* fp) const
             "datafile  bgfile  skyfile  "
             "resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
-            "outdir  outfile_head  nloop  tol\n",
+            "outdir  outfile_head  nem  tol_em  acc_method\n",
             progname_.c_str());
     abort();
 }

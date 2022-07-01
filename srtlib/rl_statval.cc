@@ -13,6 +13,21 @@ double GetHellingerDist(const double* const rho_arr,
     return (ans);
 }
 
+double GetHellingerDist(const double* const rho_arr, double nu, 
+                        const double* const rho_new_arr, double nu_new,
+                        int nsky)
+{
+    double sum = 0.0;
+    for(int isky = 0; isky < nsky; isky ++){
+        double diff = sqrt(rho_arr[isky]) - sqrt(rho_new_arr[isky]);
+        sum += diff * diff;
+    }
+    double diff = sqrt(nu) - sqrt(nu_new);
+    sum += diff * diff;
+    double ans = sqrt(sum);
+    return (ans);
+}
+
 double GetNegLogLike(const double* const rho_arr,
                      const double* const data_arr,
                      const double* const resp_norm_mat_arr,
