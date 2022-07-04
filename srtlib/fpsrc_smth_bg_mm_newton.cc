@@ -267,6 +267,9 @@ double GetLambda_ByNewton_MM(FILE* const fp_log,
     if(flag_converge != 1){
         MiIolib::Printf2(fp_log,
                          "      newton: not converge: sval = %e\n", sval);
+        MiIolib::Printf2(fp_log,
+                         "      abort.\n");
+        abort();
     }
     
     return lambda_new;

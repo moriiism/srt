@@ -33,7 +33,9 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
                          int nnewton, double tol_newton,
                          double* const rho_new_arr,
                          double* const nu_new_arr,
-                         double* const phi_new_ptr);
+                         double* const phi_new_ptr,
+                         double* const helldist_ptr,
+                         int* const flag_converge_ptr);
 
 // nesterov
 void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,

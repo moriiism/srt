@@ -41,8 +41,8 @@ void RichlucyFpsrcSmthBgMM(FILE* const fp_log,
                               resp_norm_mat_arr, 
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-        //double helldist_pm = 0.0;
-        //int flag_converge_pm = 0;
+        double helldist_pm = 0.0;
+        int flag_converge_pm = 0;
         GetRhoNuPhi_ByPM_MM(fp_log,
                             rho_pre_arr, nu_pre_arr, phi_pre,
                             mval_arr, nval_arr, pval,
@@ -53,9 +53,15 @@ void RichlucyFpsrcSmthBgMM(FILE* const fp_log,
                             nnewton, tol_newton,
                             rho_new_arr,
                             nu_new_arr,
-                            &phi_new);
-        //&helldist_pm,
-        //                    &flag_converge_pm);
+                            &phi_new,
+                            &helldist_pm,
+                            &flag_converge_pm);
+        if (flag_converge_pm == 0){
+            MiIolib::Printf2(fp_log,
+                             "iem = %d: pm: not converged: helldist_pm = %.2e\n",
+                             iem,
+                             helldist_pm);
+        }
         delete [] mval_arr;
         delete [] nval_arr;
         double helldist  = GetHellingerDist(rho_pre_arr, nu_pre_arr, phi_pre,
@@ -171,9 +177,9 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                             nnewton, tol_newton,
                             rho_1_arr,
                             nu_1_arr,
-                            &phi_1);
-                            //&helldist_pm1,
-                            //&flag_converge_pm1);
+                            &phi_1,
+                            &helldist_pm1,
+                            &flag_converge_pm1);
         if (flag_converge_pm1 == 0){
             MiIolib::Printf2(fp_log,
                              "iem = %d: pm1: not converged: helldist_pm1 = %.2e\n",
@@ -197,9 +203,9 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                             nnewton, tol_newton,
                             rho_2_arr,
                             nu_2_arr,
-                            &phi_2);
-                            //&helldist_pm2,
-                            //&flag_converge_pm2);
+                            &phi_2,
+                            &helldist_pm2,
+                            &flag_converge_pm2);
         if (flag_converge_pm2 == 0){
             MiIolib::Printf2(fp_log,
                              "iem = %d: pm2: not converged: helldist_pm2 = %.2e\n",
@@ -278,9 +284,9 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                                 nnewton, tol_newton,
                                 rho_0_new_arr,
                                 nu_0_new_arr,
-                                &phi_0_new);
-                                //&helldist_pm3,
-                                //&flag_converge_pm3);
+                                &phi_0_new,
+                                &helldist_pm3,
+                                &flag_converge_pm3);
             if (flag_converge_pm3 == 0){
                 MiIolib::Printf2(fp_log,
                                  "iem = %d: pm3: not converged: helldist_pm3 = %.2e\n",

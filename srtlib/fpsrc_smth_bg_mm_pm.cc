@@ -62,17 +62,15 @@ double GetFindLipConst_MM(FILE* const fp_log,
                                     nskyx, nskyy, nsrc);
         delete [] vval_arr;
         delete [] wval_arr;        
-        if(qminusf >= 0.0 && phi_new > 0.0){
+        if(qminusf >= 0.0){
             flag_find_lip_const = 1;
-            // debug
-            //printf("in find lip const: phi_new = %e\n", phi_new);
-            //printf("in find lip const: lip_const_new = %e\n", lip_const_new);
             break;
         }
     }
     if (flag_find_lip_const == 0){
         printf("warning: GetFindLipConst: no lip_const is found.\n");
         printf("warning: lip_const_new = %e\n", lip_const_new);
+        abort();
     }
     
     delete [] rho_new_arr;
@@ -95,7 +93,9 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
                          int nnewton, double tol_newton,
                          double* const rho_new_arr,
                          double* const nu_new_arr,
-                         double* const phi_new_ptr)
+                         double* const phi_new_ptr,
+                         double* const helldist_ptr,
+                         int* const flag_converge_ptr)
 {
     double phi_val = phi;
     
@@ -148,7 +148,6 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
                                       &lambda_new);
         delete [] vval_arr;
         delete [] wval_arr;
-        // printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
         helldist = GetHellingerDist(rho_pre_arr,
                                     nu_pre_arr,
                                     phi_pre,
@@ -156,7 +155,6 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
                                     nu_new_arr,
                                     phi_new,
                                     nsky, nsrc);
-        // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
             flag_converge = 1;
             MiIolib::Printf2(
@@ -171,14 +169,11 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
         lambda = lambda_new;
         lip_const = lip_const_new;
     }
-    if (flag_converge == 0){
-        MiIolib::Printf2(
-            fp_log, "    pm: not converged: helldist = %.2e\n",
-            helldist);        
-    }
     delete [] rho_pre_arr;
     delete [] nu_pre_arr;
     *phi_new_ptr = phi_new;
+    *helldist_ptr = helldist;
+    *flag_converge_ptr = flag_converge;
 }
 
 
