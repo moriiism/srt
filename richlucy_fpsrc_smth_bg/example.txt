@@ -172,16 +172,17 @@ nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
 outdir=rl_fpsrc_smth_bg
-outfile_head=src_50000_bg_1000_mu1.0e4
-nem=100
+outfile_head=src_50000_bg_1000_mu1.0e7
+nem=1000
 tol_em=1.0e-8
 ndc=100
 tol_dc=1.0e-8
 npm=100
 tol_pm=1.0e-8
 nnewton=100
-tol_newton=1.0e-4
-mu=1.0e4
+tol_newton=1.0e-5
+mu=1.0e7
+
 
 ~/work/github/moriiism/srt/richlucy_fpsrc_smth_bg/richlucy_fpsrc_smth_bg \
 $datafile \

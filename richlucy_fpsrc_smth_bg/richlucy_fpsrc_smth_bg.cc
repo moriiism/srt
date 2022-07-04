@@ -9,7 +9,7 @@
 #include "arg_richlucy_fpsrc_smth_bg.h"
 #include "fpsrc.h"
 #include "TRandom3.h"
-#include "fpsrc_smth_bg_em.h"
+#include "fpsrc_smth_bg_mm_em.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -168,32 +168,30 @@ int main(int argc, char* argv[])
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nsrc];
     double phi_new = 0.0;
-    //RichlucyFpsrcSmthBg(fp_log,
-    //                    rho_init_arr, nu_init_arr, phi_init,
-    //                    data_arr, bg_arr, det_fpsrc_arr,
-    //                    resp_norm_mat_arr,
-    //                    ndet, nskyx, nskyy, nsrc,
-    //                    argval->GetMu(),
-    //                    argval->GetOutdir(),
-    //                    argval->GetOutfileHead(),
-    //                    argval->GetNem(), argval->GetTolEm(),
-    //                    argval->GetNdc(), argval->GetTolDc(),
-    //                    argval->GetNpm(), argval->GetTolPm(),
-    //                    argval->GetNnewton(), argval->GetTolNewton(),
-    //                    rho_new_arr, nu_new_arr, &phi_new);
-    RichlucyFpsrcSmthBg_Acc(fp_log,
-                            rho_init_arr, nu_init_arr, phi_init,
-                            data_arr, bg_arr, det_fpsrc_arr,
-                            resp_norm_mat_arr,
-                            ndet, nskyx, nskyy, nsrc,
-                            argval->GetMu(),
-                            argval->GetOutdir(),
-                            argval->GetOutfileHead(),
-                            argval->GetNem(), argval->GetTolEm(),
-                            argval->GetNdc(), argval->GetTolDc(),
-                            argval->GetNpm(), argval->GetTolPm(),
-                            argval->GetNnewton(), argval->GetTolNewton(),
-                            rho_new_arr, nu_new_arr, &phi_new);
+//    RichlucyFpsrcSmthBgMM(fp_log,
+//                          rho_init_arr, nu_init_arr, phi_init,
+//                          data_arr, bg_arr, det_fpsrc_arr,
+//                          resp_norm_mat_arr,
+//                          ndet, nskyx, nskyy, nsrc,
+//                          argval->GetMu(),
+//                          argval->GetOutdir(),
+//                          argval->GetOutfileHead(),
+//                          argval->GetNem(), argval->GetTolEm(),
+//                          argval->GetNpm(), argval->GetTolPm(),
+//                          argval->GetNnewton(), argval->GetTolNewton(),
+//                          rho_new_arr, nu_new_arr, &phi_new);
+    RichlucyFpsrcSmthBgMM_Acc(fp_log,
+                              rho_init_arr, nu_init_arr, phi_init,
+                              data_arr, bg_arr, det_fpsrc_arr,
+                              resp_norm_mat_arr,
+                              ndet, nskyx, nskyy, nsrc,
+                              argval->GetMu(),
+                              argval->GetOutdir(),
+                              argval->GetOutfileHead(),
+                              argval->GetNem(), argval->GetTolEm(),
+                              argval->GetNpm(), argval->GetTolPm(),
+                              argval->GetNnewton(), argval->GetTolNewton(),
+                              rho_new_arr, nu_new_arr, &phi_new);
     
     double B_val = MibBlas::Sum(bg_arr, ndet);
     MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);

@@ -14,8 +14,9 @@ OBJ := rl.o  rl_bg.o  rl_statval.o  sim.o  sub_smooth.o \
 	fpsrc_smth_bg_statval.o \
 	fpsrc_smth_bg_em.o  fpsrc_smth_bg_dc.o  fpsrc_smth_bg_pm.o  \
 	fpsrc_smth_bg_pmproj_em.o  fpsrc_smth_bg_pmproj_dc.o \
-	fpsrc_smth_bg_pmproj_pm.o
-
+	fpsrc_smth_bg_pmproj_pm.o \
+	fpsrc_smth_bg_mm_em.o  fpsrc_smth_bg_mm_pm.o \
+	fpsrc_smth_bg_mm_newton.o
 
 #sub_smooth.o  sim.o \
 #	fpsrc_smth_bg_newton.o  \
