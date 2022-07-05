@@ -62,7 +62,7 @@ double GetFindLipConst_MM(FILE* const fp_log,
                                     nskyx, nskyy, nsrc);
         delete [] vval_arr;
         delete [] wval_arr;        
-        if(qminusf >= 0.0){
+        if(qminusf >= 0.0 && phi_new > 0.0){
             flag_find_lip_const = 1;
             break;
         }
@@ -108,8 +108,10 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
     double phi_new = 0.0;
 
     double lip_const = 1.0;
-    double lambda = 0.0;
-    double lambda_new = 0.0;
+    // lambda must be < 0, because bval must be < 0
+    // at the functions, GetDerivRhoArr_FromLambda_MM.
+    double lambda = -1.0;
+    double lambda_new = -1.0;
     double lip_const_new = 1.0;
     int flag_converge = 0;
     double helldist = 0.0;
@@ -228,8 +230,11 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
     double* rho_diff_arr = new double[nsky];
     double* nu_diff_arr = new double[nsrc];
     double lip_const = 1.0;
-    double lambda = 0.0;
-    double lambda_new = 0.0;
+
+    // lambda must be < 0, because bval must be < 0
+    // at the functions, GetDerivRhoArr_FromLambda_MM.
+    double lambda = -1.0; 
+    double lambda_new = -1.0;
     double lip_const_new = 1.0;
     int flag_converge = 0;
     double helldist = 0.0;
@@ -304,7 +309,8 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
 
         int nk = 100;
         double eta = 0.8;
-        int ifind_nonneg = 0;        
+        int ifind_nonneg = 0;
+        int nneg = 0;
         for(int ik = 0; ik < nk; ik ++){
             double coeff0 = coeff * pow(eta, ik);
             dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
@@ -312,7 +318,7 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
             daxpy_(nsky, coeff0, rho_diff_arr, 1, rho_y_new_arr, 1);
             daxpy_(nsrc, coeff0, nu_diff_arr, 1, nu_y_new_arr, 1);
             phi_y_new = phi_x + coeff0 * phi_diff;
-            int nneg = 0;
+            nneg = 0;
             for(int isky = 0; isky < nsky; isky ++){
                 if(rho_y_new_arr[isky] < 0.0){
                     nneg ++;
@@ -332,12 +338,9 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
             }
         }
         if(ifind_nonneg == 0){
-            MiIolib::Printf2(fp_log,
-                             "warning: ipm = %d, ifind_nonneg == 0\n", ipm);
-            dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
-            dcopy_(nsrc, nu_x_arr, 1, nu_y_new_arr, 1);
-            phi_y_new = phi_x;
-
+            //MiIolib::Printf2(fp_log,
+            //                 "warning: ipm = %d, num of non-neg = %d\n",
+            //                 ipm, nneg);
             // debug
             //double max_rho_y_new_arr = MirMath::GetMax(nsky, rho_y_new_arr);
             //double max_nu_y_new_arr = MirMath::GetMax(nsrc, nu_y_new_arr);
@@ -351,14 +354,32 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
             //double sum_y_new = MirMath::GetSum(nsky, rho_y_new_arr)
             //    + MirMath::GetSum(nsrc, nu_y_new_arr) + phi_y_new;
             //printf("sum_y_new = %e\n", sum_y_new);
-            
+
+            // set neg val to zero
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_y_new_arr[isky] < 0.0){
+                    rho_y_new_arr[isky] = 0.0;
+                }
+            }
+            for(int isrc = 0; isrc < nsrc; isrc ++){
+                if(nu_y_new_arr[isrc] < 0.0){
+                    nu_y_new_arr[isrc] = 0.0;
+                }
+            }
+            if(phi_y_new < 0.0){
+                phi_y_new = 0.0;
+            }
+
+            //dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
+            //dcopy_(nsrc, nu_x_arr, 1, nu_y_new_arr, 1);
+            //phi_y_new = phi_x;
 
             // reset tval, lip_const, lambda
-            tval_new = 1.0;
-            lip_const_new = 1.0;
-            lambda_new = 0.0;
+            //tval_new = 1.0;
+            //lip_const_new = 1.0;
+            //lambda_new = 0.0;
         }
-        
+
         // printf("pm out: ipm = %d, phi_new = %e\n", ipm, phi_new);
         helldist = GetHellingerDist(rho_y_arr,
                                     nu_y_arr,
@@ -370,10 +391,10 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
         // printf("ipm = %d, helldist = %e\n", ipm, helldist);
         if (helldist < tol_pm){
             flag_converge = 1;
-            //MiIolib::Printf2(
-            //    fp_log,
-            //    "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
-            //    ipm, helldist, lip_const_new);
+            MiIolib::Printf2(
+                fp_log,
+                "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
+                ipm, helldist, lip_const_new);
             break;
         }
         dcopy_(nsky, rho_y_new_arr, 1, rho_y_arr, 1);

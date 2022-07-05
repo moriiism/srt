@@ -1,3 +1,4 @@
+#include "mir_math.h"
 #include "fpsrc_smth_bg_mm_newton.h"
 //#include "fpsrc_smth_bg_statval.h"
 
@@ -65,7 +66,23 @@ void GetDerivRhoArr_FromLambda_MM(double lambda,
         double den = sqrt(bval * bval + 4 * lip_const * mval_arr[isky]);
         double num = -1 * rho_arr[isky];
         deriv_rho_arr[isky] = num / den;
+
+        if(1 == isnan(deriv_rho_arr[isky])){
+            printf("GetDerivRhoArr_FromLambda_MM: vval_arr[%d] = %e\n",
+                   isky, vval_arr[isky]);
+            printf("GetDerivRhoArr_FromLambda_MM: lip_const = %e\n",
+                   lip_const);
+            printf("GetDerivRhoArr_FromLambda_MM: lambda = %e\n",
+                   lambda);
+            printf("GetDerivRhoArr_FromLambda_MM: mval_arr[%d] = %e\n",
+                   isky, mval_arr[isky]);
+            printf("GetDerivRhoArr_FromLambda_MM: rho_arr[%d] = %e\n",
+                   isky, rho_arr[isky]);
+            printf("GetDerivRhoArr_FromLambda_MM: bval = %e\n",
+                   bval);
+        }
     }
+    
     delete [] rho_arr;
 }
 
@@ -196,8 +213,41 @@ double GetDerivSval_FromLambda_MM(double lambda,
     for(int isrc = 0; isrc < nsrc; isrc ++){
         deriv_sval += deriv_nu_arr[isrc];
     }
+    if(1 == isnan(deriv_sval)){
+        printf("            : GetDerivSval_FromLambda_MM: deriv_sval = %e\n",
+               deriv_sval);
+        double max_deriv_rho = MirMath::GetMax(nsky, deriv_rho_arr);
+        double min_deriv_rho = MirMath::GetMin(nsky, deriv_rho_arr);
+        double max_deriv_nu = MirMath::GetMax(nsrc, deriv_nu_arr);
+        double min_deriv_nu = MirMath::GetMin(nsrc, deriv_nu_arr);
+        printf("            : GetDerivSval_FromLambda_MM: max_deriv_rho = %e\n",
+               max_deriv_rho);
+        printf("            : GetDerivSval_FromLambda_MM: min_deriv_rho = %e\n",
+               min_deriv_rho);
+        printf("            : GetDerivSval_FromLambda_MM: max_deriv_nu = %e\n",
+               max_deriv_nu);
+        printf("            : GetDerivSval_FromLambda_MM: min_deriv_nu = %e\n",
+               min_deriv_nu);
+        printf("            : GetDerivSval_FromLambda_MM: deriv_phi = %e\n",
+               deriv_phi);
+        for(int isky = 0; isky < nsky; isky ++){
+            if(1 == isnan(deriv_rho_arr[isky])){
+                printf("            : GetDerivSval_FromLambda_MM: deriv_rho_arr[%d] = %e\n",
+                       isky, deriv_rho_arr[isky]);
+            }
+        }
+        for(int isrc = 0; isrc < nsrc; isrc ++){
+            if(1 == isnan(deriv_nu_arr[isrc])){
+                printf("            : GetDerivSval_FromLambda_MM: deriv_nu_arr[%d] = %e\n",
+                       isrc, deriv_nu_arr[isrc]);
+            }
+        }
+        abort();
+    }
+
     delete [] deriv_rho_arr;
     delete [] deriv_nu_arr;
+    
     return deriv_sval;
 }
 
@@ -225,6 +275,15 @@ double GetLambdaUpdate_ByNewton_MM(double lambda,
                                                    phi_val,
                                                    nsky, nsrc, nph);
     double lambda_new = lambda - sval / deriv_sval;
+
+    if(1 == isnan(lambda_new)){
+        printf("            : GetLambdaUpdate_ByNewton_MM: sval = %e\n",
+               sval);
+        printf("            : GetLambdaUpdate_ByNewton_MM: deriv_sval = %e\n",
+               deriv_sval);
+        printf("            : GetLambdaUpdate_ByNewton_MM: lambda = %e\n",
+               lambda);
+    }
     return lambda_new;
 }
 
@@ -267,6 +326,42 @@ double GetLambda_ByNewton_MM(FILE* const fp_log,
     if(flag_converge != 1){
         MiIolib::Printf2(fp_log,
                          "      newton: not converge: sval = %e\n", sval);
+        MiIolib::Printf2(fp_log,
+                         "            : lambda_new = %e\n", lambda_new);
+        MiIolib::Printf2(fp_log,
+                         "            : lambda_init = %e\n", lambda_init);
+        MiIolib::Printf2(fp_log,
+                         "            : lip_const = %e\n", lip_const);        
+        double max_vval = MirMath::GetMax(nsky, vval_arr);
+        double min_vval = MirMath::GetMin(nsky, vval_arr);
+        double max_wval = MirMath::GetMax(nsrc, wval_arr);
+        double min_wval = MirMath::GetMin(nsrc, wval_arr);
+        double max_mval = MirMath::GetMax(nsky, mval_arr);
+        double min_mval = MirMath::GetMin(nsky, mval_arr);
+        double max_nval = MirMath::GetMax(nsrc, nval_arr);
+        double min_nval = MirMath::GetMin(nsrc, nval_arr);
+        MiIolib::Printf2(fp_log,
+                         "            : max_vval = %e\n", max_vval);
+        MiIolib::Printf2(fp_log,
+                         "            : min_vval = %e\n", min_vval);
+        MiIolib::Printf2(fp_log,
+                         "            : max_wval = %e\n", max_wval);
+        MiIolib::Printf2(fp_log,
+                         "            : min_wval = %e\n", min_wval);
+        MiIolib::Printf2(fp_log,
+                         "            : zval = %e\n", zval);
+        MiIolib::Printf2(fp_log,
+                         "            : max_mval = %e\n", max_mval);
+        MiIolib::Printf2(fp_log,
+                         "            : min_mval = %e\n", min_mval);        
+        MiIolib::Printf2(fp_log,
+                         "            : max_nval = %e\n", max_nval);
+        MiIolib::Printf2(fp_log,
+                         "            : min_nval = %e\n", min_nval);
+        MiIolib::Printf2(fp_log,
+                         "            : pval = %e\n", pval);
+        MiIolib::Printf2(fp_log,
+                         "            : phi_val = %e\n", phi_val);
         MiIolib::Printf2(fp_log,
                          "      abort.\n");
         abort();

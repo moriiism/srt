@@ -19,13 +19,13 @@ int g_flag_verbose = 0;
 int main(int argc, char* argv[])
 {
     int status_prog = kRetNormal;
-
+    
     double time_st = MiTime::GetTimeSec();
     
     ArgValRichlucyFpsrcSmthBgMM* argval = new ArgValRichlucyFpsrcSmthBgMM;
     argval->Init(argc, argv);
     argval->Print(stdout);
-
+    
     char logfile[kLineSize];
     if( MiIolib::TestFileExist(argval->GetOutdir()) ){
         char cmd[kLineSize];
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);
     double N_prime = B_val / phi_new;
     MiIolib::Printf2(fp_log, "N_prime = %e\n", N_prime); 
-    
+
     // output reconstructed sky image: lambda for diffuse
     double* sky_new_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
     }
     double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
     MiIolib::Printf2(fp_log, "sum_sky_new = %e\n", sum_sky_new);
-
+    
     double* flux_arr = new double[nsrc];
     for(int isrc = 0; isrc < nsrc; isrc++){
         flux_arr[isrc] = nu_new_arr[isrc] * N_prime;
