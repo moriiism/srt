@@ -4,15 +4,15 @@
 #include "rl_statval.h"
 #include "sim.h"
 
-double GetAlpha(const double* const rho_arr,
-                double nu,
-                const double* const resp_norm_mat_arr,
-                const double* const bg_arr,
-                const double* const data_arr,
-                int nsky, int ndet)
+double SrtlibRlBg::GetAlpha(const double* const rho_arr,
+                            double nu,
+                            const double* const resp_norm_mat_arr,
+                            const double* const bg_arr,
+                            const double* const data_arr,
+                            int nsky, int ndet)
 {
     double* tmp_arr = new double[ndet];
-    GetDetArr(rho_arr, resp_norm_mat_arr, ndet, nsky, tmp_arr);
+    SrtlibRl::GetDetArr(rho_arr, resp_norm_mat_arr, ndet, nsky, tmp_arr);
     double B_val = MibBlas::Sum(bg_arr, ndet);
     double* num_arr = new double[ndet];
     MibBlas::ElmWiseMul(ndet, 1.0, data_arr, tmp_arr, num_arr);
@@ -26,13 +26,13 @@ double GetAlpha(const double* const rho_arr,
     return alpha;
 }
 
-void GetRhoNu_New(const double* const rho_arr, double nu,
-                  const double* const data_arr,
-                  const double* const resp_mat_arr,
-                  const double* const bg_arr,
-                  int ndet, int nsky,
-                  double* const rho_new_arr,
-                  double* const nu_new_ptr)
+void SrtlibRlBg::GetRhoNu_New(const double* const rho_arr, double nu,
+                              const double* const data_arr,
+                              const double* const resp_mat_arr,
+                              const double* const bg_arr,
+                              int ndet, int nsky,
+                              double* const rho_new_arr,
+                              double* const nu_new_ptr)
 {
 
     double B_val = MibBlas::Sum(bg_arr, ndet);
@@ -41,7 +41,7 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
     //                    * [t(R_mat) %*% (data_arr / den_arr)][isky]
     // new_new = B / (alpha + B)
     double* den_arr = new double[ndet];
-    GetDetArr(rho_arr, resp_mat_arr, ndet, nsky, den_arr);
+    SrtlibRl::GetDetArr(rho_arr, resp_mat_arr, ndet, nsky, den_arr);
     daxpy_(ndet, nu / B_val, const_cast<double*>(bg_arr), 1, den_arr, 1);
     double* div_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet++){
@@ -70,19 +70,19 @@ void GetRhoNu_New(const double* const rho_arr, double nu,
 }
 
 
-void RichlucyBg(FILE* const fp_log,
-                const double* const rho_init_arr,
-                double nu_init,
-                const double* const data_arr,
-                const double* const bg_arr,
-                const double* const resp_norm_mat_arr,
-                int ndet, int nsky,
-                string outdir,
-                string outfile_head,
-                int nem,                
-                double tol_em,
-                double* const rho_new_arr,
-                double* const nu_new_ptr)
+void SrtlibRlBg::RichlucyBg(FILE* const fp_log,
+                            const double* const rho_init_arr,
+                            double nu_init,
+                            const double* const data_arr,
+                            const double* const bg_arr,
+                            const double* const resp_norm_mat_arr,
+                            int ndet, int nsky,
+                            string outdir,
+                            string outfile_head,
+                            int nem,                
+                            double tol_em,
+                            double* const rho_new_arr,
+                            double* const nu_new_ptr)
 {
     double* rho_pre_arr = new double[nsky];
     dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_pre_arr, 1);
@@ -96,8 +96,9 @@ void RichlucyBg(FILE* const fp_log,
                      ndet, nsky,
                      rho_new_arr,
                      &nu_new);
-        double helldist  = GetHellingerDist(rho_pre_arr, nu_pre,
-                                            rho_new_arr, nu_new, nsky);
+        double helldist  = SrtlibRlStatval::GetHellingerDist(
+            rho_pre_arr, nu_pre,
+            rho_new_arr, nu_new, nsky);
         if (access( "/tmp/rl_bg_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
@@ -119,19 +120,19 @@ void RichlucyBg(FILE* const fp_log,
 }
 
 
-void RichlucyBgAccSQUAREM(FILE* const fp_log,
-                          const double* const rho_init_arr,
-                          double nu_init,
-                          const double* const data_arr,
-                          const double* const bg_arr,
-                          const double* const resp_norm_mat_arr,
-                          int ndet, int nsky,
-                          string outdir,
-                          string outfile_head,
-                          int nem,                
-                          double tol_em,
-                          double* const rho_new_arr,
-                          double* const nu_new_ptr)
+void SrtlibRlBg::RichlucyBgAccSquarem(FILE* const fp_log,
+                                      const double* const rho_init_arr,
+                                      double nu_init,
+                                      const double* const data_arr,
+                                      const double* const bg_arr,
+                                      const double* const resp_norm_mat_arr,
+                                      int ndet, int nsky,
+                                      string outdir,
+                                      string outfile_head,
+                                      int nem,                
+                                      double tol_em,
+                                      double* const rho_new_arr,
+                                      double* const nu_new_ptr)
 {
     double* rho_0_arr  = new double[nsky];
     double* rho_1_arr  = new double[nsky];
@@ -230,8 +231,9 @@ void RichlucyBgAccSQUAREM(FILE* const fp_log,
             MiIolib::Printf2(fp_log, "warning: iem = %d, ifind_nonneg == 0\n", iem);
         }
 
-        double helldist  = GetHellingerDist(rho_0_arr, nu_0,
-                                            rho_0_new_arr, nu_0_new, nsky);
+        double helldist = SrtlibRlStatval::GetHellingerDist(
+            rho_0_arr, nu_0,
+            rho_0_new_arr, nu_0_new, nsky);
         if (access( "/tmp/rl_bg_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,

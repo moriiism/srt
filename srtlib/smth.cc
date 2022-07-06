@@ -1,26 +1,12 @@
-#include "sub_pm.h"
+#include "smth.h"
 
-void GetVvalArr(const double* const rho_arr,
-                int nskyx, int nskyy,
-                double mu, double lip_const,
-                double* const vval_arr)
+int SrtlibSmth::GetIbin(int ibinx, int ibiny, int nbinx)
 {
-    int nsky = nskyx * nskyy;
-    double* deriv_rho_arr = new double[nsky];
-    GetDiffTermV(rho_arr, nskyx, nskyy, deriv_rho_arr);
-    for(int isky = 0; isky < nsky; isky++){
-        vval_arr[isky] = rho_arr[isky] - mu / lip_const * deriv_rho_arr[isky];
-    }
-    delete [] deriv_rho_arr;
+    int ibin = ibinx + ibiny * nbinx;
+    return(ibin);
 }
 
-double GetWval(double nu)
-{
-    double wval = nu;
-    return wval;
-}
-
-double GetTermV(const double* const rho_arr, int nskyx, int nskyy)
+double SrtlibSmth::GetTermV(const double* const rho_arr, int nskyx, int nskyy)
 {
     double termv = 0.0;
     for(int iskyx = 0; iskyx < nskyx - 1; iskyx ++){
@@ -49,8 +35,8 @@ double GetTermV(const double* const rho_arr, int nskyx, int nskyy)
 }
 
 
-void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
-                  double* const rho_diff_arr)
+void SrtlibSmth::GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
+                              double* const rho_diff_arr)
 {
     // iskyx = 0, iskyy = 0
     // isky_plus_x, isky_plus_y
@@ -184,11 +170,5 @@ void GetDiffTermV(const double* const rho_arr, int nskyx, int nskyy,
             = (rho_arr[isky] - rho_arr[isky_minus_x])
             + (rho_arr[isky] - rho_arr[isky_minus_y]);
     }
-}
-
-int GetIbin(int ibinx, int ibiny, int nbinx)
-{
-    int ibin = ibinx + ibiny * nbinx;
-    return(ibin);
 }
 

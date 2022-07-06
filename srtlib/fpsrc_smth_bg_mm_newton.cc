@@ -1,13 +1,12 @@
 #include "mir_math.h"
 #include "fpsrc_smth_bg_mm_newton.h"
-//#include "fpsrc_smth_bg_statval.h"
 
-void GetRhoArr_FromLambda_MM(double lambda,
-                             double lip_const,
-                             const double* const vval_arr,
-                             const double* const mval_arr,
-                             int nsky,
-                             double* const rho_arr)
+void FpsrcSmthBgMmNewton::GetRhoArr_FromLambda_Mm(double lambda,
+                                                  double lip_const,
+                                                  const double* const vval_arr,
+                                                  const double* const mval_arr,
+                                                  int nsky,
+                                                  double* const rho_arr)
 {
     for(int isky = 0; isky < nsky; isky++){
         double bval = lambda - lip_const * vval_arr[isky];
@@ -17,12 +16,12 @@ void GetRhoArr_FromLambda_MM(double lambda,
     }
 }
 
-void GetNuArr_FromLambda_MM(double lambda,
-                            double lip_const,
-                            const double* const wval_arr,
-                            const double* const nval_arr,
-                            int nsrc,
-                            double* const nu_arr)
+void FpsrcSmthBgMmNewton::GetNuArr_FromLambda_Mm(double lambda,
+                                                 double lip_const,
+                                                 const double* const wval_arr,
+                                                 const double* const nval_arr,
+                                                 int nsrc,
+                                                 double* const nu_arr)
 {
     for(int isrc = 0; isrc < nsrc; isrc++){
         double bval = lambda - lip_const * wval_arr[isrc];
@@ -32,12 +31,12 @@ void GetNuArr_FromLambda_MM(double lambda,
     }
 }
 
-double GetPhi_FromLambda_MM(double lambda,
-                            double nph,
-                            double lip_const,
-                            double zval,
-                            double phi_val,
-                            double pval)
+double FpsrcSmthBgMmNewton::GetPhi_FromLambda_Mm(double lambda,
+                                                 double nph,
+                                                 double lip_const,
+                                                 double zval,
+                                                 double phi_val,
+                                                 double pval)
 {
     double bval = lambda - lip_const * zval + nph / phi_val;
     double num = sqrt(bval * bval + 4 * lip_const * pval) - bval;
@@ -47,15 +46,15 @@ double GetPhi_FromLambda_MM(double lambda,
 }
 
 // get derivative of rho from lambda
-void GetDerivRhoArr_FromLambda_MM(double lambda,
-                                  double lip_const,
-                                  const double* const vval_arr,
-                                  const double* const mval_arr,
-                                  int nsky,
-                                  double* const deriv_rho_arr)
+void FpsrcSmthBgMmNewton::GetDerivRhoArr_FromLambda_Mm(double lambda,
+                                                       double lip_const,
+                                                       const double* const vval_arr,
+                                                       const double* const mval_arr,
+                                                       int nsky,
+                                                       double* const deriv_rho_arr)
 {
     double* rho_arr = new double[nsky];
-    GetRhoArr_FromLambda_MM(lambda,
+    GetRhoArr_FromLambda_Mm(lambda,
                             lip_const,
                             vval_arr,
                             mval_arr,
@@ -68,17 +67,17 @@ void GetDerivRhoArr_FromLambda_MM(double lambda,
         deriv_rho_arr[isky] = num / den;
 
         if(1 == isnan(deriv_rho_arr[isky])){
-            printf("GetDerivRhoArr_FromLambda_MM: vval_arr[%d] = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: vval_arr[%d] = %e\n",
                    isky, vval_arr[isky]);
-            printf("GetDerivRhoArr_FromLambda_MM: lip_const = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: lip_const = %e\n",
                    lip_const);
-            printf("GetDerivRhoArr_FromLambda_MM: lambda = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: lambda = %e\n",
                    lambda);
-            printf("GetDerivRhoArr_FromLambda_MM: mval_arr[%d] = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: mval_arr[%d] = %e\n",
                    isky, mval_arr[isky]);
-            printf("GetDerivRhoArr_FromLambda_MM: rho_arr[%d] = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: rho_arr[%d] = %e\n",
                    isky, rho_arr[isky]);
-            printf("GetDerivRhoArr_FromLambda_MM: bval = %e\n",
+            printf("GetDerivRhoArr_FromLambda_Mm: bval = %e\n",
                    bval);
         }
     }
@@ -88,15 +87,15 @@ void GetDerivRhoArr_FromLambda_MM(double lambda,
 
 
 // get derivative of nu from lambda
-void GetDerivNuArr_FromLambda_MM(double lambda,
-                                 double lip_const,
-                                 const double* const wval_arr,
-                                 const double* const nval_arr,
-                                 int nsrc,
-                                 double* const deriv_nu_arr)
+void FpsrcSmthBgMmNewton::GetDerivNuArr_FromLambda_Mm(double lambda,
+                                                      double lip_const,
+                                                      const double* const wval_arr,
+                                                      const double* const nval_arr,
+                                                      int nsrc,
+                                                      double* const deriv_nu_arr)
 {
     double* nu_arr = new double[nsrc];
-    GetNuArr_FromLambda_MM(lambda,
+    GetNuArr_FromLambda_Mm(lambda,
                            lip_const,
                            wval_arr,
                            nval_arr,
@@ -112,14 +111,14 @@ void GetDerivNuArr_FromLambda_MM(double lambda,
 }
 
 // get derivative of phi from lambda
-double GetDerivPhi_FromLambda_MM(double lambda,
-                                 double nph,
-                                 double lip_const,
-                                 double zval,
-                                 double phi_val,
-                                 double pval)
+double FpsrcSmthBgMmNewton::GetDerivPhi_FromLambda_Mm(double lambda,
+                                                      double nph,
+                                                      double lip_const,
+                                                      double zval,
+                                                      double phi_val,
+                                                      double pval)
 {
-    double phi = GetPhi_FromLambda_MM(lambda,
+    double phi = GetPhi_FromLambda_Mm(lambda,
                                       nph,
                                       lip_const,
                                       zval,
@@ -132,32 +131,32 @@ double GetDerivPhi_FromLambda_MM(double lambda,
     return deriv_phi;
 }
 
-double GetSval_FromLambda_MM(double lambda,
-                             double lip_const,
-                             const double* const vval_arr,
-                             const double* const wval_arr,
-                             double zval,
-                             const double* const mval_arr,
-                             const double* const nval_arr,
-                             double pval,
-                             double phi_val,
-                             int nsky, int nsrc, int nph)
+double FpsrcSmthBgMmNewton::GetSval_FromLambda_Mm(double lambda,
+                                                  double lip_const,
+                                                  const double* const vval_arr,
+                                                  const double* const wval_arr,
+                                                  double zval,
+                                                  const double* const mval_arr,
+                                                  const double* const nval_arr,
+                                                  double pval,
+                                                  double phi_val,
+                                                  int nsky, int nsrc, int nph)
 {
     double* rho_arr = new double[nsky];
-    GetRhoArr_FromLambda_MM(lambda,
+    GetRhoArr_FromLambda_Mm(lambda,
                             lip_const,
                             vval_arr,
                             mval_arr,
                             nsky,
                             rho_arr);
     double* nu_arr = new double[nsrc];
-    GetNuArr_FromLambda_MM(lambda,
+    GetNuArr_FromLambda_Mm(lambda,
                            lip_const,
                            wval_arr,
                            nval_arr,
                            nsrc,
                            nu_arr);
-    double phi = GetPhi_FromLambda_MM(lambda,
+    double phi = GetPhi_FromLambda_Mm(lambda,
                                       nph,
                                       lip_const,
                                       zval,
@@ -175,32 +174,33 @@ double GetSval_FromLambda_MM(double lambda,
     return sval;
 }
 
-double GetDerivSval_FromLambda_MM(double lambda,
-                                  double lip_const,
-                                  const double* const vval_arr,
-                                  const double* const wval_arr,
-                                  double zval,
-                                  const double* const mval_arr,
-                                  const double* const nval_arr,
-                                  double pval,
-                                  double phi_val,
-                                  int nsky, int nsrc, double nph)
+double FpsrcSmthBgMmNewton::GetDerivSval_FromLambda_Mm(
+    double lambda,
+    double lip_const,
+    const double* const vval_arr,
+    const double* const wval_arr,
+    double zval,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    double phi_val,
+    int nsky, int nsrc, double nph)
 {
     double* deriv_rho_arr = new double[nsky];
-    GetDerivRhoArr_FromLambda_MM(lambda,
+    GetDerivRhoArr_FromLambda_Mm(lambda,
                                  lip_const,
                                  vval_arr,
                                  mval_arr,
                                  nsky,
                                  deriv_rho_arr);
     double* deriv_nu_arr = new double[nsrc];
-    GetDerivNuArr_FromLambda_MM(lambda,
+    GetDerivNuArr_FromLambda_Mm(lambda,
                                 lip_const,
                                 wval_arr,
                                 nval_arr,
                                 nsrc,
                                 deriv_nu_arr);
-    double deriv_phi = GetDerivPhi_FromLambda_MM(lambda,
+    double deriv_phi = GetDerivPhi_FromLambda_Mm(lambda,
                                                  nph,
                                                  lip_const,
                                                  zval,
@@ -214,31 +214,31 @@ double GetDerivSval_FromLambda_MM(double lambda,
         deriv_sval += deriv_nu_arr[isrc];
     }
     if(1 == isnan(deriv_sval)){
-        printf("            : GetDerivSval_FromLambda_MM: deriv_sval = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: deriv_sval = %e\n",
                deriv_sval);
         double max_deriv_rho = MirMath::GetMax(nsky, deriv_rho_arr);
         double min_deriv_rho = MirMath::GetMin(nsky, deriv_rho_arr);
         double max_deriv_nu = MirMath::GetMax(nsrc, deriv_nu_arr);
         double min_deriv_nu = MirMath::GetMin(nsrc, deriv_nu_arr);
-        printf("            : GetDerivSval_FromLambda_MM: max_deriv_rho = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: max_deriv_rho = %e\n",
                max_deriv_rho);
-        printf("            : GetDerivSval_FromLambda_MM: min_deriv_rho = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: min_deriv_rho = %e\n",
                min_deriv_rho);
-        printf("            : GetDerivSval_FromLambda_MM: max_deriv_nu = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: max_deriv_nu = %e\n",
                max_deriv_nu);
-        printf("            : GetDerivSval_FromLambda_MM: min_deriv_nu = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: min_deriv_nu = %e\n",
                min_deriv_nu);
-        printf("            : GetDerivSval_FromLambda_MM: deriv_phi = %e\n",
+        printf("            : GetDerivSval_FromLambda_Mm: deriv_phi = %e\n",
                deriv_phi);
         for(int isky = 0; isky < nsky; isky ++){
             if(1 == isnan(deriv_rho_arr[isky])){
-                printf("            : GetDerivSval_FromLambda_MM: deriv_rho_arr[%d] = %e\n",
+                printf("            : GetDerivSval_FromLambda_Mm: deriv_rho_arr[%d] = %e\n",
                        isky, deriv_rho_arr[isky]);
             }
         }
         for(int isrc = 0; isrc < nsrc; isrc ++){
             if(1 == isnan(deriv_nu_arr[isrc])){
-                printf("            : GetDerivSval_FromLambda_MM: deriv_nu_arr[%d] = %e\n",
+                printf("            : GetDerivSval_FromLambda_Mm: deriv_nu_arr[%d] = %e\n",
                        isrc, deriv_nu_arr[isrc]);
             }
         }
@@ -251,24 +251,25 @@ double GetDerivSval_FromLambda_MM(double lambda,
     return deriv_sval;
 }
 
-double GetLambdaUpdate_ByNewton_MM(double lambda,
-                                   double lip_const,
-                                   const double* const vval_arr,
-                                   const double* const wval_arr,
-                                   double zval,
-                                   const double* const mval_arr,
-                                   const double* const nval_arr,
-                                   double pval,
-                                   double phi_val,
-                                   int nsky, int nsrc, int nph)
+double FpsrcSmthBgMmNewton::GetLambdaUpdate_ByNewton_Mm(
+    double lambda,
+    double lip_const,
+    const double* const vval_arr,
+    const double* const wval_arr,
+    double zval,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    double phi_val,
+    int nsky, int nsrc, int nph)
 {
-    double sval = GetSval_FromLambda_MM(lambda,
+    double sval = GetSval_FromLambda_Mm(lambda,
                                         lip_const,
                                         vval_arr, wval_arr, zval,
                                         mval_arr, nval_arr, pval,
                                         phi_val,
                                         nsky, nsrc, nph);
-    double deriv_sval = GetDerivSval_FromLambda_MM(lambda,
+    double deriv_sval = GetDerivSval_FromLambda_Mm(lambda,
                                                    lip_const,
                                                    vval_arr, wval_arr, zval,
                                                    mval_arr, nval_arr, pval,
@@ -277,41 +278,42 @@ double GetLambdaUpdate_ByNewton_MM(double lambda,
     double lambda_new = lambda - sval / deriv_sval;
 
     if(1 == isnan(lambda_new)){
-        printf("            : GetLambdaUpdate_ByNewton_MM: sval = %e\n",
+        printf("            : GetLambdaUpdate_ByNewton_Mm: sval = %e\n",
                sval);
-        printf("            : GetLambdaUpdate_ByNewton_MM: deriv_sval = %e\n",
+        printf("            : GetLambdaUpdate_ByNewton_Mm: deriv_sval = %e\n",
                deriv_sval);
-        printf("            : GetLambdaUpdate_ByNewton_MM: lambda = %e\n",
+        printf("            : GetLambdaUpdate_ByNewton_Mm: lambda = %e\n",
                lambda);
     }
     return lambda_new;
 }
 
-double GetLambda_ByNewton_MM(FILE* const fp_log,
-                             double lambda_init,
-                             const double* const vval_arr,
-                             const double* const wval_arr,
-                             double zval,
-                             const double* const mval_arr,
-                             const double* const nval_arr,
-                             double pval,
-                             double phi_val,
-                             int nsky, int nsrc, int nph,
-                             double lip_const,
-                             int nnewton, double tol_newton)
+double FpsrcSmthBgMmNewton::GetLambda_ByNewton_Mm(
+    FILE* const fp_log,
+    double lambda_init,
+    const double* const vval_arr,
+    const double* const wval_arr,
+    double zval,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    double phi_val,
+    int nsky, int nsrc, int nph,
+    double lip_const,
+    int nnewton, double tol_newton)
 {
     double lambda = lambda_init;
     double lambda_new = lambda_init;
     int flag_converge = 0;
     double sval = 0.0;
     for(int inewton = 0; inewton < nnewton; inewton ++){
-        lambda_new = GetLambdaUpdate_ByNewton_MM(lambda,
+        lambda_new = GetLambdaUpdate_ByNewton_Mm(lambda,
                                                  lip_const,
                                                  vval_arr, wval_arr, zval,
                                                  mval_arr, nval_arr, pval,
                                                  phi_val,
                                                  nsky, nsrc, nph);
-        sval = GetSval_FromLambda_MM(lambda_new,
+        sval = GetSval_FromLambda_Mm(lambda_new,
                                      lip_const,
                                      vval_arr, wval_arr, zval,
                                      mval_arr, nval_arr, pval,
@@ -371,24 +373,25 @@ double GetLambda_ByNewton_MM(FILE* const fp_log,
 }
 
 
-void GetRhoArrNuArrPhi_ByNewton_MM(FILE* const fp_log,
-                                   const double* const vval_arr,
-                                   const double* const wval_arr,
-                                   double zval,
-                                   const double* const mval_arr,
-                                   const double* const nval_arr,
-                                   double pval,
-                                   double phi_val,
-                                   int nsky, int nsrc, int nph,
-                                   double lip_const,
-                                   int nnewton, double tol_newton,
-                                   double lambda,
-                                   double* const rho_new_arr,
-                                   double* const nu_new_arr,
-                                   double* const phi_new_ptr,
-                                   double* const lambda_new_ptr)
+void FpsrcSmthBgMmNewton::GetRhoArrNuArrPhi_ByNewton_Mm(
+    FILE* const fp_log,
+    const double* const vval_arr,
+    const double* const wval_arr,
+    double zval,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    double phi_val,
+    int nsky, int nsrc, int nph,
+    double lip_const,
+    int nnewton, double tol_newton,
+    double lambda,
+    double* const rho_new_arr,
+    double* const nu_new_arr,
+    double* const phi_new_ptr,
+    double* const lambda_new_ptr)
 {
-    double lambda_new = GetLambda_ByNewton_MM(fp_log,
+    double lambda_new = GetLambda_ByNewton_Mm(fp_log,
                                               lambda,
                                               vval_arr, wval_arr, zval,
                                               mval_arr, nval_arr, pval,
@@ -396,19 +399,19 @@ void GetRhoArrNuArrPhi_ByNewton_MM(FILE* const fp_log,
                                               nsky, nsrc, nph,
                                               lip_const,
                                               nnewton, tol_newton);
-    GetRhoArr_FromLambda_MM(lambda_new,
+    GetRhoArr_FromLambda_Mm(lambda_new,
                             lip_const,
                             vval_arr,
                             mval_arr,
                             nsky,
                             rho_new_arr);
-    GetNuArr_FromLambda_MM(lambda_new,
+    GetNuArr_FromLambda_Mm(lambda_new,
                            lip_const,
                            wval_arr,
                            nval_arr,
                            nsrc,
                            nu_new_arr);
-    double phi_new = GetPhi_FromLambda_MM(lambda_new,
+    double phi_new = GetPhi_FromLambda_Mm(lambda_new,
                                           nph,
                                           lip_const,
                                           zval,

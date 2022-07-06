@@ -9,14 +9,21 @@ $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
 TARGET := libsrtlib.a
 
-OBJ := rl.o  rl_bg.o  rl_statval.o  sim.o  sub_smooth.o \
-	fpsrc_smth_bg_newton.o  \
-	fpsrc_smth_bg_statval.o \
-	fpsrc_smth_bg_em.o  fpsrc_smth_bg_dc.o  fpsrc_smth_bg_pm.o  \
-	fpsrc_smth_bg_pmproj_em.o  fpsrc_smth_bg_pmproj_dc.o \
-	fpsrc_smth_bg_pmproj_pm.o \
-	fpsrc_smth_bg_mm_em.o  fpsrc_smth_bg_mm_pm.o \
-	fpsrc_smth_bg_mm_newton.o
+OBJ := rl.o  rl_statval.o  sim.o  rl_bg.o  smth.o \
+	rl_bg2_smth_em.o  rl_bg2_smth_pm.o  rl_bg2_smth_newton.o
+
+#    
+#	
+
+#	fpsrc_smth_bg_mm_em.o  fpsrc_smth_bg_mm_pm.o \
+#	fpsrc_smth_bg_mm_newton.o
+
+#	fpsrc_smth_bg_newton.o  \
+#	fpsrc_smth_bg_statval.o \
+#	fpsrc_smth_bg_em.o  fpsrc_smth_bg_dc.o  fpsrc_smth_bg_pm.o  \
+#	fpsrc_smth_bg_pmproj_em.o  fpsrc_smth_bg_pmproj_dc.o \
+#	fpsrc_smth_bg_pmproj_pm.o \
+#	
 
 #sub_smooth.o  sim.o \
 #	fpsrc_smth_bg_newton.o  \

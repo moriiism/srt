@@ -136,25 +136,25 @@ int main(int argc, char* argv[])
     double* rho_new_arr = new double[nsky];
     double nu = 0.0;
     if (argval->GetAccMethod() == "none"){
-        RichlucyBg(fp_log,
-                   rho_init_arr, nu_init,
-                   data_arr, bg_arr, resp_norm_mat_arr,
-                   ndet, nsky,
-                   argval->GetOutdir(),
-                   argval->GetOutfileHead(),
-                   argval->GetNem(),
-                   argval->GetTolEm(),
-                   rho_new_arr, &nu);
+        SrtlibRlBg::RichlucyBg(fp_log,
+                               rho_init_arr, nu_init,
+                               data_arr, bg_arr, resp_norm_mat_arr,
+                               ndet, nsky,
+                               argval->GetOutdir(),
+                               argval->GetOutfileHead(),
+                               argval->GetNem(),
+                               argval->GetTolEm(),
+                               rho_new_arr, &nu);
     } else if (argval->GetAccMethod() == "squarem"){
-        RichlucyBgAccSQUAREM(fp_log,
-                             rho_init_arr, nu_init,
-                             data_arr, bg_arr, resp_norm_mat_arr,
-                             ndet, nsky,
-                             argval->GetOutdir(),
-                             argval->GetOutfileHead(),
-                             argval->GetNem(),                             
-                             argval->GetTolEm(),
-                             rho_new_arr, &nu);
+        SrtlibRlBg::RichlucyBgAccSquarem(fp_log,
+                                         rho_init_arr, nu_init,
+                                         data_arr, bg_arr, resp_norm_mat_arr,
+                                         ndet, nsky,
+                                         argval->GetOutdir(),
+                                         argval->GetOutfileHead(),
+                                         argval->GetNem(),
+                                         argval->GetTolEm(),
+                                         rho_new_arr, &nu);
     } else {
         printf("bad acc_method\n");
         abort();

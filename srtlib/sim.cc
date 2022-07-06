@@ -1,10 +1,10 @@
 #include "sim.h"
 
 // generate events from a probability distribution
-void GenRandomEvtFromProbDist(const double* const prob_arr, int nbin,
-                              int nevt, int rand_seed,
-                              double* const out_bin_arr,
-                              int*   const out_evt_arr)
+void SrtlibSim::GenRandomEvtFromProbDist(const double* const prob_arr, int nbin,
+                                         int nevt, int rand_seed,
+                                         double* const out_bin_arr,
+                                         int*   const out_evt_arr)
 {
     for(int ibin = 0; ibin < nbin; ibin ++){
         out_bin_arr[ibin] = 0.0;
@@ -31,11 +31,11 @@ void GenRandomEvtFromProbDist(const double* const prob_arr, int nbin,
     delete [] cum_arr;
 }
 
-void GenCVImageByPartition(int* const evt_arr, int nevt,
-                           int nfold, int rand_seed_partition,
-                           int nbin,
-                           double** const out_tr_arr,
-                           double** const out_vl_arr)
+void SrtlibSim::GenCVImageByPartition(int* const evt_arr, int nevt,
+                                      int nfold, int rand_seed_partition,
+                                      int nbin,
+                                      double** const out_tr_arr,
+                                      double** const out_vl_arr)
 {
     for(int ifold = 0; ifold < nfold; ifold ++){
         for(int ibin = 0; ibin < nbin; ibin ++){
@@ -70,11 +70,11 @@ void GenCVImageByPartition(int* const evt_arr, int nevt,
 
 
 // Make images for N-fold cross-validation
-void GenCVImage(const double* const prob_arr, int nbin,
-                int nevt, int rand_seed, int nfold,
-                double** const out_tr_arr,
-                double** const out_vl_arr,
-                double*  const out_arr)
+void SrtlibSim::GenCVImage(const double* const prob_arr, int nbin,
+                           int nevt, int rand_seed, int nfold,
+                           double** const out_tr_arr,
+                           double** const out_vl_arr,
+                           double*  const out_arr)
 {
     for(int ibin = 0; ibin < nbin; ibin ++){
         out_arr[ibin] = 0.0;

@@ -1,22 +1,23 @@
 #include "fpsrc_smth_bg_pm.h"
 #include "fpsrc_smth_bg_mm_pm.h"
 #include "fpsrc_smth_bg_mm_newton.h"
-#include "sub_smooth.h"
+#include "smth.h"
 #include "fpsrc_smth_bg_statval.h"
 
-double GetFindLipConst_MM(FILE* const fp_log,
-                          const double* const rho_arr,
-                          const double* const nu_arr,
-                          double phi,
-                          const double* const mval_arr,
-                          const double* const nval_arr,
-                          double pval,
-                          double phi_val,
-                          int nph, double B_val,
-                          double mu,
-                          int nskyx, int nskyy, int nsrc,
-                          double lip_const, double lambda,
-                          int nnewton, double tol_newton)
+double FpsrcSmthBgMmPm::GetFindLipConst_Mm(
+    FILE* const fp_log,
+    const double* const rho_arr,
+    const double* const nu_arr,
+    double phi,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    double phi_val,
+    int nph, double B_val,
+    double mu,
+    int nskyx, int nskyy, int nsrc,
+    double lip_const, double lambda,
+    int nnewton, double tol_newton)
 {
     int nsky = nskyx * nskyy;
     int ik_max = 1000;
@@ -44,18 +45,19 @@ double GetFindLipConst_MM(FILE* const fp_log,
                               lip_const_new,
                               B_val);
         double lambda_new = 0.0;
-        GetRhoArrNuArrPhi_ByNewton_MM(fp_log,
-                                      vval_arr, wval_arr, zval,
-                                      mval_arr, nval_arr, pval,
-                                      phi_val,
-                                      nsky, nsrc, nph,
-                                      lip_const_new,
-                                      nnewton, tol_newton,
-                                      lambda,
-                                      rho_new_arr,
-                                      nu_new_arr,
-                                      &phi_new,
-                                      &lambda_new);
+        FpsrcSmthBgMmNewton::GetRhoArrNuArrPhi_ByNewton_Mm(
+            fp_log,
+            vval_arr, wval_arr, zval,
+            mval_arr, nval_arr, pval,
+            phi_val,
+            nsky, nsrc, nph,
+            lip_const_new,
+            nnewton, tol_newton,
+            lambda,
+            rho_new_arr,
+            nu_new_arr,
+            &phi_new,
+            &lambda_new);
         double qminusf = GetQMinusF(rho_new_arr, nu_new_arr, phi_new,
                                     rho_arr, nu_arr, phi,
                                     mu, lip_const_new, B_val,
@@ -79,23 +81,24 @@ double GetFindLipConst_MM(FILE* const fp_log,
 }
 
 
-void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
-                         const double* const rho_arr,
-                         const double* const nu_arr,
-                         double phi,
-                         const double* const mval_arr,
-                         const double* const nval_arr,
-                         double pval,
-                         int nph, double B_val,
-                         int ndet, int nskyx, int nskyy, int nsrc,
-                         double mu,
-                         int npm, double tol_pm,
-                         int nnewton, double tol_newton,
-                         double* const rho_new_arr,
-                         double* const nu_new_arr,
-                         double* const phi_new_ptr,
-                         double* const helldist_ptr,
-                         int* const flag_converge_ptr)
+void FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm(
+    FILE* const fp_log,
+    const double* const rho_arr,
+    const double* const nu_arr,
+    double phi,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    int nph, double B_val,
+    int ndet, int nskyx, int nskyy, int nsrc,
+    double mu,
+    int npm, double tol_pm,
+    int nnewton, double tol_newton,
+    double* const rho_new_arr,
+    double* const nu_new_arr,
+    double* const phi_new_ptr,
+    double* const helldist_ptr,
+    int* const flag_converge_ptr)
 {
     double phi_val = phi;
     
@@ -109,19 +112,20 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
 
     double lip_const = 1.0;
     // lambda must be < 0, because bval must be < 0
-    // at the functions, GetDerivRhoArr_FromLambda_MM.
+    // at the functions, GetDerivRhoArr_FromLambda_Mm.
     double lambda = -1.0;
     double lambda_new = -1.0;
     double lip_const_new = 1.0;
     int flag_converge = 0;
     double helldist = 0.0;
     for(int ipm = 0; ipm < npm; ipm++){
-        lip_const_new = GetFindLipConst_MM(fp_log,
-                                           rho_pre_arr, nu_pre_arr, phi_pre,
-                                           mval_arr, nval_arr, pval,
-                                           phi_val, nph, B_val, mu,
-                                           nskyx, nskyy, nsrc, lip_const,
-                                           lambda, nnewton, tol_newton);
+        lip_const_new = FpsrcSmthBgMmPm::GetFindLipConst_Mm(
+            fp_log,
+            rho_pre_arr, nu_pre_arr, phi_pre,
+            mval_arr, nval_arr, pval,
+            phi_val, nph, B_val, mu,
+            nskyx, nskyy, nsrc, lip_const,
+            lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);
         double* vval_arr = new double[nsky];
         GetVvalArr(rho_pre_arr,
@@ -136,18 +140,19 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
                               lip_const_new,
                               B_val);
         
-        GetRhoArrNuArrPhi_ByNewton_MM(fp_log,
-                                      vval_arr, wval_arr, zval,
-                                      mval_arr, nval_arr, pval,
-                                      phi_val,
-                                      nsky, nsrc, nph,
-                                      lip_const_new,
-                                      nnewton, tol_newton,
-                                      lambda,
-                                      rho_new_arr,
-                                      nu_new_arr,
-                                      &phi_new,
-                                      &lambda_new);
+        FpsrcSmthBgMmNewton::GetRhoArrNuArrPhi_ByNewton_Mm(
+            fp_log,
+            vval_arr, wval_arr, zval,
+            mval_arr, nval_arr, pval,
+            phi_val,
+            nsky, nsrc, nph,
+            lip_const_new,
+            nnewton, tol_newton,
+            lambda,
+            rho_new_arr,
+            nu_new_arr,
+            &phi_new,
+            &lambda_new);
         delete [] vval_arr;
         delete [] wval_arr;
         helldist = GetHellingerDist(rho_pre_arr,
@@ -180,23 +185,24 @@ void GetRhoNuPhi_ByPM_MM(FILE* const fp_log,
 
 
 // nesterov
-void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
-                                  const double* const rho_arr,
-                                  const double* const nu_arr,
-                                  double phi,
-                                  const double* const mval_arr,
-                                  const double* const nval_arr,
-                                  double pval,
-                                  int nph, double B_val,
-                                  int ndet, int nskyx, int nskyy, int nsrc,
-                                  double mu,
-                                  int npm, double tol_pm,
-                                  int nnewton, double tol_newton,
-                                  double* const rho_new_arr,
-                                  double* const nu_new_arr,
-                                  double* const phi_new_ptr,
-                                  double* const helldist_ptr,
-                                  int* const flag_converge_ptr)
+void FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm_Nesterov(
+    FILE* const fp_log,
+    const double* const rho_arr,
+    const double* const nu_arr,
+    double phi,
+    const double* const mval_arr,
+    const double* const nval_arr,
+    double pval,
+    int nph, double B_val,
+    int ndet, int nskyx, int nskyy, int nsrc,
+    double mu,
+    int npm, double tol_pm,
+    int nnewton, double tol_newton,
+    double* const rho_new_arr,
+    double* const nu_new_arr,
+    double* const phi_new_ptr,
+    double* const helldist_ptr,
+    int* const flag_converge_ptr)
 {
     double phi_val = phi;
     
@@ -232,7 +238,7 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
     double lip_const = 1.0;
 
     // lambda must be < 0, because bval must be < 0
-    // at the functions, GetDerivRhoArr_FromLambda_MM.
+    // at the functions, GetDerivRhoArr_FromLambda_Mm.
     double lambda = -1.0; 
     double lambda_new = -1.0;
     double lip_const_new = 1.0;
@@ -257,12 +263,13 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
         // reset
         // lip_const = 1.0e-5;
         
-        lip_const_new = GetFindLipConst_MM(fp_log,
-                                           rho_y_arr, nu_y_arr, phi_y,
-                                           mval_arr, nval_arr, pval,
-                                           phi_val, nph, B_val, mu,
-                                           nskyx, nskyy, nsrc, lip_const,
-                                           lambda, nnewton, tol_newton);
+        lip_const_new = FpsrcSmthBgMmPm::GetFindLipConst_Mm(
+            fp_log,
+            rho_y_arr, nu_y_arr, phi_y,
+            mval_arr, nval_arr, pval,
+            phi_val, nph, B_val, mu,
+            nskyx, nskyy, nsrc, lip_const,
+            lambda, nnewton, tol_newton);
         // printf("lip_const_new = %e\n", lip_const_new);
         //if(lip_const_new > 1.0e+30){
         //    printf("lip_const_new(= %e) is large, then break.\n",
@@ -283,18 +290,19 @@ void GetRhoNuPhi_ByPM_MM_Nesterov(FILE* const fp_log,
                               lip_const_new,
                               B_val);
         
-        GetRhoArrNuArrPhi_ByNewton_MM(fp_log,
-                                      vval_arr, wval_arr, zval,
-                                      mval_arr, nval_arr, pval,
-                                      phi_val,
-                                      nsky, nsrc, nph,
-                                      lip_const_new,
-                                      nnewton, tol_newton,
-                                      lambda,
-                                      rho_x_arr,
-                                      nu_x_arr,
-                                      &phi_x,
-                                      &lambda_new);
+        FpsrcSmthBgMmNewton::GetRhoArrNuArrPhi_ByNewton_Mm(
+            fp_log,
+            vval_arr, wval_arr, zval,
+            mval_arr, nval_arr, pval,
+            phi_val,
+            nsky, nsrc, nph,
+            lip_const_new,
+            nnewton, tol_newton,
+            lambda,
+            rho_x_arr,
+            nu_x_arr,
+            &phi_x,
+            &lambda_new);
         delete [] vval_arr;
         delete [] wval_arr;
 

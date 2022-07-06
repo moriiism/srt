@@ -1,27 +1,28 @@
-#include "fpsrc_smth_bg_em.h"
+//#include "fpsrc_smth_bg_em.h"
 #include "fpsrc_smth_bg_mm_em.h"
 #include "fpsrc_smth_bg_mm_pm.h"
 #include "fpsrc_smth_bg_statval.h"
 #include<unistd.h>
 
-void RichlucyFpsrcSmthBgMM(FILE* const fp_log,
-                           const double* const rho_init_arr,
-                           const double* const nu_init_arr,
-                           double phi_init,
-                           const double* const data_arr,
-                           const double* const bg_arr,
-                           const double* const* const det_fpsrc_arr,
-                           const double* const resp_norm_mat_arr,
-                           int ndet, int nskyx, int nskyy, int nsrc,
-                           double mu,
-                           string outdir,
-                           string outfile_head,
-                           int nem, double tol_em,
-                           int npm, double tol_pm,
-                           int nnewton, double tol_newton,
-                           double* const rho_new_arr,
-                           double* const nu_new_arr,
-                           double* const phi_new_ptr)
+void FpsrcSmthBgMmEm::RichlucyFpsrcSmthBgMm(
+    FILE* const fp_log,
+    const double* const rho_init_arr,
+    const double* const nu_init_arr,
+    double phi_init,
+    const double* const data_arr,
+    const double* const bg_arr,
+    const double* const* const det_fpsrc_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nskyx, int nskyy, int nsrc,
+    double mu,
+    string outdir,
+    string outfile_head,
+    int nem, double tol_em,
+    int npm, double tol_pm,
+    int nnewton, double tol_newton,
+    double* const rho_new_arr,
+    double* const nu_new_arr,
+    double* const phi_new_ptr)
 {
     double B_val = MibBlas::Sum(bg_arr, ndet);
     int nph = MibBlas::Sum(data_arr, ndet);
@@ -43,19 +44,20 @@ void RichlucyFpsrcSmthBgMM(FILE* const fp_log,
                               mval_arr, nval_arr, &pval);
         double helldist_pm = 0.0;
         int flag_converge_pm = 0;
-        GetRhoNuPhi_ByPM_MM(fp_log,
-                            rho_pre_arr, nu_pre_arr, phi_pre,
-                            mval_arr, nval_arr, pval,
-                            nph, B_val,
-                            ndet, nskyx, nskyy, nsrc,
-                            mu,
-                            npm, tol_pm,
-                            nnewton, tol_newton,
-                            rho_new_arr,
-                            nu_new_arr,
-                            &phi_new,
-                            &helldist_pm,
-                            &flag_converge_pm);
+        FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm(
+            fp_log,
+            rho_pre_arr, nu_pre_arr, phi_pre,
+            mval_arr, nval_arr, pval,
+            nph, B_val,
+            ndet, nskyx, nskyy, nsrc,
+            mu,
+            npm, tol_pm,
+            nnewton, tol_newton,
+            rho_new_arr,
+            nu_new_arr,
+            &phi_new,
+            &helldist_pm,
+            &flag_converge_pm);
         if (flag_converge_pm == 0){
             MiIolib::Printf2(fp_log,
                              "iem = %d: pm: not converged: helldist_pm = %.2e\n",
@@ -101,24 +103,25 @@ void RichlucyFpsrcSmthBgMM(FILE* const fp_log,
 }
 
 // accerelation by SQUAREM
-void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
-                               const double* const rho_init_arr,
-                               const double* const nu_init_arr,
-                               double phi_init,
-                               const double* const data_arr,
-                               const double* const bg_arr,
-                               const double* const* const det_fpsrc_arr,
-                               const double* const resp_norm_mat_arr,
-                               int ndet, int nskyx, int nskyy, int nsrc,
-                               double mu,
-                               string outdir,
-                               string outfile_head,
-                               int nem, double tol_em,
-                               int npm, double tol_pm,
-                               int nnewton, double tol_newton,
-                               double* const rho_new_arr,
-                               double* const nu_new_arr,
-                               double* const phi_new_ptr)
+void FpsrcSmthBgMmEm::RichlucyFpsrcSmthBgMm_Acc(
+    FILE* const fp_log,
+    const double* const rho_init_arr,
+    const double* const nu_init_arr,
+    double phi_init,
+    const double* const data_arr,
+    const double* const bg_arr,
+    const double* const* const det_fpsrc_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nskyx, int nskyy, int nsrc,
+    double mu,
+    string outdir,
+    string outfile_head,
+    int nem, double tol_em,
+    int npm, double tol_pm,
+    int nnewton, double tol_newton,
+    double* const rho_new_arr,
+    double* const nu_new_arr,
+    double* const phi_new_ptr)
 {
     double B_val = MibBlas::Sum(bg_arr, ndet);
     int nph = MibBlas::Sum(data_arr, ndet);
@@ -167,19 +170,20 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                               resp_norm_mat_arr,
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-        GetRhoNuPhi_ByPM_MM_Nesterov(fp_log,
-                            rho_0_arr, nu_0_arr, phi_0,
-                            mval_arr, nval_arr, pval,
-                            nph, B_val,
-                            ndet, nskyx, nskyy, nsrc,
-                            mu,
-                            npm, tol_pm,
-                            nnewton, tol_newton,
-                            rho_1_arr,
-                            nu_1_arr,
-                            &phi_1,
-                            &helldist_pm1,
-                            &flag_converge_pm1);
+        FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm_Nesterov(
+            fp_log,
+            rho_0_arr, nu_0_arr, phi_0,
+            mval_arr, nval_arr, pval,
+            nph, B_val,
+            ndet, nskyx, nskyy, nsrc,
+            mu,
+            npm, tol_pm,
+            nnewton, tol_newton,
+            rho_1_arr,
+            nu_1_arr,
+            &phi_1,
+            &helldist_pm1,
+            &flag_converge_pm1);
         if (flag_converge_pm1 == 0){
             MiIolib::Printf2(fp_log,
                              "iem = %d: pm1: not converged: helldist_pm1 = %.2e\n",
@@ -193,19 +197,20 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                               resp_norm_mat_arr,
                               ndet, nsky, nsrc,
                               mval_arr, nval_arr, &pval);
-        GetRhoNuPhi_ByPM_MM_Nesterov(fp_log,
-                            rho_1_arr, nu_1_arr, phi_1,
-                            mval_arr, nval_arr, pval,
-                            nph, B_val,
-                            ndet, nskyx, nskyy, nsrc,
-                            mu,
-                            npm, tol_pm,
-                            nnewton, tol_newton,
-                            rho_2_arr,
-                            nu_2_arr,
-                            &phi_2,
-                            &helldist_pm2,
-                            &flag_converge_pm2);
+        FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm_Nesterov(
+            fp_log,
+            rho_1_arr, nu_1_arr, phi_1,
+            mval_arr, nval_arr, pval,
+            nph, B_val,
+            ndet, nskyx, nskyy, nsrc,
+            mu,
+            npm, tol_pm,
+            nnewton, tol_newton,
+            rho_2_arr,
+            nu_2_arr,
+            &phi_2,
+            &helldist_pm2,
+            &flag_converge_pm2);
         if (flag_converge_pm2 == 0){
             MiIolib::Printf2(fp_log,
                              "iem = %d: pm2: not converged: helldist_pm2 = %.2e\n",
@@ -274,19 +279,20 @@ void RichlucyFpsrcSmthBgMM_Acc(FILE* const fp_log,
                                   resp_norm_mat_arr,
                                   ndet, nsky, nsrc,
                                   mval_arr, nval_arr, &pval);
-            GetRhoNuPhi_ByPM_MM_Nesterov(fp_log,
-                                rho_dash_arr, nu_dash_arr, phi_dash,
-                                mval_arr, nval_arr, pval,
-                                nph, B_val,
-                                ndet, nskyx, nskyy, nsrc,
-                                mu,
-                                npm, tol_pm,
-                                nnewton, tol_newton,
-                                rho_0_new_arr,
-                                nu_0_new_arr,
-                                &phi_0_new,
-                                &helldist_pm3,
-                                &flag_converge_pm3);
+            FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm_Nesterov(
+                fp_log,
+                rho_dash_arr, nu_dash_arr, phi_dash,
+                mval_arr, nval_arr, pval,
+                nph, B_val,
+                ndet, nskyx, nskyy, nsrc,
+                mu,
+                npm, tol_pm,
+                nnewton, tol_newton,
+                rho_0_new_arr,
+                nu_0_new_arr,
+                &phi_0_new,
+                &helldist_pm3,
+                &flag_converge_pm3);
             if (flag_converge_pm3 == 0){
                 MiIolib::Printf2(fp_log,
                                  "iem = %d: pm3: not converged: helldist_pm3 = %.2e\n",
