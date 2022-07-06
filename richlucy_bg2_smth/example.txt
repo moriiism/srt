@@ -1,0 +1,207 @@
+#
+# example.txt
+#
+
+# 1. mkresp
+# 2. mksrc
+# 3. mkbg
+# 4. simobs
+# 5. richlucy_bg2_smth
+
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run/hxt/sim/rl_bg2_smth
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+--->
+  resp/arb_eff.fits        : efficiency file
+  resp/arb_resp.fits       : response file
+  resp/arb_resp_norm.fits  : normalized response file
+
+
+# 2. mkimg_points
+
+mkdir skyorg
+cat << EOF > skyorg/fpsrc.dat
+# posx posy flux
+50 50 1.0
+25 50 10.0
+75 25 5.0
+EOF
+
+infile=skyorg/fpsrc.dat
+outdir=skyorg
+outfile_head=fpsrc
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_points/mkimg_points \
+$infile \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+--> 
+skyorg/fpsrc.fits
+skyorg/fpsrc_norm.fits
+
+
+
+# 2. mkimg_diffuse
+
+cat << EOF > skyorg/diffuse.dat
+# model name
+# model parameters
+quad
+50 50 -1  0  0  1000
+EOF
+
+model_file=skyorg/diffuse.dat
+outdir=skyorg
+outfile_head=diffuse
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_diffuse/mkimg_diffuse \
+$model_file \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+--> 
+skyorg/diffuse.fits
+skyorg/diffuse_norm.fits
+
+
+# add fpsrc + diffuse
+
+imgfile1=skyorg/fpsrc_norm.fits
+imgfile2=skyorg/diffuse_norm.fits
+coeff1=1
+coeff2=100
+outfile=skyorg/fpsrc+diffuse.fits
+
+~/work/github/moriiism/srt/imgadd/imgadd \
+$imgfile1 \
+$imgfile2 \
+$coeff1 \
+$coeff2 \
+$outfile
+
+---> skyorg/fpsrc+diffuse.fits
+
+
+
+# 4. mkbg
+mkdir det
+cat << EOF > det/bg.dat
+# background model name
+# background model parameters
+quad
+30 30 -1  0  0 10000
+EOF
+
+model_file=det/bg.dat
+outfile=det/bg.fits
+ndetx=$ndetx
+ndety=$ndety
+
+~/work/github/moriiism/srt/mkbg/mkbg \
+$model_file \
+$outfile \
+$ndetx \
+$ndety
+
+
+
+# simobs
+respfile=resp/arb_resp.fits
+srcfile=skyorg/fpsrc+diffuse.fits
+nevt_src=50000
+bgfile=det/bg.fits
+nevt_bg=1000
+rand_seed_det=1
+outdir=sim
+outfile_head=fpsrc+diffuse
+
+~/work/github/moriiism/srt/simobs/simobs \
+$respfile \
+$srcfile \
+$nevt_src \
+$bgfile \
+$nevt_bg \
+$rand_seed_det \
+$outdir \
+$outfile_head
+
+
+---> sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
+
+
+# 5. richlucy_bg2_smth
+
+datafile=sim/fpsrc+diffuse_obs_src_50000_bg_1000_0001.fits
+bgfile=det/bg.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_bg2_smth
+outfile_head=src_50000_bg_1000_mu1.0e7
+nem=1000
+tol_em=1.0e-8
+npm=100
+tol_pm=1.0e-8
+nnewton=100
+tol_newton=1.0e-5
+mu=1e7
+
+~/work/github/moriiism/srt/richlucy_bg2_smth/richlucy_bg2_smth \
+$datafile \
+$bgfile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu
+
