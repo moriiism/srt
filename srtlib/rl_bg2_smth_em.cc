@@ -220,8 +220,8 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
                 mu,
                 npm, tol_pm,
                 nnewton, tol_newton,
-                rho_0_arr,
-                &nu_0,
+                rho_0_new_arr,
+                &nu_0_new,
                 &helldist_pm3,
                 &flag_converge_pm3);
             if (flag_converge_pm3 == 0){
@@ -263,6 +263,7 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
                    iem, helldist);
             break;
         }
+
         dcopy_(nsky, rho_0_new_arr, 1, rho_0_arr, 1);
         nu_0 = nu_0_new;
         MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
@@ -314,7 +315,7 @@ void SrtlibRlBg2SmthEm::GetMArrNval(
     MibBlas::ElmWiseMul(nsky, 1.0,
                         tmp_arr, rho_arr, mval_arr);
     double nval = ddot_(ndet, div_arr, 1, const_cast<double*>(bg_arr), 1) * nu;
-
+    
     delete [] den_arr;
     delete [] div_arr;
     delete [] tmp_arr;

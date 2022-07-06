@@ -139,6 +139,7 @@ double SrtlibRlBg2SmthNewton::GetLambdaNew_ByNewton(
                                                 mval_arr, nval,
                                                 nsky);
     double lambda_new = lambda - sval / deriv_sval;
+
     return lambda_new;
 }
 

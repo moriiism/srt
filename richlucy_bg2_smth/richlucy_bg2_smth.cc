@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "N_B = %e\n", N_B);
     double B_val = nu * N_B;
     MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);
-
+    
     double sum_rho_new = MirMath::GetSum(nsky, rho_new_arr);
     MiIolib::Printf2(fp_log, "sum_rho_new = %e\n", sum_rho_new);
     

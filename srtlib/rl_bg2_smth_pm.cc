@@ -35,7 +35,7 @@ double SrtlibRlBg2SmthPm::GetFindLipConst(
 {
     int nsky = nskyx * nskyy;
     int ik_max = 1000;
-    double eta = 2.0;
+    double eta = 1.2;
 
     double* rho_new_arr = new double[nsky];
     double nu_new = 0.0;
@@ -150,10 +150,10 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
 
     double lip_const = 1.0;
     double lip_const_new = 1.0;
-    // lambda must be < 0, because bval must be < 0
+    // lambda must be > 0, because bval must be > 0
     // at the functions, GetDerivRhoArr_FromLambda.
     double lambda = -1.0;
-    double lambda_new = 1.0;
+    double lambda_new = -1.0;
     int flag_converge = 0;
     double helldist = 0.0;    
     for(int ipm = 0; ipm < npm; ipm++){
@@ -162,7 +162,7 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
             mval_arr, nval, mu,
             nskyx, nskyy, lip_const,
             lambda, nnewton, tol_newton);
-        printf("lip_const_new = %e\n", lip_const_new);
+        // printf("lip_const_new = %e\n", lip_const_new);
         double* vval_arr = new double[nsky];
         GetVvalArr(rho_pre_arr,
                    nskyx, nskyy,
@@ -174,7 +174,7 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
             fp_log, vval_arr, wval,
             mval_arr, nval,
             nsky,
-            lip_const,
+            lip_const_new,
             nnewton, tol_newton,
             lambda,
             rho_new_arr,
@@ -182,6 +182,16 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
             &lambda_new);
         delete [] vval_arr;
 
+        // set neg val to zero
+        for(int isky = 0; isky < nsky; isky ++){
+            if(rho_new_arr[isky] < 0.0){
+                rho_new_arr[isky] = 0.0;
+            }
+        }
+        if(nu_new < 0.0){
+            nu_new = 0.0;
+        }
+        
         helldist = SrtlibRlStatval::GetHellingerDist(
             rho_pre_arr, nu_pre,
             rho_new_arr, nu_new, nsky);
@@ -196,6 +206,7 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
         dcopy_(nsky, rho_new_arr, 1, rho_pre_arr, 1);
         nu_pre = nu_new;
         lambda = lambda_new;
+        lip_const = lip_const_new;
     }
     delete [] rho_pre_arr;
     *nu_new_ptr = nu_new;
