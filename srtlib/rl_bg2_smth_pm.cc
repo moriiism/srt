@@ -150,7 +150,7 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
 
     double lip_const = 1.0;
     double lip_const_new = 1.0;
-    // lambda must be > 0, because bval must be > 0
+    // lambda must be < 0, because bval must be < 0
     // at the functions, GetDerivRhoArr_FromLambda.
     double lambda = -1.0;
     double lambda_new = -1.0;
@@ -182,7 +182,9 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
             &lambda_new);
         delete [] vval_arr;
 
-        // set neg val to zero
+        // output of newton method sometimes become
+        // very slightly negative value. So,
+        // set negative value to zero.
         for(int isky = 0; isky < nsky; isky ++){
             if(rho_new_arr[isky] < 0.0){
                 rho_new_arr[isky] = 0.0;
@@ -209,6 +211,155 @@ void SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
         lip_const = lip_const_new;
     }
     delete [] rho_pre_arr;
+    *nu_new_ptr = nu_new;
+    *helldist_ptr = helldist;
+    *flag_converge_ptr = flag_converge;
+}
+
+
+void SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
+    FILE* const fp_log,
+    const double* const rho_arr, double nu,
+    const double* const mval_arr, double nval,
+    int nskyx, int nskyy,
+    double mu,
+    int npm, double tol_pm,
+    int nnewton, double tol_newton,
+    double* const rho_new_arr,
+    double* const nu_new_ptr,
+    double* const helldist_ptr,
+    int* const flag_converge_ptr)
+{
+    int nsky = nskyx * nskyy;
+
+    // xval_pre
+    double* rho_x_pre_arr = new double[nsky];
+    dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_x_pre_arr, 1);
+    double nu_x_pre = nu;
+    // xval
+    double* rho_x_arr = new double[nsky];
+    double nu_x = 0.0;
+    // yval
+    double* rho_y_arr = new double[nsky];
+    dcopy_(nsky, const_cast<double*>(rho_arr), 1, rho_y_arr, 1);
+    double nu_y = nu;
+    // yval_new
+    double* rho_y_new_arr = new double[nsky];
+    double nu_y_new = 0.0;
+
+    double tval = 1.0;
+
+    double* rho_diff_arr = new double[nsky];
+    double lip_const = 1.0;
+    double lip_const_new = 1.0;
+
+    // lambda must be < 0, because bval must be < 0
+    // at the functions, GetDerivRhoArr_FromLambda.
+    double lambda = -1.0;
+    double lambda_new = -1.0;
+    int flag_converge = 0;
+    double helldist = 0.0;    
+    for(int ipm = 0; ipm < npm; ipm++){
+        lip_const_new = GetFindLipConst(
+            fp_log, rho_y_arr, nu_y,
+            mval_arr, nval, mu,
+            nskyx, nskyy, lip_const,
+            lambda, nnewton, tol_newton);
+        // printf("lip_const_new = %e\n", lip_const_new);
+        double* vval_arr = new double[nsky];
+        GetVvalArr(rho_y_arr,
+                   nskyx, nskyy,
+                   mu, lip_const_new,
+                   vval_arr);
+        double wval = GetWval(nu_y);
+
+        SrtlibRlBg2SmthNewton::GetRhoArrNu_ByNewton(
+            fp_log, vval_arr, wval,
+            mval_arr, nval,
+            nsky,
+            lip_const_new,
+            nnewton, tol_newton,
+            lambda,
+            rho_x_arr,
+            &nu_x,
+            &lambda_new);
+        delete [] vval_arr;
+
+        double tval_new = ( 1.0 + sqrt(1.0 + 4.0 * tval * tval) ) / 2.0;
+        // printf("ipm = %d, tval_new = %e, phi_x = %e\n", ipm, tval_new, phi_x);
+        // something is wrong.
+
+        double coeff = (tval - 1.0) / tval_new;
+        MibBlas::Sub(rho_x_arr, rho_x_pre_arr, nsky, rho_diff_arr);
+        double nu_diff = nu_x - nu_x_pre;
+
+        int nk = 100;
+        double eta = 0.8;
+        int ifind_nonneg = 0;
+        int nneg = 0;
+        for(int ik = 0; ik < nk; ik ++){
+            double coeff0 = coeff * pow(eta, ik);
+            dcopy_(nsky, rho_x_arr, 1, rho_y_new_arr, 1);
+            daxpy_(nsky, coeff0, rho_diff_arr, 1, rho_y_new_arr, 1);
+            nu_y_new = nu_x + coeff0 * nu_diff;
+            nneg = 0;
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_y_new_arr[isky] < 0.0){
+                    nneg ++;
+                }
+            }
+            if(nu_y_new < 0.0){
+                nneg ++;
+            }
+            if (nneg == 0){
+                ifind_nonneg = 1;
+                break;
+            }
+        }
+        if(ifind_nonneg == 0){
+            // set neg val to zero
+            for(int isky = 0; isky < nsky; isky ++){
+                if(rho_y_new_arr[isky] < 0.0){
+                    rho_y_new_arr[isky] = 0.0;
+                }
+            }
+            if(nu_y_new < 0.0){
+                nu_y_new = 0.0;
+            }
+        }
+        
+        helldist = SrtlibRlStatval::GetHellingerDist(
+            rho_y_arr, nu_y,
+            rho_y_new_arr, nu_y_new, nsky);
+        if (helldist < tol_pm){
+            flag_converge = 1;
+            MiIolib::Printf2(
+                fp_log,
+                "    ipm = %d, helldist = %.2e, lip_const_new = %.2e\n",
+                ipm, helldist, lip_const_new);
+            break;
+        }
+        dcopy_(nsky, rho_y_new_arr, 1, rho_y_arr, 1);
+        nu_y = nu_y_new;
+
+        dcopy_(nsky, rho_x_arr, 1, rho_x_pre_arr, 1);
+        nu_x_pre = nu_x;
+
+        tval = tval_new;
+        
+        lambda = lambda_new;
+        lip_const = lip_const_new;
+    }
+
+    dcopy_(nsky, rho_y_new_arr, 1, rho_new_arr, 1);
+    double nu_new = nu_y_new;
+
+    delete [] rho_x_pre_arr;
+    delete [] rho_x_arr;
+    delete [] rho_y_arr;
+    delete [] rho_y_new_arr;
+    delete [] rho_diff_arr;
+    
     *nu_new_ptr = nu_new;
     *helldist_ptr = helldist;
     *flag_converge_ptr = flag_converge;

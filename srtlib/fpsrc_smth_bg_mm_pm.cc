@@ -236,12 +236,12 @@ void FpsrcSmthBgMmPm::GetRhoNuPhi_ByPm_Mm_Nesterov(
     double* rho_diff_arr = new double[nsky];
     double* nu_diff_arr = new double[nsrc];
     double lip_const = 1.0;
-
+    double lip_const_new = 1.0;
+    
     // lambda must be < 0, because bval must be < 0
     // at the functions, GetDerivRhoArr_FromLambda_Mm.
     double lambda = -1.0; 
     double lambda_new = -1.0;
-    double lip_const_new = 1.0;
     int flag_converge = 0;
     double helldist = 0.0;
     for(int ipm = 0; ipm < npm; ipm++){

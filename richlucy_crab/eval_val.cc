@@ -1,9 +1,9 @@
 #include "mir_math.h"
+#include "mib_blas.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "arg_eval_val.h"
-#include "sub.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -89,8 +89,8 @@ int main(int argc, char* argv[])
            const_cast<double*>(rec_norm_arr), 1,
            0.0, det_arr, 1);
 
-    double heldist = GetHellingerDist(det_arr, val_norm_arr, ndet);
-    printf("heldist = %e\n", heldist);
+    double helldist = GetHellingerDist(det_arr, val_norm_arr, ndet);
+    printf("helldist = %e\n", helldist);
 
     printf("nph_rec = %e\n", nph_rec);
     printf("nph_val = %e\n", nph_val);
@@ -113,10 +113,10 @@ int main(int argc, char* argv[])
                            naxes, det_arr);
 
     char outfile[kLineSize];
-    sprintf(outfile, "%s/%s_heldist.txt",
+    sprintf(outfile, "%s/%s_helldist.txt",
             argval->GetOutdir().c_str(), argval->GetOutfileHead().c_str());
     FILE* fp_out = fopen(outfile, "w");
-    fprintf(fp_out, "%e\n", heldist);
+    fprintf(fp_out, "%e\n", helldist);
     fclose(fp_out);
     
     return status_prog;

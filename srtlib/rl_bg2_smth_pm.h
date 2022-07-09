@@ -53,6 +53,19 @@ namespace SrtlibRlBg2SmthPm
         double* const nu_new_ptr,
         double* const helldist_ptr,
         int* const flag_converge_ptr);
+
+    void GetRhoNu_ByPm_Nesterov(
+        FILE* const fp_log,
+        const double* const rho_arr, double nu,
+        const double* const mval_arr, double nval,
+        int nskyx, int nskyy,
+        double mu,
+        int npm, double tol_pm,
+        int nnewton, double tol_newton,
+        double* const rho_new_arr,
+        double* const nu_new_ptr,
+        double* const helldist_ptr,
+        int* const flag_converge_ptr);
     
 } // namespace SrtlibRlBg2SmthPm
 

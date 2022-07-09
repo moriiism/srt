@@ -2,18 +2,150 @@
 # example_cv.txt
 #
 
+# crab, hxt1, 301_700, phase_00 = all phase
+# data: /home/morii/work/arb/hitomi/hxt1/301_700/hxt1_phase_00_301_700_x1178y1175_w80.fits
+
+# richlucy to determine posion of the point source, crab
+
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
 
-cd /home/morii/work/arb/ana/run
+cd /home/morii/work/arb/ana/run/hxt/obs/crab/hxt1/301_700
 
 
-# orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+# response
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
 
-orgfile=../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt1/301_700/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+# richlucy
+
+datafile=/home/morii/work/arb/hitomi/hxt1/301_700/hxt1_phase_00_301_700_x1178y1175_w80.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=crab_hxt1_301_700_phase_00
+nem=3000
+tol_em=1.0e-8
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+---> source position: (x, y) = (51, 51)
+
+####################################
+
+
+
+
+~/work/github/moriiism/srt/script/logbin.py 1.0 1e10 10
+
+cat << EOF > mu_list.dat
+1.0000e+00
+1.0000e+01
+1.0000e+02
+1.0000e+03
+1.0000e+04
+1.0000e+05
+1.0000e+06
+1.0000e+07
+1.0000e+08
+1.0000e+09
+1.0000e+10
+EOF
+
+
+orgfile=/home/morii/work/arb/hitomi/hxt1/hxt1/301_700/hxt1_phase_14_301_700_x1178y1175_w80.fits
 rand_seed=1
 nfold=5
-outdir=hxt_crab_cv
-outfile_head=hxt_151_300
+outdir=crab_hxt1_301_700_phase_14_cv
+outfile_head=crab_hxt1_301_700_phase_14_cv
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+respdir=/home/morii/work/arb/hitomi/hxt1/hxt1/301_700/gimage_100
+posx_point_src=54
+posy_point_src=38
+nem=300
+tol_em=1.0e-7
+npm=100
+tol_pm=1.0e-7
+nnewton=100
+tol_newton=1.0e-5
+mu_list_file=mu_list.dat
+
+~/work/github/moriiism/srt/script/richlucy_crab_cv.py \
+$orgfile \
+$rand_seed \
+$nfold \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$respdir \
+$posx_point_src \
+$posy_point_src \
+$nem \
+$tol_em \
+$npm \
+$tol_pm \
+$nnewton \
+$tol_newton \
+$mu_list_file
+
+
+# 151_300
+
+# orgfile=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run/hxt/obs/crab
+
+orgfile=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+rand_seed=1
+nfold=5
+outdir=hxt1_crab_cv
+outfile_head=hxt1_151_300
 nskyx=101
 nskyy=101
 ndetx=80
@@ -21,13 +153,12 @@ ndety=80
 respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
 posx_point_src=54
 posy_point_src=38
-nem=100
+nem=10
 tol_em=1.0e-7
-npm=1000
+npm=100
 tol_pm=1.0e-7
 nnewton=100
-tol_newton=1.0e-7
-
+tol_newton=1.0e-5
 
 ~/work/github/moriiism/srt/script/richlucy_crab_cv.py \
 $orgfile \

@@ -124,7 +124,7 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
                     data_arr, bg_arr,
                     resp_norm_mat_arr, 
                     ndet, nsky, mval_arr, &nval);
-        SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
+        SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
             fp_log,
             rho_0_arr, nu_0,
             mval_arr, nval,
@@ -148,7 +148,7 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
                     data_arr, bg_arr,
                     resp_norm_mat_arr, 
                     ndet, nsky, mval_arr, &nval);
-        SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
+        SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
             fp_log,
             rho_1_arr, nu_1,
             mval_arr, nval,
@@ -212,7 +212,7 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
                         data_arr, bg_arr,
                         resp_norm_mat_arr, 
                         ndet, nsky, mval_arr, &nval);
-            SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
+            SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
                 fp_log,
                 rho_dash_arr, nu_dash,
                 mval_arr, nval,

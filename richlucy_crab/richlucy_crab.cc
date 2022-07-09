@@ -1,9 +1,14 @@
+// Image reconstruction by Richardson-Lucy method
+// with one point source fixed position
+// and with smoothness regularization
+
 #include "mir_math.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "arg_richlucy_crab.h"
-#include "sub.h"
+#include "rl.h"
+#include "rl_bg2_smth_em.h"
 #include "TRandom3.h"
 
 // global variable 
@@ -32,8 +37,8 @@ int main(int argc, char* argv[])
             argval->GetOutfileHead().c_str(),
             argval->GetProgname().c_str());
     FILE* fp_log = fopen(logfile, "w");
-    MiIolib::Printf2(fp_log, "-----------------------------\n");
     argval->Print(fp_log);
+    MiIolib::Printf2(fp_log, "-----------------------------\n");    
 
     int nskyx = argval->GetNskyx();
     int nskyy = argval->GetNskyy();
@@ -45,12 +50,12 @@ int main(int argc, char* argv[])
     // load data
     MifImgInfo* img_info_data = new MifImgInfo;
     img_info_data->InitSetImg(1, 1, ndetx, ndety);
-    int bitpix = 0;
+    int bitpix_data = 0;
     double* data_arr = NULL;
     MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
-                          &bitpix, &data_arr);
+                          &bitpix_data, &data_arr);
     int nph_data = MirMath::GetSum(ndet, data_arr);
-    printf("N photon = %d\n", nph_data);
+    MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);    
 
     // load sky image of fixed source with normalized flux
     MifImgInfo* img_info_fixed_src_norm = new MifImgInfo;
@@ -62,16 +67,14 @@ int main(int argc, char* argv[])
                           &bitpix_fixed_src_norm,
                           &sky_fixed_src_norm_arr);
     int nph_fixed_src_norm = MirMath::GetSum(nsky, sky_fixed_src_norm_arr);
-    printf("N photon fixed source with normalized flux = %d\n",
-           nph_fixed_src_norm);
+    MiIolib::Printf2(fp_log, "N photon fixed source with normalized flux = %d\n",
+                     nph_fixed_src_norm);
     
     // load response file
-    int naxis = 2;
-    int* naxes_arr = new int[naxis];
-    for(int iaxis = 0; iaxis < naxis; iaxis ++){
-        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetRespFile(), iaxis);
-    }
-    if ((naxes_arr[0] != ndet) || (naxes_arr[1] != nsky)){
+    int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
+    int naxis1 = MifFits::GetAxisSize(argval->GetRespFile(), 1);
+    if ((naxis0 != ndet) || (naxis1 != nsky)){
+        MiIolib::Printf2(fp_log, "Error: response file size error.\n");
         abort();
     }
     double* resp_mat_arr = NULL;
@@ -82,9 +85,6 @@ int main(int argc, char* argv[])
                           &bitpix_resp, &resp_mat_arr);
 
     // load efficiency file
-    for(int iaxis = 0; iaxis < naxis; iaxis ++){
-        naxes_arr[iaxis] = MifFits::GetAxisSize(argval->GetEffFile(), iaxis);
-    }
     double* eff_mat_arr = NULL;
     int bitpix_eff = 0;
     MifImgInfo* img_info_eff = new MifImgInfo;
@@ -121,10 +121,10 @@ int main(int argc, char* argv[])
 
     // det image of fixed source with normalized flux
     double* det_fixed_src_norm_arr = new double[ndet];
-    GetDetArr(sky_fixed_src_norm_arr,
-              resp_norm_mat_arr,
-              ndet, nsky,
-              det_fixed_src_norm_arr);
+    SrtlibRl::GetDetArr(sky_fixed_src_norm_arr,
+                        resp_norm_mat_arr,
+                        ndet, nsky,
+                        det_fixed_src_norm_arr);
     
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
@@ -159,25 +159,26 @@ int main(int argc, char* argv[])
 
     double* rho_new_arr = new double[nsky];
     double nu = 0.0;
-    bitpix = -32;
-    RichlucyBg2Smooth(rho_init_arr, nu_init,
-                      data_arr, det_fixed_src_norm_arr,
-                      resp_norm_mat_arr,
-                      ndet, nskyx, nskyy, argval->GetMu(),
-                      argval->GetOutdir(),
-                      argval->GetOutfileHead(),
-                      argval->GetNem(), argval->GetTolEm(),
-                      argval->GetNpm(), argval->GetTolPm(),
-                      argval->GetNnewton(), argval->GetTolNewton(),
-                      rho_new_arr, &nu);
+    SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
+        fp_log,
+        rho_init_arr, nu_init,
+        data_arr, det_fixed_src_norm_arr,
+        resp_norm_mat_arr,
+        ndet, nskyx, nskyy, argval->GetMu(),
+        argval->GetOutdir(),
+        argval->GetOutfileHead(),
+        argval->GetNem(), argval->GetTolEm(),
+        argval->GetNpm(), argval->GetTolPm(),
+        argval->GetNnewton(), argval->GetTolNewton(),
+        rho_new_arr, &nu);
 
     double N_B = MibBlas::Sum(data_arr, ndet);
-    printf("N_B = %e\n", N_B);
+    MiIolib::Printf2(fp_log, "N_B = %e\n", N_B);
     double B_val = nu * N_B;
-    printf("B_val = %e\n", B_val);
+    MiIolib::Printf2(fp_log, "B_val = %e\n", B_val);
 
     double sum_rho_new = MirMath::GetSum(nsky, rho_new_arr);
-    printf("sum_rho_new = %e\n", sum_rho_new);
+    MiIolib::Printf2(fp_log, "sum_rho_new = %e\n", sum_rho_new);
     
     // output reconstructed sky image: lambda for nebula
     double* sky_new_arr = new double[nsky];
@@ -185,7 +186,7 @@ int main(int argc, char* argv[])
         sky_new_arr[isky] = rho_new_arr[isky] * N_B;
     }
     double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
-    printf("sum_sky_new = %e\n", sum_sky_new);
+    MiIolib::Printf2(fp_log, "sum_sky_new = %e\n", sum_sky_new);
 
     // nebula + pulsar: sky_new_arr + B_val * sky_fixed_src_norm_arr
     double* sky_total_arr = new double[nsky];
@@ -203,20 +204,23 @@ int main(int argc, char* argv[])
     long naxes[2];
     naxes[0] = nskyx;
     naxes[1] = nskyy;
+    int bitpix_out = -32;    
     MifFits::OutFitsImageD(argval->GetOutdir(),
                            argval->GetOutfileHead(),
                            "nebula", 2,
-                           bitpix,
+                           bitpix_out,
                            naxes, sky_new_arr);
 
     MifFits::OutFitsImageD(argval->GetOutdir(),
                            argval->GetOutfileHead(),
                            "pulsar+nebula", 2,
-                           bitpix,
+                           bitpix_out,
                            naxes, sky_total_arr);
 
     double time_ed = MiTime::GetTimeSec();
-    printf("duration = %e sec.\n", time_ed - time_st);
+    MiIolib::Printf2(fp_log, "duration = %e sec.\n", time_ed - time_st);
+
+    fclose(fp_log);
 
     return status_prog;
 }

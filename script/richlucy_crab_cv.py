@@ -18,6 +18,7 @@ import os
 import sys
 import subprocess
 import pandas as pd
+import math
 
 iarg = 1
 orgfile        = sys.argv[iarg]; iarg += 1
@@ -38,6 +39,7 @@ npm            = int(sys.argv[iarg]); iarg += 1
 tol_pm         = float(sys.argv[iarg]); iarg += 1
 nnewton        = int(sys.argv[iarg]); iarg += 1
 tol_newton     = float(sys.argv[iarg]); iarg += 1
+mu_list_file   = sys.argv[iarg]; iarg += 1
 
 print("orgfile = ", orgfile)
 print("rand_seed = ", rand_seed)
@@ -57,7 +59,7 @@ print("npm = ", npm)
 print("tol_pm = ", tol_pm)
 print("nnewton = ", nnewton)
 print("tol_newton = ", tol_newton)
-
+print("mu_list_file = ", mu_list_file)
 
 # make observation image for cross-validation
 outdir_mkobs_cv = outdir + "/" + "obs_cv"
@@ -98,23 +100,25 @@ cmd = ["/home/morii/work/github/moriiism/srt/mkimg_points/mkimg_points",
 print(cmd)
 subprocess.call(cmd)
 
+# mu_list
+mu_lst = []
+mu_list_file_fptr = open(mu_list_file, "r")
+for line in mu_list_file_fptr:
+    mu = line.rstrip('\n')
+    mu_lst.append(mu)
+mu_list_file_fptr.close()
 
+print(mu_lst)
 
 cmd = ["mkdir", outdir + "/" + "smr"]
 print(cmd)
 subprocess.call(cmd)
-mu_heldist_file = f"{outdir}/smr/mu_heldist.dat"
-mu_heldist_file_fptr = open(mu_heldist_file, "w")
-print("! mu heldist", file=mu_heldist_file_fptr)
-
-mu_lst = [1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9]
-# [1.0e3, 2e3, 6e3, 1.0e4, 2e4, 6e4, 1.0e5]
-# [1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4,
-# [1.0e-10, 1.0e-9, 1.0e-8, 1.0e-7, 1.0e-6]
-# [1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1]
-
+mu_helldist_file = f"{outdir}/smr/mu_helldist.dat"
+mu_helldist_file_fptr = open(mu_helldist_file, "w")
+print("! mu  helldist_ave  helldist_stddev", file=mu_helldist_file_fptr)
 
 for mu in mu_lst:
+    mu = float(mu)
     for ifold in range(nfold):
         print("ifold = ", ifold)
         datafile = (f"{outdir}/obs_cv/{outfile_head}_obs_{rand_seed:04}_" +
@@ -150,21 +154,26 @@ for mu in mu_lst:
 
         
     # average helldist
-    heldist_sum = 0.0
+    helldist_sum = 0.0
+    helldist_sum2 = 0.0
     for ifold in range(nfold):
-        heldist = 0.0
-        helldist_file = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_heldist.txt"
+        helldist = 0.0
+        helldist_file = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_helldist.txt"
         helldist_file_fptr = open(helldist_file, "r")
         for line in helldist_file_fptr:
-            heldist = line.rstrip('\n')
+            helldist = line.rstrip('\n')
         helldist_file_fptr.close()
-        heldist_sum += float(heldist)
+        helldist_sum += float(helldist)
+        helldist_sum2 += float(helldist) * float(helldist)
             
-    heldist_ave = heldist_sum / nfold
-    print(heldist_ave)
-    print(f"{mu:.1e} {heldist_ave}", file=mu_heldist_file_fptr)
+    helldist_ave = helldist_sum / nfold
+    helldist_var = (helldist_sum2 - helldist_sum * helldist_sum / nfold) / nfold
+    helldist_stddev = math.sqrt(helldist_var)
+    print(helldist_ave)
+    print(helldist_stddev)
+    print(f"{mu:.1e} {helldist_ave} {helldist_stddev}", file=mu_helldist_file_fptr)
 
-mu_heldist_file_fptr.close()
+mu_helldist_file_fptr.close()
 
 
 #
