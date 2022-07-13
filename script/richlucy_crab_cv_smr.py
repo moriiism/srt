@@ -21,13 +21,18 @@ import pandas as pd
 import math
 
 iarg = 1
+rand_seed      = int(sys.argv[iarg]); iarg += 1
 nfold          = int(sys.argv[iarg]); iarg += 1
 outdir         = sys.argv[iarg]; iarg += 1
+outfile_head   = sys.argv[iarg]; iarg += 1
 mu_list_file   = sys.argv[iarg]; iarg += 1
 
+print("rand_seed = ", rand_seed)
 print("nfold = ", nfold)
 print("outdir = ", outdir)
+print("outfile_head = ", outfile_head)
 print("mu_list_file = ", mu_list_file)
+
 
 # mu_list
 mu_lst = []
@@ -42,49 +47,67 @@ print(mu_lst)
 cmd = ["mkdir", outdir + "/" + "smr"]
 print(cmd)
 subprocess.call(cmd)
-mu_helldist_file = f"{outdir}/smr/mu_helldist.qdp"
-mu_helldist_file_fptr = open(mu_helldist_file, "w")
-print("skip sing")
-print("read serr 2")
-print("! mu  helldist_ave  helldist_stddev",
-      file=mu_helldist_file_fptr)
+mu_rmse_file = f"{outdir}/smr/mu_rmse.qdp"
+mu_rmse_file_fptr = open(mu_rmse_file, "w")
+print("skip sing", file=mu_rmse_file_fptr)
+print("read serr 2", file=mu_rmse_file_fptr)
+print("! mu  rmse_ave  rmse_stddev", file=mu_rmse_file_fptr)
 
 for mu in mu_lst:
     mu = float(mu)
-    # average helldist
-    helldist_sum = 0.0
-    helldist_sum2 = 0.0
+    # eval
+    for ifold in range(nfold):
+        print("ifold = ", ifold)
+        resp_file = f"{outdir}/resp/hxt_resp.fits"
+        recfile = (f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/{outfile_head}_pulsar+nebula.fits")
+        valfile = (f"{outdir}/obs_cv/{outfile_head}_obs_{rand_seed:04}_" +
+                   f"{nfold:02}fold{ifold:02}_vl.fits")
+        outdir_eval = (f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}")
+        outfile_head_eval = "eval"
+        
+        cmd = ["/home/morii/work/github/moriiism/srt/richlucy_crab/eval_val", 
+               resp_file, recfile, valfile, str(nfold), outdir_eval, outfile_head_eval]
+        print(cmd)
+        subprocess.call(cmd)
+
+        
+    # average rmse
+    rmse_sum = 0.0
+    rmse_sum2 = 0.0
     nfold_exist = 0
     for ifold in range(nfold):
-        helldist = 0.0
-        helldist_file = (
-            f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_helldist.txt")
-        if os.path.isfile(helldist_file) == False:
-            print(f"warning: {helldist_file} does not exist.")
+        rmse = 0.0
+        rmse_file = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_rmse.txt"
+        if os.path.isfile(rmse_file) == False:
+            print(f"warning: {rmse_file} does not exist.")
             continue
         else:
             nfold_exist += 1
-        helldist_file_fptr = open(helldist_file, "r")
-        for line in helldist_file_fptr:
-            helldist = line.rstrip('\n')
-        helldist_file_fptr.close()
-        helldist_sum += float(helldist)
-        helldist_sum2 += float(helldist) * float(helldist)
+        rmse_file_fptr = open(rmse_file, "r")
+        for line in rmse_file_fptr:
+            rmse = line.rstrip('\n')
+        rmse_file_fptr.close()
+        rmse_sum += float(rmse)
+        rmse_sum2 += float(rmse) * float(rmse)
 
     if nfold_exist == 0:
         print(f"warning: nfold_exist == 0")
     else:
         if nfold_exist != nfold:
             print(f"warning: nfold_exist = {nfold_exist}, nfold = {nfold}")
-        helldist_ave = helldist_sum / nfold_exist
-        helldist_var = (helldist_sum2 - helldist_sum * helldist_sum / nfold_exist) / nfold_exist
-        helldist_stddev = math.sqrt(helldist_var)
-        print(helldist_ave)
-        print(helldist_stddev)
-        print(f"{mu:.1e} {helldist_ave} {helldist_stddev}",
-              file=mu_helldist_file_fptr)
+        rmse_ave = rmse_sum / nfold_exist
+        rmse_var = (rmse_sum2 - rmse_sum * rmse_sum / nfold_exist) / nfold_exist
+        rmse_stddev = math.sqrt(rmse_var)
+        print(f"{mu:.1e} {rmse_ave} {rmse_stddev}")
+        print(f"{mu:.1e} {rmse_ave} {rmse_stddev}", file=mu_rmse_file_fptr)
 
-mu_helldist_file_fptr.close()
+
+print("log x on", file=mu_rmse_file_fptr)
+print("lw 7", file=mu_rmse_file_fptr)
+print("line on", file=mu_rmse_file_fptr)
+print("ma 6 on", file=mu_rmse_file_fptr)
+
+mu_rmse_file_fptr.close()
 
 
 #

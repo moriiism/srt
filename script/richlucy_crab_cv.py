@@ -131,6 +131,15 @@ for mu in mu_lst:
         subprocess.call(cmd)
 
 
+cmd = ["mkdir", outdir + "/" + "smr"]
+print(cmd)
+subprocess.call(cmd)
+mu_rmse_file = f"{outdir}/smr/mu_rmse.qdp"
+mu_rmse_file_fptr = open(mu_rmse_file, "w")
+print("skip sing", file=mu_rmse_file_fptr)
+print("read serr 2", file=mu_rmse_file_fptr)
+print("! mu  rmse_ave  rmse_stddev", file=mu_rmse_file_fptr)
+
 for mu in mu_lst:
     mu = float(mu)
     # eval
@@ -176,17 +185,14 @@ for mu in mu_lst:
         rmse_ave = rmse_sum / nfold_exist
         rmse_var = (rmse_sum2 - rmse_sum * rmse_sum / nfold_exist) / nfold_exist
         rmse_stddev = math.sqrt(rmse_var)
-        print(rmse_ave)
-        print(rmse_stddev)
+        print(f"{mu:.1e} {rmse_ave} {rmse_stddev}")
         print(f"{mu:.1e} {rmse_ave} {rmse_stddev}", file=mu_rmse_file_fptr)
 
-cmd = ["mkdir", outdir + "/" + "smr"]
-print(cmd)
-subprocess.call(cmd)
-mu_rmse_file = f"{outdir}/smr/mu_rmse.dat"
-mu_rmse_file_fptr = open(mu_rmse_file, "w")
-print("! mu  rmse_ave  rmse_stddev", file=mu_rmse_file_fptr)
 
+print("log x on", file=mu_rmse_file_fptr)
+print("lw 7", file=mu_rmse_file_fptr)
+print("line on", file=mu_rmse_file_fptr)
+print("ma 6 on", file=mu_rmse_file_fptr)
 mu_rmse_file_fptr.close()
 
 

@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 
     // scale det_arr
     int nfold = argval->GetNfold();
-    dscal_(nsky, 1.0/(nfold - 1), det_arr, 1);
+    dscal_(ndet, 1.0/(nfold - 1), det_arr, 1);
 
     double rmse = GetRootMeanSquareError(det_arr, val_arr, ndet);
     printf("rmse = %e\n", rmse);
@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
                            tag, 2,
                            bitpix,
                            naxes, det_arr);
-
     char outfile[kLineSize];
     sprintf(outfile, "%s/%s_rmse.txt",
             argval->GetOutdir().c_str(), argval->GetOutfileHead().c_str());
