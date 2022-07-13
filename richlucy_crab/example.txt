@@ -11,6 +11,8 @@
 
 source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
 
+export OPENBLAS_NUM_THREADS=3
+
 cd /home/morii/work/arb/ana/run/hxt/sim/rl_crab
 
 # response format

@@ -156,22 +156,33 @@ for mu in mu_lst:
     # average helldist
     helldist_sum = 0.0
     helldist_sum2 = 0.0
+    nfold_exist = 0
     for ifold in range(nfold):
         helldist = 0.0
         helldist_file = f"{outdir}/rl_crab/mu{mu:.1e}/ifold{ifold:02}/eval_helldist.txt"
+        if os.path.isfile(helldist_file) == False:
+            print(f"warning: {helldist_file} does not exist.")
+            continue
+        else:
+            nfold_exist += 1
         helldist_file_fptr = open(helldist_file, "r")
         for line in helldist_file_fptr:
             helldist = line.rstrip('\n')
         helldist_file_fptr.close()
         helldist_sum += float(helldist)
         helldist_sum2 += float(helldist) * float(helldist)
-            
-    helldist_ave = helldist_sum / nfold
-    helldist_var = (helldist_sum2 - helldist_sum * helldist_sum / nfold) / nfold
-    helldist_stddev = math.sqrt(helldist_var)
-    print(helldist_ave)
-    print(helldist_stddev)
-    print(f"{mu:.1e} {helldist_ave} {helldist_stddev}", file=mu_helldist_file_fptr)
+
+    if nfold_exist == 0:
+        print(f"warning: nfold_exist == 0")
+    else:
+        if nfold_exist != nfold:
+            print(f"warning: nfold_exist = {nfold_exist}, nfold = {nfold}")
+        helldist_ave = helldist_sum / nfold_exist
+        helldist_var = (helldist_sum2 - helldist_sum * helldist_sum / nfold_exist) / nfold_exist
+        helldist_stddev = math.sqrt(helldist_var)
+        print(helldist_ave)
+        print(helldist_stddev)
+        print(f"{mu:.1e} {helldist_ave} {helldist_stddev}", file=mu_helldist_file_fptr)
 
 mu_helldist_file_fptr.close()
 

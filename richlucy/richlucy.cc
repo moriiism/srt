@@ -177,6 +177,7 @@ int main(int argc, char* argv[])
     double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
     MiIolib::Printf2(fp_log, "sum_sky_new = %e\n", sum_sky_new);
 
+
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
