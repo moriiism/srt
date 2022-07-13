@@ -10,9 +10,9 @@ int g_flag_debug = 0;
 int g_flag_help = 0;
 int g_flag_verbose = 0;
 
-double GetHellingerDist(const double* const det_arr, 
-                        const double* const val_norm_arr,
-                        int ndet);
+double GetRootMeanSquareError(const double* const det_arr, 
+                              const double* const val_arr,
+                              int ndet);
 
 int main(int argc, char* argv[])
 {
@@ -50,11 +50,6 @@ int main(int argc, char* argv[])
     double nph_rec = MirMath::GetSum(nsky, rec_arr);
     printf("nph_rec = %e\n", nph_rec);
 
-    double* rec_norm_arr = new double[nsky];
-    for(int isky = 0; isky < nsky; isky++){
-        rec_norm_arr[isky] = rec_arr[isky] / nph_rec;
-    }
-    
     // load valfile
     int ndetx = MifFits::GetAxisSize(argval->GetValfile(), 0);
     int ndety = MifFits::GetAxisSize(argval->GetValfile(), 1);
@@ -68,11 +63,6 @@ int main(int argc, char* argv[])
     double nph_val = MirMath::GetSum(ndet, val_arr);
     printf("nph_val = %e\n", nph_val);
 
-    double* val_norm_arr = new double[ndet];
-    for(int idet = 0; idet < ndet; idet++){
-        val_norm_arr[idet] = val_arr[idet] / nph_val;
-    }
-
     // load response 
     double* resp_mat_arr = NULL;
     int bitpix_resp = 0;
@@ -81,20 +71,20 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetRespFile(), img_info_resp,
                           &bitpix_resp, &resp_mat_arr);
 
-    // det_arr = R_mat %*% rec_norm_arr
+    // det_arr = R_mat %*% rec_arr
     double* det_arr = new double[ndet];
     char* transa = new char [1];
     strcpy(transa, "N");
     dgemv_(transa, ndet, nsky, 1.0, const_cast<double*>(resp_mat_arr), ndet,
-           const_cast<double*>(rec_norm_arr), 1,
+           const_cast<double*>(rec_arr), 1,
            0.0, det_arr, 1);
 
-    double helldist = GetHellingerDist(det_arr, val_norm_arr, ndet);
-    printf("helldist = %e\n", helldist);
+    // scale det_arr
+    int nfold = argval->GetNfold();
+    dscal_(nsky, 1.0/(nfold - 1), det_arr, 1);
 
-    printf("nph_rec = %e\n", nph_rec);
-    printf("nph_val = %e\n", nph_val);
-
+    double rmse = GetRootMeanSquareError(det_arr, val_arr, ndet);
+    printf("rmse = %e\n", rmse);
 
     long naxes[2];
     naxes[0] = ndetx;
@@ -105,7 +95,7 @@ int main(int argc, char* argv[])
     MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
                            tag, 2,
                            bitpix,
-                           naxes, val_norm_arr);
+                           naxes, val_arr);
     sprintf(tag, "det");
     MifFits::OutFitsImageD(argval->GetOutdir(), argval->GetOutfileHead(),
                            tag, 2,
@@ -113,25 +103,28 @@ int main(int argc, char* argv[])
                            naxes, det_arr);
 
     char outfile[kLineSize];
-    sprintf(outfile, "%s/%s_helldist.txt",
+    sprintf(outfile, "%s/%s_rmse.txt",
             argval->GetOutdir().c_str(), argval->GetOutfileHead().c_str());
     FILE* fp_out = fopen(outfile, "w");
-    fprintf(fp_out, "%e\n", helldist);
+    fprintf(fp_out, "%e\n", rmse);
     fclose(fp_out);
     
     return status_prog;
 }
 
-
-double GetHellingerDist(const double* const det_arr, 
-                        const double* const val_norm_arr,
-                        int ndet)
+double GetRootMeanSquareError(const double* const det_arr,
+                              const double* const val_arr,
+                              int ndet)
 {
     double sum = 0.0;
     for(int idet = 0; idet < ndet; idet ++){
-        double diff = sqrt(det_arr[idet]) - sqrt(val_norm_arr[idet]);
+        double diff = det_arr[idet] - val_arr[idet];
         sum += diff * diff;
     }
-    double ans = sqrt(sum);
-    return (ans);
+    double ave = sum / ndet;
+    double ans = sqrt(ave);
+    return ans;
 }
+
+
+

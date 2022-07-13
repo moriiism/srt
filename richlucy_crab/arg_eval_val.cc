@@ -18,7 +18,7 @@ void ArgValEvalVal::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 5;
+    int narg = 6;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -27,6 +27,7 @@ void ArgValEvalVal::Init(int argc, char* argv[])
     resp_file_      = argv[iarg]; iarg++;
     recfile_        = argv[iarg]; iarg++;
     valfile_        = argv[iarg]; iarg++;
+    nfold_          = atoi(argv[iarg]); iarg++;
     outdir_         = argv[iarg]; iarg++;
     outfile_head_   = argv[iarg]; iarg++;
 }
@@ -41,6 +42,7 @@ void ArgValEvalVal::Print(FILE* fp) const
     fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
     fprintf(fp, "%s: recfile_        : %s\n", __func__, recfile_.c_str());
     fprintf(fp, "%s: valfile_        : %s\n", __func__, valfile_.c_str());
+    fprintf(fp, "%s: nfold_          : %d\n", __func__, nfold_);
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
 }
@@ -53,6 +55,7 @@ void ArgValEvalVal::Null()
     resp_file_ = "";
     recfile_  = "";
     valfile_  = "";
+    nfold_    = 0;
     outdir_   = "";
     outfile_head_ = "";
 }
@@ -111,7 +114,7 @@ void ArgValEvalVal::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "resp_file  recfile  valfile  outdir  outfile_head\n",
+            "resp_file  recfile  valfile  nfold  outdir  outfile_head\n",
             progname_.c_str());
     abort();
 }

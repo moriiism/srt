@@ -11,6 +11,7 @@ public:
         resp_file_(""),
         recfile_(""),
         valfile_(""),
+        nfold_(0),
         outdir_(""),
         outfile_head_("") {}
     ~ArgValEvalVal(){
@@ -23,6 +24,7 @@ public:
     string GetRespFile() const {return resp_file_;};
     string GetRecfile() const {return recfile_;};
     string GetValfile() const {return valfile_;};
+    int    GetNfold() const {return nfold_;};
     string GetOutdir() const {return outdir_;};
     string GetOutfileHead() const {return outfile_head_;};
 
@@ -31,6 +33,7 @@ private:
     string resp_file_;
     string recfile_;
     string valfile_;
+    int    nfold_;
     string outdir_;
     string outfile_head_;
 
