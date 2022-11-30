@@ -3,7 +3,7 @@
 #
 
 # 1. mkresp
-# 3. richlucy
+# 2. richlucy
 
 # data
 ../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
