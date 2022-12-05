@@ -9,6 +9,7 @@ public:
         MiArgBase(),
         progname_(""),
         data_list_(""),
+        fixed_src_norm_file_(""),
         resp_file_(""),
         eff_file_(""),
         nskyx_(0),
@@ -28,6 +29,7 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDataList() const {return data_list_;};
+    string GetFixedSrcNormFile() const {return fixed_src_norm_file_;};
     string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
@@ -43,6 +45,7 @@ public:
 private:
     string progname_;
     string data_list_;
+    string fixed_src_norm_file_;
     string resp_file_;
     string eff_file_;
     int nskyx_;

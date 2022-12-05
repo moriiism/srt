@@ -18,13 +18,14 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 12;
+    int narg = 13;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
     data_list_      = argv[iarg]; iarg++;
+    fixed_src_norm_file_ = argv[iarg]; iarg++;
     resp_file_      = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
@@ -45,7 +46,9 @@ void ArgValRichlucy::Print(FILE* fp) const
     fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: data_list       : %s\n", __func__, data_list_.c_str());
+    fprintf(fp, "%s: data_list_      : %s\n", __func__, data_list_.c_str());
+    fprintf(fp, "%s: fixed_src_norm_file_ : %s\n",
+            __func__, fixed_src_norm_file_.c_str());
     fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
@@ -65,6 +68,7 @@ void ArgValRichlucy::Null()
 {
     progname_ = "";
     data_list_ = "";
+    fixed_src_norm_file_ = "";
     resp_file_ = "";
     eff_file_  = "";
     nskyx_     = 0;
@@ -132,7 +136,7 @@ void ArgValRichlucy::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "data_list  resp_file  eff_file  "
+            "data_list  fixed_src_norm_file  resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
             "nloop  tol  acc_method\n",

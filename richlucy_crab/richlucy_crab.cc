@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
         //delete [] sky_ref_arr;
         //delete img_info_sky;
     }
-
+    
     double* rho_new_arr = new double[nsky];
     double nu = 0.0;
     SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(

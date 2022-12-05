@@ -3,7 +3,8 @@
 #
 
 # 1. mkresp
-# 2. richlucy
+# 2. mkimg_points 
+# 3. richlucy
 
 # data
 ../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
@@ -45,17 +46,53 @@ $nphoton_input
   resp/arb_resp_norm.fits  : normalized response file
 
 
-# 2. richlucy
+# 2. mkimg_points
+
+mkdir skyorg
+cat << EOF > skyorg/crab_pulsar.dat
+# posx posy flux
+54 38 1000.0
+EOF
+
+infile=skyorg/crab_pulsar.dat
+outdir=skyorg
+outfile_head=crab_pulsar
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_points/mkimg_points \
+$infile \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+-->
+skyorg/crab_pulsar.fits
+skyorg/crab_pulsar_norm.fits
+
+
+# 3. richlucy
+
+# e-mail on 2022/12/01 
+#Name    Phase           Duration        ID     
+#21              0.854-1.104     0.25            ON (2nd)
+#22              0.104-0.504     0.40            OFF
+#23              0.504-0.704     0.20            ON (1st)
+#24              0.704-0.854     0.15           
+
+
 
 cat << EOF > data.list
-# data_file phase_tag
-../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1
-../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2
-../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1
-../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2
+# data_file  phase_tag  phase_ratio
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.25
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  0.40
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  0.15
 EOF
 
 data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
 resp_file=resp/arb_resp.fits
 eff_file=resp/arb_eff.fits
 nskyx=$nskyx
@@ -66,10 +103,11 @@ outdir=rl
 outfile_head=hxt1_crab
 nloop=1000
 tol=1.0e-5
-acc_method=squarem
+acc_method=none
 
 ~/work/github/moriiism/srt/crab/richlucy/richlucy \
 $data_list \
+$fixed_src_norm_file \
 $resp_file \
 $eff_file \
 $nskyx \
