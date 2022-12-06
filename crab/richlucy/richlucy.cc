@@ -201,6 +201,14 @@ int main(int argc, char* argv[])
     double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
     MiIolib::Printf2(fp_log, "sum_sky_new = %e\n", sum_sky_new);
 
+    // output reconstructed flux
+    double* flux_pulsar_arr = new double[nphase];
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        flux_pulsar_arr[iphase] = nu_new_arr[iphase] * nph_data
+            / phase_arr[iphase];
+        MiIolib::Printf2(fp_log, "flux_pulsar[%d] = %e\n",
+                         iphase, flux_pulsar_arr[iphase]);
+    }
 
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){

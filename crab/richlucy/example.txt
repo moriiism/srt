@@ -3,6 +3,10 @@
 #
 
 # 1. mkresp
+
+# determine point source position
+
+
 # 2. mkimg_points 
 # 3. richlucy
 
@@ -45,13 +49,152 @@ $nphoton_input
   resp/arb_resp.fits       : response file
   resp/arb_resp_norm.fits  : normalized response file
 
+# richlucy
+
+# on1
+
+datafile=../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_on1
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+# on2
+
+datafile=../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_on2
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+# off1
+
+datafile=../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_off1
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+
+# off2
+
+datafile=../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_off2
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+
+
+
+
+
+
+#####################################
+
+
+
+
 
 # 2. mkimg_points
 
 mkdir skyorg
 cat << EOF > skyorg/crab_pulsar.dat
 # posx posy flux
-54 38 1000.0
+54 41 1000.0
+# 54 38 1000.0
 EOF
 
 infile=skyorg/crab_pulsar.dat
@@ -77,9 +220,26 @@ skyorg/crab_pulsar_norm.fits
 # e-mail on 2022/12/01 
 #Name    Phase           Duration        ID     
 #21              0.854-1.104     0.25            ON (2nd)
-#22              0.104-0.504     0.40            OFF
+#22              0.104-0.504     0.40            OFF (1)
 #23              0.504-0.704     0.20            ON (1st)
-#24              0.704-0.854     0.15           
+#24              0.704-0.854     0.15               (off2)
+
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_36_96_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits
+../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits
+
+~/bin/ds9 \
+ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits \
+ah100044010hx1_p1camrec_cl_301_700_x1175y1185_w80.fits \
+ah100044010hx1_p1camrec_cl_36_96_x1175y1185_w80.fits \
+crab_hxi1_gti_off1_rate_x1175y1185_w80.fits \
+crab_hxi1_gti_off2_rate_x1175y1185_w80.fits \
+crab_hxi1_gti_on1_rate_x1175y1185_w80.fits \
+crab_hxi1_gti_on2_rate_x1175y1185_w80.fits &
 
 
 
@@ -99,8 +259,8 @@ nskyx=$nskyx
 nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
-outdir=rl
-outfile_head=hxt1_crab
+outdir=rl_allphase
+outfile_head=hxt1_crab_4phase
 nloop=1000
 tol=1.0e-5
 acc_method=none
@@ -119,3 +279,267 @@ $outfile_head \
 $nloop \
 $tol \
 $acc_method
+
+
+###### test
+
+# on2
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+#../../../../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits on 0.25
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  0.15
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_on2
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+
+# off1
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+#../../../../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits on 0.25
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.25
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  0.15
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_off1
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+
+# on1
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+#../../../../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits on 0.25
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  1.0
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  0.15
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_on1
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+
+# off2
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+#../../../../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits on 0.25
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.25
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  1.0
+#../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  1.0
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_off2
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+###########
+# test only using on2, off1, on1
+
+on2 --> 0.25 / (0.25 + 0.40 + 0.20)  = 0.29413
+off1 --> 0.40 / (0.25 + 0.40 + 0.20) = 0.47058
+on1 --> 0.20 / (0.25 + 0.40 + 0.20)  = 0.23529
+
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.29413
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  0.47058
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.23529
+# ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_3phase
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+
+flux_pulsar[0] = 4.280074e+02
+flux_pulsar[1] = 1.123347e-73
+flux_pulsar[2] = 6.524322e+02
+
+##################################
+# test only using on2, off1
+
+on2 --> 0.25 / (0.25 + 0.40)  = 0.3846153
+off1 --> 0.40 / (0.25 + 0.40) = 0.6153847
+
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2     0.3846153
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1    0.6153847
+# ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   
+# ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  
+EOF
+
+data_list=data.list
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_2phase
+nloop=1000
+tol=1.0e-5
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy/richlucy \
+$data_list \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nloop \
+$tol \
+$acc_method
+
+
+flux_pulsar[0] = 3.626832e+02
+flux_pulsar[1] = 4.488974e-40
