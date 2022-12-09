@@ -12,6 +12,8 @@ void SrtlibRl::GetDetArr(const double* const rho_arr,
     // det_arr = R_mat %*% rho_arr
     char transa[1];
     strcpy(transa, "N");
+
+    // y := alpha*A*x + beta*y
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,
            const_cast<double*>(rho_arr), 1,

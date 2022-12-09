@@ -1,11 +1,13 @@
 // Simultaneous image reconstruction by Richardson-Lucy method
 // for multiple pulse phase data of Crab pulsar with Crab nebula
+// under regularizations of smoothness for Crab nebula and
+// pulse flux of Crab pulsar.
 
 #include "mir_math.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
-#include "arg_richlucy.h"
+#include "arg_richlucy_smth_pf.h"
 #include "rl_crab.h"
 
 // global variable 
@@ -19,7 +21,7 @@ int main(int argc, char* argv[])
     
     double time_st = MiTime::GetTimeSec();
     
-    ArgValRichlucy* argval = new ArgValRichlucy;
+    ArgValRichlucySmthPf* argval = new ArgValRichlucySmthPf;
     argval->Init(argc, argv);
     argval->Print(stdout);
 
@@ -168,19 +170,23 @@ int main(int argc, char* argv[])
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nphase];
     if (argval->GetAccMethod() == "none"){
-        SrtlibRlCrab::RichlucyCrab(fp_log,
-                                   rho_init_arr,
-                                   nu_init_arr,
-                                   data_arr,
-                                   phase_arr,
-                                   det_fixed_src_norm_arr,
-                                   resp_norm_mat_arr,
-                                   ndet, nsky, nphase,
-                                   argval->GetOutdir(),
-                                   argval->GetOutfileHead(),
-                                   argval->GetNloop(),
-                                   argval->GetTol(),
-                                   rho_new_arr, nu_new_arr);
+
+        // SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
+        SrtlibRlCrabSmthPf::RichlucyCrabSmthPf(
+            fp_log,
+            rho_init_arr,
+            nu_init_arr,
+            data_arr,
+            phase_arr,
+            det_fixed_src_norm_arr,
+            resp_norm_mat_arr,
+            ndet, nsky, nphase,
+            argval->GetOutdir(),
+            argval->GetOutfileHead(),
+            argval->GetNem(), argval->GetTolEm(),
+            argval->GetNpm(), argval->GetTolPm(),
+            argval->GetNnewton(), argval->GetTolNewton(),
+            rho_new_arr, nu_new_arr);
     } else if (argval->GetAccMethod() == "squarem"){
         SrtlibRlCrab::RichlucyCrabAccSquarem(
             fp_log,

@@ -1,48 +1,52 @@
 #include "rl.h"
 #include "rl_statval.h"
-#include "rl_bg2_smth_em.h"
-#include "rl_bg2_smth_pm.h"
+#include "rl_crab_smth_pf_em.h"
+#include "rl_crab_smth_pf_pm.h"
 
-void SrtlibRlBg2SmthEm::RichlucyBg2Smth(
+void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
     FILE* const fp_log,
     const double* const rho_init_arr,
-    double nu_init,
-    const double* const data_arr,
-    const double* const bg_arr,
+    const double* const nu_init_arr,
+    const double* const* const data_arr,
+    const double* const phase_arr,
+    const double* const det_0_arr,
     const double* const resp_norm_mat_arr,
-    int ndet, int nskyx, int nskyy, double mu,
+    int ndet, int nskyx, int nskyy, int nphase,
+    double mu, double gamma,
     string outdir,
     string outfile_head,
     int nem, double tol_em,
     int npm, double tol_pm,
     int nnewton, double tol_newton,
     double* const rho_new_arr,
-    double* const nu_new_ptr)
+    double* const nu_new_arr)
 {
     int nsky = nskyx * nskyy;
     double* rho_pre_arr = new double[nsky];
+    double* nu_pre_arr = new double[nphase];
     dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_pre_arr, 1);
-    double nu_pre = nu_init;
-    double nu_new = 0.0;
+    dcopy_(nphase, const_cast<double*>(nu_init_arr), 1, nu_pre_arr, 1);
     for(int iem = 0; iem < nem; iem ++){
         double* mval_arr = new double[nsky];
-        double nval = 0.0;
-        GetMArrNval(rho_pre_arr, nu_pre,
-                    data_arr, bg_arr,
-                    resp_norm_mat_arr, 
-                    ndet, nsky, mval_arr, &nval);
+        double* nval_arr = new double[nphase];
+        SrtlibRlCrab::GetRhoNuNewNumArr(rho_pre_arr, nu_pre_arr,
+                                        data_arr,
+                                        phase_arr, det_0_arr,
+                                        resp_norm_mat_arr, 
+                                        ndet, nsky, nphase,
+                                        mval_arr, nval_arr);
         double helldist_pm = 0.0;
         int flag_converge_pm = 0;
-        SrtlibRlBg2SmthPm::GetRhoNu_ByPm(
+        SrtlibRlCrabSmthPfPm::GetRhoNu_ByPm(
             fp_log,
-            rho_pre_arr, nu_pre,
-            mval_arr, nval,
-            nskyx, nskyy,
-            mu,
+            rho_pre_arr, nu_pre_arr,
+            mval_arr, nval_arr,
+            nskyx, nskyy, nphase,
+            mu, gamma,
             npm, tol_pm,
             nnewton, tol_newton,
             rho_new_arr,
-            &nu_new,
+            nu_new_arr,
             &helldist_pm,
             &flag_converge_pm);
         if (flag_converge_pm == 0){
@@ -52,9 +56,11 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth(
                              helldist_pm);
         }
         delete [] mval_arr;
-        double helldist  = SrtlibRlStatval::GetHellingerDist(
-            rho_pre_arr, nu_pre,
-            rho_new_arr, nu_new, nsky);
+        delete [] nval_arr;
+        double helldist  = SrtlibRlStatvalCrab::GetHellingerDist(
+            rho_pre_arr, nu_pre_arr,
+            rho_new_arr, nu_new_arr,
+            nsky, nphase);
         if (access( "/tmp/rl_bg2_smth_em_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
@@ -67,16 +73,16 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth(
             break;
         }
         dcopy_(nsky, rho_new_arr, 1, rho_pre_arr, 1);
-        nu_pre = nu_new;
+        dcopy_(nphase, nu_new_arr, 1, nu_pre_arr, 1);
         MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
                          iem, helldist);
     }
     delete [] rho_pre_arr;
-    *nu_new_ptr = nu_new;
+    delete [] nu_pre_arr;
 }
 
 // accerelation by SQUAREM
-void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
+void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf_Squarem(
     FILE* const fp_log,
     const double* const rho_init_arr,
     double nu_init,
@@ -283,42 +289,5 @@ void SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
     delete [] rho_0_new_arr;
     
     *nu_new_ptr = nu_new;
-}
-
-// get m_arr & n_val
-void SrtlibRlBg2SmthEm::GetMArrNval(
-    const double* const rho_arr, double nu,
-    const double* const data_arr,
-    const double* const bg_arr,    
-    const double* const resp_norm_mat_arr,
-    int ndet, int nsky,
-    double* const mval_arr,
-    double* const nval_ptr)
-{
-    double* den_arr = new double[ndet];
-    for(int idet = 0; idet < ndet; idet ++){
-        den_arr[idet] = 0.0;
-    }
-    SrtlibRl::GetDetArr(rho_arr, resp_norm_mat_arr, ndet, nsky, den_arr);
-    daxpy_(ndet, nu, const_cast<double*>(bg_arr), 1, den_arr, 1);
-    double* div_arr = new double[ndet];
-    for(int idet = 0; idet < ndet; idet++){
-        div_arr[idet] = data_arr[idet] / den_arr[idet];
-    }
-    double* tmp_arr = new double[nsky];
-    char transa[1];
-    strcpy(transa, "T");    
-    dgemv_(transa, ndet, nsky, 1.0,
-           const_cast<double*>(resp_norm_mat_arr), ndet,
-           div_arr, 1,
-           0.0, tmp_arr, 1);
-    MibBlas::ElmWiseMul(nsky, 1.0,
-                        tmp_arr, rho_arr, mval_arr);
-    double nval = ddot_(ndet, div_arr, 1, const_cast<double*>(bg_arr), 1) * nu;
-    
-    delete [] den_arr;
-    delete [] div_arr;
-    delete [] tmp_arr;
-    *nval_ptr = nval;
 }
 

@@ -5,5 +5,12 @@
 Source code for crab nebula + crab pulsar.
 simultaneous image reconstruction for multiple pulse phase data.
 
+# directory
+
+richlucy:
+  Richardson-Lucy method
+richlucy_smth_pf: 
+  Richardson-Lucy method
+  with smooth regularization and pulse flux regularization
 
 

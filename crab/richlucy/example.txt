@@ -263,7 +263,7 @@ outdir=rl_allphase
 outfile_head=hxt1_crab_4phase
 nloop=1000
 tol=1.0e-5
-acc_method=none
+acc_method=squarem
 
 ~/work/github/moriiism/srt/crab/richlucy/richlucy \
 $data_list \
@@ -279,6 +279,42 @@ $outfile_head \
 $nloop \
 $tol \
 $acc_method
+
+iem = 32, helldist = 3.456496e-03
+warning: iem = 33, ifind_nonneg == 0
+iem = 33, helldist = 0.000000e+00
+sum_sky_new = 1.031452e+03
+
+iem = 254, helldist = 6.542131e-04
+iem = 255, helldist = 6.528400e-04
+warning: iem = 256, ifind_nonneg == 0
+iem = 256, helldist = 0.000000e+00
+
+
+iem = 997, helldist = 3.252010e-04
+iem = 998, helldist = 3.249557e-04
+iem = 999, helldist = 3.247106e-04
+sum_sky_new = 1.020086e+03
+flux_pulsar[0] = 4.557067e+02
+flux_pulsar[1] = 9.467365e-105
+flux_pulsar[2] = 7.141829e+02
+flux_pulsar[3] = 9.143398e+02
+duration = 1.227422e+03 sec.
+
+
+iem = 997, helldist = 4.675202e-04
+beta = 2.670394e+00
+iem = 998, helldist = 6.722784e-05
+beta = 2.489935e+01
+iem = 999, helldist = 4.743865e-04
+sum_sky_new = 1.018528e+03
+flux_pulsar[0] = 4.583069e+02
+flux_pulsar[1] = 0.000000e+00
+flux_pulsar[2] = 7.167391e+02
+flux_pulsar[3] = 9.169845e+02
+duration = 7.153131e+02 sec.
+
+
 
 
 ###### test
