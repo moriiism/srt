@@ -1,5 +1,5 @@
 #include "rl.h"
-#include "rl_statval.h"
+#include "rl_statval_crab.h"
 #include "rl_crab_smth_pf_em.h"
 #include "rl_crab_smth_pf_pm.h"
 
@@ -8,6 +8,7 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
     const double* const rho_init_arr,
     const double* const nu_init_arr,
     const double* const* const data_arr,
+    const double* const nu_0_arr,
     const double* const phase_arr,
     const double* const det_0_arr,
     const double* const resp_norm_mat_arr,
@@ -41,6 +42,7 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
             fp_log,
             rho_pre_arr, nu_pre_arr,
             mval_arr, nval_arr,
+            nu_0_arr,
             nskyx, nskyy, nphase,
             mu, gamma,
             npm, tol_pm,
@@ -50,10 +52,11 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
             &helldist_pm,
             &flag_converge_pm);
         if (flag_converge_pm == 0){
-            MiIolib::Printf2(fp_log,
-                             "iem = %d: pm: not converged: helldist_pm = %.2e\n",
-                             iem,
-                             helldist_pm);
+            MiIolib::Printf2(
+                fp_log,
+                "iem = %d: pm: not converged: helldist_pm = %.2e\n",
+                iem,
+                helldist_pm);
         }
         delete [] mval_arr;
         delete [] nval_arr;
@@ -61,10 +64,10 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
             rho_pre_arr, nu_pre_arr,
             rho_new_arr, nu_new_arr,
             nsky, nphase);
-        if (access( "/tmp/rl_bg2_smth_em_stop", R_OK ) != -1){
+        if (access( "/tmp/rl_crab_smth_pf_em_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
-                "/tmp/rl_bg2_smth_em_stop file is found, then stop.\n");
+                "/tmp/rl_crab_smth_pf_em_stop file is found, then stop.\n");
             break;
         }
         if (helldist < tol_em){
@@ -81,8 +84,8 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
     delete [] nu_pre_arr;
 }
 
-// accerelation by SQUAREM
-void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf_Squarem(
+// accerelation by SQUAREM and Nesterov
+void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf_Acc(
     FILE* const fp_log,
     const double* const rho_init_arr,
     double nu_init,

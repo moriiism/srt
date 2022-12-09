@@ -100,6 +100,20 @@ int main(int argc, char* argv[])
     int nph_fixed_src_norm = MirMath::GetSum(nsky, sky_fixed_src_norm_arr);
     MiIolib::Printf2(fp_log, "N photon fixed source with normalized flux = %d\n",
                      nph_fixed_src_norm);
+
+    // load nu_0_file
+    long nphase_long_nu_0 = 0;
+    string* line_nu_0_arr = NULL;
+    MiIolib::GenReadFileSkipComment(argval->GetNu0File(),
+                                    &line_nu_0_arr,
+                                    &nphase_long_nu_0);
+    // here!
+    
+
+
+
+
+
     
     // load response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
@@ -177,6 +191,7 @@ int main(int argc, char* argv[])
             rho_init_arr,
             nu_init_arr,
             data_arr,
+            nu_0_arr,
             phase_arr,
             det_fixed_src_norm_arr,
             resp_norm_mat_arr,
