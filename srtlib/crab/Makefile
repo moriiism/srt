@@ -9,8 +9,8 @@ $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
 TARGET := libsrtlib_crab.a
 
-OBJ := rl_crab.o  rl_statval_crab.o
-
+OBJ := rl_crab.o  rl_statval_crab.o \
+	rl_crab_smth_pf_em.o  rl_crab_smth_pf_pm.o  rl_crab_smth_pf_newton.o
 
 all: $(TARGET) 
 

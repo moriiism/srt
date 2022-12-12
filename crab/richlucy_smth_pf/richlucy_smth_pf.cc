@@ -9,6 +9,8 @@
 #include "mi_time.h"
 #include "arg_richlucy_smth_pf.h"
 #include "rl_crab.h"
+#include "rl_crab_smth_pf_em.h"
+
 
 // global variable 
 int g_flag_debug = 0;
@@ -186,7 +188,7 @@ int main(int argc, char* argv[])
     if (argval->GetAccMethod() == "none"){
 
         // SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
-        SrtlibRlCrabSmthPf::RichlucyCrabSmthPf(
+        SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
             fp_log,
             rho_init_arr,
             nu_init_arr,
@@ -202,21 +204,21 @@ int main(int argc, char* argv[])
             argval->GetNpm(), argval->GetTolPm(),
             argval->GetNnewton(), argval->GetTolNewton(),
             rho_new_arr, nu_new_arr);
-    } else if (argval->GetAccMethod() == "squarem"){
-        SrtlibRlCrab::RichlucyCrabAccSquarem(
-            fp_log,
-            rho_init_arr,
-            nu_init_arr,
-            data_arr,
-            phase_arr,
-            det_fixed_src_norm_arr,
-            resp_norm_mat_arr,
-            ndet, nsky, nphase,
-            argval->GetOutdir(),
-            argval->GetOutfileHead(),
-            argval->GetNloop(),
-            argval->GetTol(),
-            rho_new_arr, nu_new_arr);
+//    } else if (argval->GetAccMethod() == "squarem"){
+//        SrtlibRlCrab::RichlucyCrabAccSquarem(
+//            fp_log,
+//            rho_init_arr,
+//            nu_init_arr,
+//            data_arr,
+//            phase_arr,
+//            det_fixed_src_norm_arr,
+//            resp_norm_mat_arr,
+//            ndet, nsky, nphase,
+//            argval->GetOutdir(),
+//            argval->GetOutfileHead(),
+//            argval->GetNloop(),
+//            argval->GetTol(),
+//            rho_new_arr, nu_new_arr);
     } else {
         printf("bad acc_method\n");
         abort();

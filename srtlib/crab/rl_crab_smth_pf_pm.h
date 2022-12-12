@@ -26,6 +26,7 @@ namespace SrtlibRlCrabSmthPfPm
         const double* const nu_arr,
         const double* const mval_arr,
         const double* const nval_arr,
+        const double* const nu_0_arr,
         double mu, double gamma,
         int nskyx, int nskyy, int nphase,
         double lip_const, double lambda,
@@ -35,22 +36,10 @@ namespace SrtlibRlCrabSmthPfPm
                       const double* const nu_new_arr,
                       const double* const rho_arr,
                       const double* const nu_arr,
+                      const double* const nu_0_arr,
                       double mu, double gamma,
                       double lip_const,
                       int nskyx, int nskyy, int nphase);
-
-    double GetFuncF1(const double* const rho_arr,
-                     double mu, int nskyx, int nskyy);
-    double GetFuncF2(const double* const nu_arr,
-                     const double* const nu_0_arr,
-                     double gamma, int nphase);
-    void GetDiffF1(const double* const rho_arr,
-                   double mu, int nskyx, int nskyy,
-                   double* const out_arr);
-    void GetDiffF2(const double* const nu_arr,
-                   const double* const nu_0_arr,
-                   double gamma, int nphase,
-                   double* const out_arr);
 
     double GetTermD(const double* const nu_arr,
                     const double* const nu_0_arr,
@@ -58,7 +47,7 @@ namespace SrtlibRlCrabSmthPfPm
     void GetDiffTermD(const double* const nu_arr,
                       const double* const nu_0_arr,
                       int nphase,
-                      double* const termd_diff_arr);
+                      double* const term_d_diff_arr);
     
     void GetRhoNu_ByPm(
         FILE* const fp_log,
@@ -66,6 +55,7 @@ namespace SrtlibRlCrabSmthPfPm
         const double* const nu_arr,
         const double* const mval_arr,
         const double* const nval_arr,
+        const double* const nu_0_arr,
         int nskyx, int nskyy, int nphase,
         double mu, double gamma,
         int npm, double tol_pm,
@@ -75,20 +65,20 @@ namespace SrtlibRlCrabSmthPfPm
         double* const helldist_ptr,
         int* const flag_converge_ptr);
 
-    void GetRhoNu_ByPm_Nesterov(
-        FILE* const fp_log,
-        const double* const rho_arr,
-        const double* const nu_arr,
-        const double* const mval_arr,
-        const double* const nval_arr,
-        int nskyx, int nskyy, int nphase,
-        double mu, double gamma,
-        int npm, double tol_pm,
-        int nnewton, double tol_newton,
-        double* const rho_new_arr,
-        double* const nu_new_arr,
-        double* const helldist_ptr,
-        int* const flag_converge_ptr);
+//    void GetRhoNu_ByPm_Nesterov(
+//        FILE* const fp_log,
+//        const double* const rho_arr,
+//        const double* const nu_arr,
+//        const double* const mval_arr,
+//        const double* const nval_arr,
+//        int nskyx, int nskyy, int nphase,
+//        double mu, double gamma,
+//        int npm, double tol_pm,
+//        int nnewton, double tol_newton,
+//        double* const rho_new_arr,
+//        double* const nu_new_arr,
+//        double* const helldist_ptr,
+//        int* const flag_converge_ptr);
     
 } // namespace SrtlibRlCrabSmthPfPm
 

@@ -14,6 +14,7 @@ namespace SrtlibRlCrabSmthPfEm
         const double* const rho_init_arr,
         const double* const nu_init_arr,
         const double* const* const data_arr,
+        const double* const nu_0_arr,        
         const double* const phase_arr,
         const double* const det_0_arr,
         const double* const resp_norm_mat_arr,

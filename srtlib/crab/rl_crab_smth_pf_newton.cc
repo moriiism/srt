@@ -58,7 +58,7 @@ void SrtlibRlCrabSmthPfNewton::GetDerivRhoArr_FromLambda(
 }
 
 // get derivative of nu from lambda
-double SrtlibRlCrabSmthPfNewton::GetDerivNuArr_FromLambda(
+void SrtlibRlCrabSmthPfNewton::GetDerivNuArr_FromLambda(
     double lambda,
     double lip_const,
     const double* const wval_arr,
