@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
     string* data_list_arr = new string[nphase];
     string* phase_tag_arr = new string[nphase];
     double* phase_arr = new double[nphase];
+    double* nu_0_arr = new double[nphase];
     for(int iphase = 0; iphase < nphase; iphase ++){
         int nsplit = 0;
         string* split_arr = NULL;
@@ -66,6 +67,7 @@ int main(int argc, char* argv[])
         data_list_arr[iphase] = split_arr[0];
         phase_tag_arr[iphase] = split_arr[1];
         phase_arr[iphase] = atof(split_arr[2].c_str());
+        nu_0_arr[iphase] = atof(split_arr[3].c_str());
         MiStr::DelSplit(split_arr);
     }
     MiIolib::DelReadFile(line_data_list_arr);
@@ -73,7 +75,10 @@ int main(int argc, char* argv[])
     for(int iphase = 0; iphase < nphase; iphase ++){
         printf("phase_arr[%d] = %e\n", iphase, phase_arr[iphase]);
     }
-
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        printf("nu_0_arr[%d] = %e\n", iphase, nu_0_arr[iphase]);
+    }
+    
     // load image data
     double** data_arr = new double*[nphase];
     int* nph_data_arr = new int[nphase];
@@ -103,26 +108,6 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "N photon fixed source with normalized flux = %d\n",
                      nph_fixed_src_norm);
 
-    // load nu_0_file
-    long nphase_long_nu_0 = 0;
-    string* line_nu_0_arr = NULL;
-    MiIolib::GenReadFileSkipComment(argval->GetNu0File(),
-                                    &line_nu_0_arr,
-                                    &nphase_long_nu_0);
-    if(nphase_long_nu_0 != nphase){
-        printf("Error: nphase_long_nu_0 (%ld) != nphase (%d)\n",
-               nphase_long_nu_0, nphase);
-        abort();
-    }
-    double* nu_0_arr = new double[nphase];
-    for(int iphase = 0; iphase < nphase; iphase ++){
-        int nsplit = 0;
-        string* split_arr = NULL;
-        MiStr::GenSplit(line_nu_0_arr[iphase], &nsplit, &split_arr);
-        nu_0_arr[iphase] = atof(split_arr[1].c_str());
-        MiStr::DelSplit(split_arr);
-    }
-    MiIolib::DelReadFile(line_nu_0_arr);
     
     // load response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
@@ -193,7 +178,6 @@ int main(int argc, char* argv[])
     double* rho_new_arr = new double[nsky];
     double* nu_new_arr = new double[nphase];
     if (argval->GetAccMethod() == "none"){
-
         // SrtlibRlBg2SmthEm::RichlucyBg2Smth_Acc(
         SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
             fp_log,
@@ -212,20 +196,23 @@ int main(int argc, char* argv[])
             argval->GetNpm(), argval->GetTolPm(),
             argval->GetNnewton(), argval->GetTolNewton(),
             rho_new_arr, nu_new_arr);
-//    } else if (argval->GetAccMethod() == "squarem"){
-//        SrtlibRlCrab::RichlucyCrabAccSquarem(
+//    } else if (argval->GetAccMethod() == "acc"){
+//        SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPfAcc(
 //            fp_log,
 //            rho_init_arr,
 //            nu_init_arr,
 //            data_arr,
+//            nu_0_arr,
 //            phase_arr,
 //            det_fixed_src_norm_arr,
 //            resp_norm_mat_arr,
-//            ndet, nsky, nphase,
+//            ndet, nskyx, nskyy, nphase,
+//            argval->GetMu(), argval->GetGamma(),
 //            argval->GetOutdir(),
 //            argval->GetOutfileHead(),
-//            argval->GetNloop(),
-//            argval->GetTol(),
+//            argval->GetNem(), argval->GetTolEm(),
+//            argval->GetNpm(), argval->GetTolPm(),
+//            argval->GetNnewton(), argval->GetTolNewton(),
 //            rho_new_arr, nu_new_arr);
     } else {
         printf("bad acc_method\n");
@@ -248,7 +235,11 @@ int main(int argc, char* argv[])
         MiIolib::Printf2(fp_log, "flux_pulsar[%d] = %e\n",
                          iphase, flux_pulsar_arr[iphase]);
     }
-
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        MiIolib::Printf2(fp_log, "nu_new_arr[%d] = %e\n",
+                         iphase, nu_new_arr[iphase]);
+    }
+    
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];

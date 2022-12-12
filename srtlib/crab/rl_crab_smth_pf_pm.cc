@@ -93,6 +93,8 @@ double SrtlibRlCrabSmthPfPm::GetFindLipConst(
             nskyx, nskyy, nphase);
         delete [] vval_arr;
         delete [] wval_arr;
+
+        // printf("debug: ik: %d, qminusf = %e\n", ik, qminusf);
         if(qminusf >= 0.0){
             flag_find_lip_const = 1;
             break;
@@ -143,8 +145,12 @@ double SrtlibRlCrabSmthPfPm::GetQMinusF(
     
     double term5 = lip_const / 2.0 *
         (ddot_(nsky, diff_rho_arr, 1, diff_rho_arr, 1)
-         + ddot_(nsky, diff_nu_arr, 1, diff_nu_arr, 1));
+         + ddot_(nphase, diff_nu_arr, 1, diff_nu_arr, 1));
     double ans = term1 + term2 + term3 + term4 + term5;
+
+    //printf("term1,2,3,4,5: %e %e %e %e %e\n",
+    //       term1, term2, term3, term4, term5);
+    
     delete [] diff_rho_arr;
     delete [] deriv_v_arr;
     delete [] diff_nu_arr;

@@ -80,21 +80,24 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
 }
 
 //// accerelation by SQUAREM and Nesterov
-//void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf_Acc(
+//void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPfAcc(
 //    FILE* const fp_log,
 //    const double* const rho_init_arr,
-//    double nu_init,
-//    const double* const data_arr,
-//    const double* const bg_arr,
+//    const double* const nu_init_arr,
+//    const double* const* const data_arr,
+//    const double* const nu_target_arr,
+//    const double* const phase_arr,
+//    const double* const det_0_arr,
 //    const double* const resp_norm_mat_arr,
-//    int ndet, int nskyx, int nskyy, double mu,
+//    int ndet, int nskyx, int nskyy, int nphase,
+//    double mu, double gamma,
 //    string outdir,
 //    string outfile_head,
 //    int nem, double tol_em,
 //    int npm, double tol_pm,
 //    int nnewton, double tol_newton,
 //    double* const rho_new_arr,
-//    double* const nu_new_ptr)
+//    double* const nu_new_arr)
 //{
 //    int nsky = nskyx * nskyy;
 //
@@ -106,38 +109,38 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
 //    double* r2_rho_arr  = new double[nsky];
 //    double* v_rho_arr  = new double[nsky];
 //    double* rho_0_new_arr  = new double[nsky];
+//    double* diff_rho_0_arr = new double[nsky];    
 //
-//    double nu_0 = 0.0;
-//    double nu_1 = 0.0;
-//    double nu_2 = 0.0;
-//    double nu_dash = 0.0;
-//    double r_nu = 0.0;
-//    double r2_nu = 0.0;
-//    double v_nu = 0.0;
-//    double nu_0_new = 0.0;
-//
+//    double* nu_0_arr  = new double[nphase];
+//    double* nu_1_arr  = new double[nphase];
+//    double* nu_2_arr  = new double[nphase];
+//    double* nu_dash_arr  = new double[nphase];
+//    double* r_nu_arr  = new double[nphase];
+//    double* r2_nu_arr  = new double[nphase];
+//    double* v_nu_arr  = new double[nphase];
+//    double* nu_0_new_arr  = new double[nphase];
+//    double* diff_nu_0_arr = new double[nphase];
+//    
 //    dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_0_arr, 1);
-//    nu_0 = nu_init;
+//    dcopy_(nphase, const_cast<double*>(nu_init_arr), 1, nu_0_arr, 1);
+//
 //    for(int iem = 0; iem < nem; iem ++){
 //        double* mval_arr = new double[nsky];
-//        double nval = 0.0;
-//
+//        double* nval_arr = new double[nphase];
 //        double helldist_pm1 = 0.0;
 //        int flag_converge_pm1 = 0;
-//        GetMArrNval(rho_0_arr, nu_0,
-//                    data_arr, bg_arr,
-//                    resp_norm_mat_arr, 
-//                    ndet, nsky, mval_arr, &nval);
-//        SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
-//            fp_log,
-//            rho_0_arr, nu_0,
-//            mval_arr, nval,
-//            nskyx, nskyy,
-//            mu,
-//            npm, tol_pm,
-//            nnewton, tol_newton,
-//            rho_1_arr,
-//            &nu_1,
+//        SrtlibRlCrab::GetRhoNuNewNumArr(rho_0_arr, nu_0_arr,
+//                                        data_arr,
+//                                        phase_arr, det_0_arr,
+//                                        resp_norm_mat_arr, 
+//                                        ndet, nsky, nphase,
+//                                        mval_arr, nval_arr);        
+//        SrtlibRlCrabSmthPfPm::GetRhoNu_ByPm(
+//            fp_log, rho_0_arr, nu_0_arr,
+//            mval_arr, nval_arr, nu_target_arr,
+//            nskyx, nskyy, nphase, mu, gamma,
+//            npm, tol_pm, nnewton, tol_newton,
+//            rho_1_arr, nu_1_arr,
 //            &helldist_pm1,
 //            &flag_converge_pm1);
 //        if (flag_converge_pm1 == 0){
@@ -148,20 +151,18 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
 //        }
 //        double helldist_pm2 = 0.0;
 //        int flag_converge_pm2 = 0;
-//        GetMArrNval(rho_1_arr, nu_1,
-//                    data_arr, bg_arr,
-//                    resp_norm_mat_arr, 
-//                    ndet, nsky, mval_arr, &nval);
-//        SrtlibRlBg2SmthPm::GetRhoNu_ByPm_Nesterov(
-//            fp_log,
-//            rho_1_arr, nu_1,
-//            mval_arr, nval,
-//            nskyx, nskyy,
-//            mu,
-//            npm, tol_pm,
-//            nnewton, tol_newton,
-//            rho_2_arr,
-//            &nu_2,
+//        SrtlibRlCrab::GetRhoNuNewNumArr(rho_1_arr, nu_1_arr,
+//                                        data_arr,
+//                                        phase_arr, det_0_arr,
+//                                        resp_norm_mat_arr, 
+//                                        ndet, nsky, nphase,
+//                                        mval_arr, nval_arr);        
+//        SrtlibRlCrabSmthPfPm::GetRhoNu_ByPm(
+//            fp_log, rho_1_arr, nu_1_arr,
+//            mval_arr, nval_arr, nu_target_ar,
+//            nskyx, nskyy, nphase, mu, gamma,
+//            npm, tol_pm, nnewton, tol_newton,
+//            rho_2_arr, nu_2_arr,
 //            &helldist_pm2,
 //            &flag_converge_pm2);
 //        if (flag_converge_pm2 == 0){
@@ -172,19 +173,25 @@ void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPf(
 //        }
 //
 //        MibBlas::Sub(rho_1_arr, rho_0_arr, nsky, r_rho_arr);
+//        MibBlas::Sub(nu_1_arr, nu_0_arr, nphase, r_nu_arr);        
 //        MibBlas::Sub(rho_2_arr, rho_1_arr, nsky, r2_rho_arr);
+//        MibBlas::Sub(nu_2_arr, nu_1_arr, nphase, r2_nu_arr);        
 //        MibBlas::Sub(r2_rho_arr, r_rho_arr, nsky, v_rho_arr);
-//
-//        r_nu = nu_1 - nu_0;
-//        r2_nu = nu_2 - nu_1;
-//        v_nu = r2_nu - r_nu;
+//        MibBlas::Sub(r2_nu_arr, r_nu_arr, nphase, v_nu_arr);
 //
 //        double r_norm2 = ddot_(nsky, r_rho_arr, 1, r_rho_arr, 1)
-//            + r_nu * r_nu;
+//            + ddot_(nphase, r_nu_arr, 1, r_nu_arr, 1);
 //        double v_norm2 = ddot_(nsky, v_rho_arr, 1, v_rho_arr, 1)
-//            + v_nu * v_nu;
+//            + ddot_(nphase, v_nu_arr, 1, v_nu_arr, 1);            
 //        double alpha = -1.0 * sqrt(r_norm2 / v_norm2);
 //
+//        // Zhou 2011 
+//        double d_norm2 = ddot_(nsky, r_rho_arr, 1, v_rho_arr, 1)
+//            + ddot_(nphase, r_nu_arr, 1, v_nu_arr, 1);
+//        double beta = -1.0 * r_norm2 / d_norm2;
+//        printf("beta = %e\n", beta);
+//
+//        
 //        int nk = 100;
 //        double eta = 0.8;
 //        int ifind_nonneg = 0;
