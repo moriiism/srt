@@ -26,7 +26,7 @@ public:
         nnewton_(0),
         tol_newton_(0.0),
         mu_(0.0),
-        lambda_(0.0),
+        gamma_(0.0),
         acc_method_("") {}
     ~ArgValRichlucySmthPf(){
         Null();
@@ -53,7 +53,7 @@ public:
     int    GetNnewton() const {return nnewton_;};
     double GetTolNewton() const {return tol_newton_;};
     double GetMu() const {return mu_;};
-    double GetLambda() const {return lambda_;};
+    double GetGamma() const {return gamma_;};
     string GetAccMethod() const {return acc_method_;};
 
 private:
@@ -76,7 +76,7 @@ private:
     int    nnewton_;
     double tol_newton_;
     double mu_;
-    double lambda_;
+    double gamma_;
     string acc_method_;
 
     void Null();

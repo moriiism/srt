@@ -42,7 +42,7 @@ void ArgValRichlucySmthPf::Init(int argc, char* argv[])
     nnewton_        = atoi(argv[iarg]); iarg++;
     tol_newton_     = atof(argv[iarg]); iarg++;
     mu_             = atof(argv[iarg]); iarg++;
-    lambda_         = atof(argv[iarg]); iarg++;
+    gamma_          = atof(argv[iarg]); iarg++;
     acc_method_     = argv[iarg]; iarg++;
 }
 
@@ -72,7 +72,7 @@ void ArgValRichlucySmthPf::Print(FILE* fp) const
     fprintf(fp, "%s: nnewton_        : %d\n", __func__, nnewton_);
     fprintf(fp, "%s: tol_newton_     : %f\n", __func__, tol_newton_);
     fprintf(fp, "%s: mu_             : %f\n", __func__, mu_);
-    fprintf(fp, "%s: lambda_         : %f\n", __func__, lambda_);
+    fprintf(fp, "%s: gamma_          : %f\n", __func__, gamma_);
     fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
 }
 
@@ -99,7 +99,7 @@ void ArgValRichlucySmthPf::Null()
     nnewton_    = 0;
     tol_newton_ = 0.0;
     mu_         = 0.0;
-    lambda_     = 0.0;    
+    gamma_      = 0.0;    
     acc_method_ = "";
 }
 
@@ -160,7 +160,7 @@ void ArgValRichlucySmthPf::Usage(FILE* fp) const
             "data_list  fixed_src_norm_file  nu_0_file  resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
-            "nem  tol_em  npm  tol_pm  nnewton  tol_newton  mu  lambda"
+            "nem  tol_em  npm  tol_pm  nnewton  tol_newton  mu  gamma  "
             "acc_method\n",
             progname_.c_str());
     abort();

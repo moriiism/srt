@@ -109,13 +109,20 @@ int main(int argc, char* argv[])
     MiIolib::GenReadFileSkipComment(argval->GetNu0File(),
                                     &line_nu_0_arr,
                                     &nphase_long_nu_0);
-    // here!
-    
-
-
-
-
-
+    if(nphase_long_nu_0 != nphase){
+        printf("Error: nphase_long_nu_0 (%ld) != nphase (%d)\n",
+               nphase_long_nu_0, nphase);
+        abort();
+    }
+    double* nu_0_arr = new double[nphase];
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        int nsplit = 0;
+        string* split_arr = NULL;
+        MiStr::GenSplit(line_nu_0_arr[iphase], &nsplit, &split_arr);
+        nu_0_arr[iphase] = atof(split_arr[1].c_str());
+        MiStr::DelSplit(split_arr);
+    }
+    MiIolib::DelReadFile(line_nu_0_arr);
     
     // load response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
@@ -197,7 +204,8 @@ int main(int argc, char* argv[])
             phase_arr,
             det_fixed_src_norm_arr,
             resp_norm_mat_arr,
-            ndet, nsky, nphase,
+            ndet, nskyx, nskyy, nphase,
+            argval->GetMu(), argval->GetGamma(),
             argval->GetOutdir(),
             argval->GetOutfileHead(),
             argval->GetNem(), argval->GetTolEm(),
