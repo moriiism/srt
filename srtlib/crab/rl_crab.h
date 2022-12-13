@@ -43,8 +43,7 @@ namespace SrtlibRlCrab
                       double* const rho_new_arr,
                       double* const nu_new_arr);
 
-    // accerelated richardson lucy (SQUAREM)
-    void RichlucyCrabAccSquarem(
+    void RichlucyCrabAccZALq1(
         FILE* const fp_log,
         const double* const rho_init_arr,
         const double* const nu_init_arr,
@@ -57,7 +56,7 @@ namespace SrtlibRlCrab
         int nem, double tol_em,
         double* const rho_new_arr,
         double* const nu_new_arr);
-
+    
 
 } // namespace SrtlibRl
 

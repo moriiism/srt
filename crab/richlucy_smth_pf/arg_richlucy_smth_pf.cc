@@ -64,13 +64,13 @@ void ArgValRichlucySmthPf::Print(FILE* fp) const
     fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
     fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
-    fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
+    fprintf(fp, "%s: tol_em_         : %e\n", __func__, tol_em_);
     fprintf(fp, "%s: npm_            : %d\n", __func__, npm_);
-    fprintf(fp, "%s: tol_pm_         : %f\n", __func__, tol_pm_);
+    fprintf(fp, "%s: tol_pm_         : %e\n", __func__, tol_pm_);
     fprintf(fp, "%s: nnewton_        : %d\n", __func__, nnewton_);
-    fprintf(fp, "%s: tol_newton_     : %f\n", __func__, tol_newton_);
-    fprintf(fp, "%s: mu_             : %f\n", __func__, mu_);
-    fprintf(fp, "%s: gamma_          : %f\n", __func__, gamma_);
+    fprintf(fp, "%s: tol_newton_     : %e\n", __func__, tol_newton_);
+    fprintf(fp, "%s: mu_             : %e\n", __func__, mu_);
+    fprintf(fp, "%s: gamma_          : %e\n", __func__, gamma_);
     fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
 }
 
