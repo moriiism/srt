@@ -21,6 +21,20 @@ namespace SrtlibRlCrabSmthPfZal
         const double* const phase_arr,
         int nphase, double gamma,
         double* const flux_new_arr);
+
+    void GetSkyFluxNewArr(
+        const double* const sky_pre_arr,
+        const double* const flux_pre_arr,
+        const double* const* const data_arr,
+        const double* const bg_arr,
+        const double* const flux_target_arr,
+        const double* const phase_arr,
+        const double* const det_0_arr,
+        const double* const resp_norm_mat_arr,    
+        int ndet, int nskyx, int nskyy, int nphase,
+        double mu, double gamma,
+        double* const sky_new_arr,
+        double* const flux_new_arr);
     
     void RichlucyCrabSmthPfZal(
         FILE* const fp_log,
@@ -29,6 +43,42 @@ namespace SrtlibRlCrabSmthPfZal
         const double* const* const data_arr,
         const double* const bg_arr,
         const double* const flux_target_arr,        
+        const double* const phase_arr,
+        const double* const det_0_arr,
+        const double* const resp_norm_mat_arr,
+        int ndet, int nskyx, int nskyy, int nphase,
+        double mu, double gamma,
+        string outdir,
+        string outfile_head,
+        int nem, double tol_em,
+        double* const sky_new_arr,
+        double* const flux_new_arr);
+
+    void RichlucyCrabSmthPfZalQ1(
+        FILE* const fp_log,
+        const double* const sky_init_arr,
+        const double* const flux_init_arr,
+        const double* const* const data_arr,
+        const double* const bg_arr,    
+        const double* const flux_target_arr,
+        const double* const phase_arr,
+        const double* const det_0_arr,
+        const double* const resp_norm_mat_arr,
+        int ndet, int nskyx, int nskyy, int nphase,
+        double mu, double gamma,
+        string outdir,
+        string outfile_head,
+        int nem, double tol_em,
+        double* const sky_new_arr,
+        double* const flux_new_arr);
+
+    void RichlucyCrabSmthPfSqS3(
+        FILE* const fp_log,
+        const double* const sky_init_arr,
+        const double* const flux_init_arr,
+        const double* const* const data_arr,
+        const double* const bg_arr,    
+        const double* const flux_target_arr,
         const double* const phase_arr,
         const double* const det_0_arr,
         const double* const resp_norm_mat_arr,

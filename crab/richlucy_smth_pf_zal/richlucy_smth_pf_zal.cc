@@ -211,24 +211,40 @@ int main(int argc, char* argv[])
             argval->GetOutfileHead(),
             argval->GetNem(), argval->GetTolEm(),
             sky_new_arr, flux_new_arr);
-        
-//    } else if (argval->GetAccMethod() == "acc"){
-//        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfZalAcc(
-//            fp_log,
-//            sky_init_arr,
-//            flux_init_arr,
-//            data_arr,
-//            bg_arr,
-//            flux_target_arr,
-//            phase_arr,
-//            det_fixed_src_norm_arr,
-//            resp_norm_mat_arr,
-//            ndet, nskyx, nskyy, nphase,
-//            argval->GetMu(), argval->GetGamma(),
-//            argval->GetOutdir(),
-//            argval->GetOutfileHead(),
-//            argval->GetNem(), argval->GetTolEm(),
-//            sky_new_arr, flux_new_arr);
+    } else if (argval->GetAccMethod() == "zalq1"){
+        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfZalQ1(
+            fp_log,
+            sky_init_arr,
+            flux_init_arr,
+            data_arr,
+            bg_arr,
+            flux_target_arr,
+            phase_arr,
+            det_fixed_src_norm_arr,
+            resp_norm_mat_arr,
+            ndet, nskyx, nskyy, nphase,
+            argval->GetMu(), argval->GetGamma(),
+            argval->GetOutdir(),
+            argval->GetOutfileHead(),
+            argval->GetNem(), argval->GetTolEm(),
+            sky_new_arr, flux_new_arr);
+    } else if (argval->GetAccMethod() == "sqs3"){
+        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfSqS3(
+            fp_log,
+            sky_init_arr,
+            flux_init_arr,
+            data_arr,
+            bg_arr,
+            flux_target_arr,
+            phase_arr,
+            det_fixed_src_norm_arr,
+            resp_norm_mat_arr,
+            ndet, nskyx, nskyy, nphase,
+            argval->GetMu(), argval->GetGamma(),
+            argval->GetOutdir(),
+            argval->GetOutfileHead(),
+            argval->GetNem(), argval->GetTolEm(),
+            sky_new_arr, flux_new_arr);
     } else {
         printf("bad acc_method\n");
         abort();

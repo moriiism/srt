@@ -29,9 +29,6 @@ double SrtlibCrabRlCrabStatval::GetHellingerDist(
         flux_pre_norm_arr[iphase] = flux_pre_arr[iphase] / sum_pre;
         flux_new_norm_arr[iphase] = flux_new_arr[iphase] / sum_new;
     }
-
-    printf("sum_pre = %e, sum_new = %e\n", sum_pre, sum_new);
-
     double sum = 0.0;
     for(int isky = 0; isky < nsky; isky ++){
         double diff = sqrt(sky_pre_norm_arr[isky])

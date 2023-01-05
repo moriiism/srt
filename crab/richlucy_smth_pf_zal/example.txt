@@ -260,11 +260,11 @@ ndetx=$ndetx
 ndety=$ndety
 outdir=rl_allphase
 outfile_head=hxt1_crab_4phase
-nem=1000
+nem=5000
 tol_em=1.0e-8
 mu=1.0e-2
-gamma=1.0
-acc_method=none
+gamma=1.0e-2
+acc_method=sqs3
 
 ~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/richlucy_smth_pf_zal \
 $data_list \
@@ -283,3 +283,72 @@ $tol_em \
 $mu \
 $gamma \
 $acc_method
+
+
+
+
+iem = 99, helldist = 9.179805e-04
+sum_sky = 1.274512e+03
+flux [0] = 3.889860e+02
+flux [1] = 2.775558e-17
+flux [2] = 1.130387e+02
+flux [3] = 9.604308e+01
+duration = 1.040509e+01 sec.
+
+iem = 99, helldist = 9.179805e-04
+sum_sky = 1.274512e+03
+flux [0] = 3.889860e+02
+flux [1] = 2.775558e-17
+flux [2] = 1.130387e+02
+flux [3] = 9.604308e+01
+duration = 1.017859e+01 sec.
+
+iem = 99, helldist = 9.179805e-04
+sum_sky = 1.274512e+03
+flux [0] = 3.889860e+02
+flux [1] = 2.775558e-17
+flux [2] = 1.130387e+02
+flux [3] = 9.604308e+01
+duration = 1.053503e+01 sec.
+
+iem = 999, helldist = 5.104355e-05
+sum_sky = 1.272726e+03
+flux [0] = 3.876229e+02
+flux [1] = 2.775558e-15
+flux [2] = 1.168312e+02
+flux [3] = 1.002709e+02
+duration = 1.006735e+02 sec.
+
+
+iem = 999, helldist = 1.043182e-05
+sum_sky = 1.272722e+03
+flux [0] = 3.876230e+02
+flux [1] = 2.775558e-15
+flux [2] = 1.168314e+02
+flux [3] = 1.002711e+02
+duration = 2.170539e+02 sec.
+
+iem = 999, helldist = 2.846383e-05
+sum_sky = 1.272723e+03
+flux [0] = 3.876230e+02
+flux [1] = 1.387779e-15
+flux [2] = 1.168314e+02
+flux [3] = 1.002711e+02
+duration = 2.002054e+02 sec.
+
+iem = 999, helldist = 2.798875e-05
+sum_sky = 1.272723e+03
+flux [0] = 3.876230e+02
+flux [1] = 1.387779e-15
+flux [2] = 1.168314e+02
+flux [3] = 1.002711e+02
+duration = 2.095522e+02 sec.
+
+iem = 4999, helldist = 1.997649e-06
+sum_sky = 1.272722e+03
+flux [0] = 3.876230e+02
+flux [1] = 1.387779e-15
+flux [2] = 1.168314e+02
+flux [3] = 1.002711e+02
+duration = 1.170369e+03 sec.
+
