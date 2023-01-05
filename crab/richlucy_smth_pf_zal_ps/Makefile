@@ -21,11 +21,11 @@ LDLIBS_OPENBLAS  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} \
 	$(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) \
 	$(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
-TARGET = richlucy_smth_pf_zal2
+TARGET = richlucy_smth_pf_zal
 
 all: $(TARGET) 
 
-richlucy_smth_pf_zal2: richlucy_smth_pf_zal2.o  arg_richlucy_smth_pf_zal2.o
+richlucy_smth_pf_zal: richlucy_smth_pf_zal.o  arg_richlucy_smth_pf_zal.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
 
 

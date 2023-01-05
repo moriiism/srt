@@ -1,15 +1,15 @@
 // Simultaneous image reconstruction by Richardson-Lucy method
 // for multiple pulse phase data of Crab pulsar with Crab nebula
 // under regularizations of smoothness for Crab nebula and
-// pulse flux of Crab pulsar. Non X-ray background is also considered.
+// pulse flux of Crab pulsar.
 
 #include "mir_math.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
-#include "arg_richlucy_smth_pf_zal2.h"
+#include "arg_richlucy_smth_pf_zal.h"
 #include "rl_crab.h"
-#include "rl_crab_smth_pf_zal2.h"
+#include "rl_crab_smth_pf_zal_em.h"
 
 
 // global variable 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     
     double time_st = MiTime::GetTimeSec();
     
-    ArgValRichlucySmthPfZal2* argval = new ArgValRichlucySmthPfZal2;
+    ArgValRichlucySmthPfZal* argval = new ArgValRichlucySmthPfZal;
     argval->Init(argc, argv);
     argval->Print(stdout);
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     string* data_list_arr = new string[nphase];
     string* phase_tag_arr = new string[nphase];
     double* phase_arr = new double[nphase];
-    double* flux_target_arr = new double[nphase];
+    double* nu_target_arr = new double[nphase];
     for(int iphase = 0; iphase < nphase; iphase ++){
         int nsplit = 0;
         string* split_arr = NULL;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         data_list_arr[iphase] = split_arr[0];
         phase_tag_arr[iphase] = split_arr[1];
         phase_arr[iphase] = atof(split_arr[2].c_str());
-        flux_target_arr[iphase] = atof(split_arr[3].c_str());
+        nu_target_arr[iphase] = atof(split_arr[3].c_str());
         MiStr::DelSplit(split_arr);
     }
     MiIolib::DelReadFile(line_data_list_arr);
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
         printf("phase_arr[%d] = %e\n", iphase, phase_arr[iphase]);
     }
     for(int iphase = 0; iphase < nphase; iphase ++){
-        printf("flux_target_arr[%d] = %e\n", iphase, flux_target_arr[iphase]);
+        printf("nu_target_arr[%d] = %e\n", iphase, nu_target_arr[iphase]);
     }
     
     // load image data
@@ -94,16 +94,6 @@ int main(int argc, char* argv[])
     }
     MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);
 
-    // load bg model data
-    MifImgInfo* img_info_bg = new MifImgInfo;
-    img_info_bg->InitSetImg(1, 1, ndetx, ndety);
-    int bitpix_bg = 0;
-    double* bg_arr = NULL;
-    MifFits::InFitsImageD(argval->GetBgFile(), img_info_bg,
-                          &bitpix_bg, &bg_arr);
-    int nph_bg = MirMath::GetSum(ndet, bg_arr);
-    MiIolib::Printf2(fp_log, "N bg = %d\n", nph_bg);
-    
     // load sky image of fixed source with normalized flux
     MifImgInfo* img_info_fixed_src_norm = new MifImgInfo;
     img_info_fixed_src_norm->InitSetImg(1, 1, nskyx, nskyy);
@@ -192,7 +182,7 @@ int main(int argc, char* argv[])
             rho_init_arr,
             nu_init_arr,
             data_arr,
-            flux_target_arr,
+            nu_target_arr,
             phase_arr,
             det_fixed_src_norm_arr,
             resp_norm_mat_arr,
@@ -209,7 +199,7 @@ int main(int argc, char* argv[])
             rho_init_arr,
             nu_init_arr,
             data_arr,
-            flux_target_arr,
+            nu_target_arr,
             phase_arr,
             det_fixed_src_norm_arr,
             resp_norm_mat_arr,
@@ -239,7 +229,7 @@ int main(int argc, char* argv[])
     for(int iphase = 0; iphase < nphase; iphase ++){
         flux_pulsar_arr[iphase] = nu_new_arr[iphase] * nph_data
             / phase_arr[iphase];
-        flux_pulsar_target_arr[iphase] = flux_target_arr[iphase] * nph_data
+        flux_pulsar_target_arr[iphase] = nu_target_arr[iphase] * nph_data
             / phase_arr[iphase];
         MiIolib::Printf2(fp_log, "flux_pulsar[%d] = %e\n",
                          iphase, flux_pulsar_arr[iphase]);

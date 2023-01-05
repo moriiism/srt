@@ -9,6 +9,7 @@ public:
         MiArgBase(),
         progname_(""),
         data_list_(""),
+        bg_file_(""),
         fixed_src_norm_file_(""),
         resp_file_(""),
         eff_file_(""),
@@ -20,8 +21,6 @@ public:
         outfile_head_(""),
         nem_(0),
         tol_em_(0.0),
-        nnewton_(0),
-        tol_newton_(0.0),
         mu_(0.0),
         gamma_(0.0),
         acc_method_("") {}
@@ -33,6 +32,7 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDataList() const {return data_list_;};
+    string GetBgFile() const {return bg_file_;};
     string GetFixedSrcNormFile() const {return fixed_src_norm_file_;};
     string GetRespFile() const {return resp_file_;};
     string GetEffFile() const {return eff_file_;};
@@ -44,8 +44,6 @@ public:
     string GetOutfileHead() const {return outfile_head_;};
     int    GetNem() const {return nem_;};
     double GetTolEm() const {return tol_em_;};
-    int    GetNnewton() const {return nnewton_;};
-    double GetTolNewton() const {return tol_newton_;};
     double GetMu() const {return mu_;};
     double GetGamma() const {return gamma_;};
     string GetAccMethod() const {return acc_method_;};
@@ -53,6 +51,7 @@ public:
 private:
     string progname_;
     string data_list_;
+    string bg_file_;
     string fixed_src_norm_file_;
     string resp_file_;
     string eff_file_;
@@ -64,8 +63,6 @@ private:
     string outfile_head_;
     int    nem_;
     double tol_em_;
-    int    nnewton_;
-    double tol_newton_;
     double mu_;
     double gamma_;
     string acc_method_;

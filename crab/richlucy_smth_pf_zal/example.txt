@@ -1,0 +1,285 @@
+#
+# example.txt
+#
+
+#
+# image subtraction to make ON1 - OFF1, ON2 - OFF1, OFF2 - OFF1 image
+#
+
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run/crab/hxt1/sub
+
+# data
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits
+
+# e-mail on 2022/12/01 
+#Name    Phase           Duration        ID     
+#21              0.854-1.104     0.25            ON (2nd)
+#22              0.104-0.504     0.40            OFF (1)
+#23              0.504-0.704     0.20            ON (1st)
+#24              0.704-0.854     0.15               (off2)
+
+
+# image subtraction
+
+ON2  0.25  1.0/0.25 = 4.0
+OFF1 0.40  1.0/0.40 = 2.5
+ON1  0.20  1.0/0.20 = 5.0
+OFF2 0.15  1.0/0.15 = 6.667
+
+# ON1 - OFF1
+~/work/github/moriiism/srt/imgadd/imgadd -- \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits \
+5.0 \
+-2.5 \
+crab_on1-off1.fits
+
+# ON2 - OFF1
+~/work/github/moriiism/srt/imgadd/imgadd -- \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits \
+4.0 \
+-2.5 \
+crab_on2-off1.fits
+
+# OFF2 - OFF1
+~/work/github/moriiism/srt/imgadd/imgadd -- \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits \
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits \
+6.667 \
+-2.5 \
+crab_off2-off1.fits
+
+
+# image reconstruction
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+# richlucy
+
+# on1 - off1
+datafile=crab_on1-off1.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_on1-off1
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+---> 113
+
+# on2 - off1
+datafile=crab_on2-off1.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_on2-off1
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+---> 389
+
+# off2 - off1
+datafile=crab_off2-off1.fits
+skyfile=none
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl
+outfile_head=hxt1_crab_off2-off1
+nem=1000
+tol_em=1.0e-5
+acc_method=squarem
+
+~/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$skyfile \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
+
+---> 96
+
+
+#############################################
+
+source ~/work/github/moriiism/mitool/setup/setup_jaxa.sh 
+
+cd /home/morii/work/arb/ana/run/crab/hxt1/rl_smth_pf_zal
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+# 1. make response matrix, normed response matrix, 
+#    and efficiency matrix files
+
+respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
+outdir=resp
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+
+# 2. mkimg_points
+
+mkdir skyorg
+cat << EOF > skyorg/crab_pulsar.dat
+# posx posy flux
+54 41 1000.0
+# 54 38 1000.0
+EOF
+
+infile=skyorg/crab_pulsar.dat
+outdir=skyorg
+outfile_head=crab_pulsar
+nskyx=$nskyx
+nskyy=$nskyy
+
+~/work/github/moriiism/srt/mkimg_points/mkimg_points \
+$infile \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy
+
+
+
+
+
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio  nu_0
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.25  389.0
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  0.40  0.0
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20  113.0
+../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off2_rate_x1175y1185_w80.fits  off2  0.15  96.0
+EOF
+
+
+data_list=data.list
+bg_file=none
+fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+resp_file=resp/arb_resp.fits
+eff_file=resp/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_allphase
+outfile_head=hxt1_crab_4phase
+nem=1000
+tol_em=1.0e-8
+mu=1.0e-2
+gamma=1.0
+acc_method=none
+
+~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/richlucy_smth_pf_zal \
+$data_list \
+$bg_file \
+$fixed_src_norm_file \
+$resp_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$mu \
+$gamma \
+$acc_method

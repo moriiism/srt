@@ -18,13 +18,14 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 17;
+    int narg = 16;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
     data_list_      = argv[iarg]; iarg++;
+    bg_file_        = argv[iarg]; iarg++;    
     fixed_src_norm_file_ = argv[iarg]; iarg++;
     resp_file_      = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
@@ -36,8 +37,6 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     outfile_head_   = argv[iarg]; iarg++;
     nem_            = atoi(argv[iarg]); iarg++;
     tol_em_         = atof(argv[iarg]); iarg++;
-    nnewton_        = atoi(argv[iarg]); iarg++;
-    tol_newton_     = atof(argv[iarg]); iarg++;
     mu_             = atof(argv[iarg]); iarg++;
     gamma_          = atof(argv[iarg]); iarg++;
     acc_method_     = argv[iarg]; iarg++;
@@ -51,6 +50,7 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: data_list_      : %s\n", __func__, data_list_.c_str());
+    fprintf(fp, "%s: bg_file_        : %s\n", __func__, bg_file_.c_str());
     fprintf(fp, "%s: fixed_src_norm_file_ : %s\n",
             __func__, fixed_src_norm_file_.c_str());
     fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
@@ -63,8 +63,6 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
     fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
     fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
     fprintf(fp, "%s: tol_em_         : %e\n", __func__, tol_em_);
-    fprintf(fp, "%s: nnewton_        : %d\n", __func__, nnewton_);
-    fprintf(fp, "%s: tol_newton_     : %e\n", __func__, tol_newton_);
     fprintf(fp, "%s: mu_             : %e\n", __func__, mu_);
     fprintf(fp, "%s: gamma_          : %e\n", __func__, gamma_);
     fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
@@ -76,6 +74,7 @@ void ArgValRichlucySmthPfZal::Null()
 {
     progname_ = "";
     data_list_ = "";
+    bg_file_ = "";
     fixed_src_norm_file_ = "";
     resp_file_ = "";
     eff_file_  = "";
@@ -87,8 +86,6 @@ void ArgValRichlucySmthPfZal::Null()
     outfile_head_ = "";
     nem_        = 0;
     tol_em_     = 0.0;
-    nnewton_    = 0;
-    tol_newton_ = 0.0;
     mu_         = 0.0;
     gamma_      = 0.0;    
     acc_method_ = "";
@@ -148,10 +145,10 @@ void ArgValRichlucySmthPfZal::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "data_list  fixed_src_norm_file  resp_file  eff_file  "
+            "data_list  bg_file  fixed_src_norm_file  resp_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
-            "nem  tol_em  nnewton  tol_newton  mu  gamma  "
+            "nem  tol_em  mu  gamma  "
             "acc_method\n",
             progname_.c_str());
     abort();

@@ -1,0 +1,357 @@
+#include "rl_crab.h"
+#include "rl_crab_statval.h"
+#include "rl_crab_smth_pf_zal.h"
+
+void SrtlibRlCrabSmthPfZal::GetSkyNewArr(
+    const double* const sky_arr,
+    const double* const mval_arr,
+    int nskyx, int nskyy, double mu,
+    double* const sky_new_arr)
+{
+    int nsky = nskyx * nskyy;
+    double* alpha_arr = new double[nsky];
+    SrtlibSmthZal::GetDerivUAlphaArr(nskyx, nskyy,
+                                     alpha_arr);
+    double* beta_arr = new double[nsky];
+    SrtlibSmthZal::GetDerivUBetaArr(sky_arr,
+                                    nskyx, nskyy,
+                                    beta_arr);
+    double* bval_arr = new double[nsky];
+    double one_arr[1];
+    one_arr[0] = 1.0;
+    dcopy_(nsky, one_arr, 0, bval_arr, 1);
+    daxpy_(nsky, -1 * mu, beta_arr, 1, bval_arr, 1);
+
+    for(int isky = 0; isky < nsky; isky++){
+        double num = -1 * bval_arr[isky] +
+            sqrt(bval_arr[isky] * bval_arr[isky]
+                 + 4.0 * mu * alpha_arr[isky] * mval_arr[isky]);
+        double den = 2.0 * mu * alpha_arr[isky];
+        sky_new_arr[isky] = num / den;
+    }
+}
+
+void SrtlibRlCrabSmthPfZal::GetFluxNewArr(
+    const double* const nval_arr,
+    const double* const flux_target_arr,
+    const double* const phase_arr,
+    int nphase, double gamma,
+    double* const flux_new_arr)
+{
+    double* bval_arr = new double[nphase];
+    dcopy_(nphase, const_cast<double*>(phase_arr), 1, bval_arr, 1);
+    daxpy_(nphase, -2.0 * gamma, const_cast<double*>(flux_target_arr), 1,
+           bval_arr, 1);
+
+    for(int iphase = 0; iphase < nphase; iphase++){
+        double num = -1 * bval_arr[iphase] +
+            sqrt(bval_arr[iphase] * bval_arr[iphase]
+                 + 8.0 * gamma * nval_arr[iphase]);
+        double den = 4.0 * gamma;
+        flux_new_arr[iphase] = num / den;
+    }
+    delete [] bval_arr;
+}
+
+
+void SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfZal(
+    FILE* const fp_log,
+    const double* const sky_init_arr,
+    const double* const flux_init_arr,
+    const double* const* const data_arr,
+    const double* const bg_arr,
+    const double* const flux_target_arr,
+    const double* const phase_arr,
+    const double* const det_0_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nskyx, int nskyy, int nphase,
+    double mu, double gamma,
+    string outdir,
+    string outfile_head,
+    int nem, double tol_em,
+    double* const sky_new_arr,
+    double* const flux_new_arr)
+{
+    int nsky = nskyx * nskyy;
+    double* sky_pre_arr = new double[nsky];
+    double* flux_pre_arr = new double[nphase];
+    double** den_arr = new double*[nphase];
+    double** y_dash_arr = new double*[nphase];
+    for(int iphase = 0; iphase < nphase; iphase++){
+        den_arr[iphase] = new double[ndet];
+        y_dash_arr[iphase] = new double[ndet];
+    }
+    double* mval_arr = new double[nsky];
+    double* nval_arr = new double[nphase];
+    dcopy_(nsky, const_cast<double*>(sky_init_arr), 1, sky_pre_arr, 1);
+    dcopy_(nphase, const_cast<double*>(flux_init_arr), 1, flux_pre_arr, 1);
+    for(int iem = 0; iem < nem; iem ++){
+        SrtlibRlCrab::GetDenArr(sky_pre_arr,
+                                flux_pre_arr,
+                                det_0_arr,
+                                bg_arr,
+                                resp_norm_mat_arr,
+                                ndet, nsky, nphase,
+                                den_arr);
+
+        printf("den_arr[0][0] = %e", den_arr[0][0]);
+        
+        SrtlibRlCrab::GetYDashArr(data_arr,
+                                  den_arr,
+                                  ndet, nphase,
+                                  y_dash_arr);
+        printf("y_dash_arr[0][0] = %e", y_dash_arr[0][0]);
+        
+        SrtlibRlCrab::GetMvalArr(y_dash_arr,
+                                 resp_norm_mat_arr,
+                                 sky_pre_arr,
+                                 ndet, nsky, nphase,
+                                 mval_arr);
+        printf("mval_arr[0] = %e", mval_arr[0]);
+        
+        SrtlibRlCrab::GetNvalArr(y_dash_arr,
+                                 flux_pre_arr,
+                                 det_0_arr,
+                                 ndet, nphase,
+                                 nval_arr);
+        printf("nval_arr[0] = %e", nval_arr[0]);
+        
+        SrtlibRlCrabSmthPfZal::GetSkyNewArr(sky_pre_arr,
+                                            mval_arr,
+                                            nskyx, nskyy, mu,
+                                            sky_new_arr);
+        SrtlibRlCrabSmthPfZal::GetFluxNewArr(nval_arr,
+                                             flux_target_arr,
+                                             phase_arr,
+                                             nphase, gamma,
+                                             flux_new_arr);
+
+        printf("sky_new_arr[0] = %e", sky_new_arr[0]);
+        printf("flux_new_arr[0] = %e", flux_new_arr[0]);
+
+        
+        double helldist  = SrtlibCrabRlCrabStatval::GetHellingerDist(
+            sky_pre_arr, flux_pre_arr,
+            sky_new_arr, flux_new_arr,
+            nsky, nphase);
+        if (access( "/tmp/rl_crab_smth_pf_zal_stop", R_OK ) != -1){
+            MiIolib::Printf2(
+                fp_log,
+                "/tmp/rl_crab_smth_pf_zal_stop file is found, then stop.\n");
+            break;
+        }
+        if (helldist < tol_em){
+            printf("iem = %d, helldist = %e\n",
+                   iem, helldist);
+            break;
+        }
+        dcopy_(nsky, sky_new_arr, 1, sky_pre_arr, 1);
+        dcopy_(nphase, flux_new_arr, 1, flux_pre_arr, 1);
+        MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
+                         iem, helldist);
+    }
+    delete [] sky_pre_arr;
+    delete [] flux_pre_arr;
+    for(int iphase = 0; iphase < nphase; iphase++){
+        delete [] den_arr[iphase];
+        delete [] y_dash_arr[iphase];
+    }
+    delete [] den_arr;
+    delete [] y_dash_arr;
+    delete [] mval_arr;
+    delete [] nval_arr;
+}
+
+//// Accerelated by Zhou-Alexander-Lange and Nesterov.
+//// The former is H.Zhou, D.Alexander, K.Lange,
+//// "A quasi-Newton acceleration for high-dimensional
+//// optimization algorithms", Stat Comput (2011) 21, 261.
+//// Case: q = 1
+//void SrtlibRlCrabSmthPfEm::RichlucyCrabSmthPfAcc(
+//    FILE* const fp_log,
+//    const double* const sky_init_arr,
+//    const double* const flux_init_arr,
+//    const double* const* const data_arr,
+//    const double* const flux_target_arr,
+//    const double* const phase_arr,
+//    const double* const det_0_arr,
+//    const double* const resp_norm_mat_arr,
+//    int ndet, int nskyx, int nskyy, int nphase,
+//    double mu, double gamma,
+//    string outdir,
+//    string outfile_head,
+//    int nem, double tol_em,
+//    int npm, double tol_pm,
+//    int nnewton, double tol_newton,
+//    double* const sky_new_arr,
+//    double* const flux_new_arr)
+//{
+//    int nsky = nskyx * nskyy;
+//
+//    double* sky_0_arr  = new double[nsky];
+//    double* sky_1_arr  = new double[nsky];
+//    double* sky_2_arr  = new double[nsky];
+//    double* u_sky_arr  = new double[nsky];
+//    double* v_sky_arr  = new double[nsky];
+//    double* diff_sky_arr  = new double[nsky];
+//    double* sky_0_new_arr  = new double[nsky];
+//
+//    double* flux_0_arr  = new double[nphase];
+//    double* flux_1_arr  = new double[nphase];
+//    double* flux_2_arr  = new double[nphase];
+//    double* u_flux_arr  = new double[nphase];
+//    double* v_flux_arr  = new double[nphase];
+//    double* diff_flux_arr  = new double[nphase];
+//    double* flux_0_new_arr  = new double[nphase];
+//    
+//    dcopy_(nsky, const_cast<double*>(sky_init_arr), 1, sky_0_arr, 1);
+//    dcopy_(nphase, const_cast<double*>(flux_init_arr), 1, flux_0_arr, 1);
+//
+//    for(int iem = 0; iem < nem; iem ++){
+//        double* mval_arr = new double[nsky];
+//        double* nval_arr = new double[nphase];
+//        double helldist_pm1 = 0.0;
+//        int flag_converge_pm1 = 0;
+//        SrtlibRlCrab::GetSkyFluxNewNumArr(sky_0_arr, flux_0_arr,
+//                                        data_arr,
+//                                        phase_arr, det_0_arr,
+//                                        resp_norm_mat_arr, 
+//                                        ndet, nsky, nphase,
+//                                        mval_arr, nval_arr);        
+//        SrtlibRlCrabSmthPfPm::GetSkyFlux_ByPm(
+//            fp_log, sky_0_arr, flux_0_arr,
+//            mval_arr, nval_arr, flux_target_arr,
+//            nskyx, nskyy, nphase, mu, gamma,
+//            npm, tol_pm, nnewton, tol_newton,
+//            sky_1_arr, flux_1_arr,
+//            &helldist_pm1,
+//            &flag_converge_pm1);
+//        if (flag_converge_pm1 == 0){
+//            MiIolib::Printf2(
+//                fp_log,
+//                "iem = %d: pm1: not converged: helldist_pm1 = %.2e\n",
+//                iem,
+//                helldist_pm1);
+//        }
+//        double helldist_pm2 = 0.0;
+//        int flag_converge_pm2 = 0;
+//        SrtlibRlCrab::GetSkyFluxNewNumArr(sky_1_arr, flux_1_arr,
+//                                        data_arr,
+//                                        phase_arr, det_0_arr,
+//                                        resp_norm_mat_arr, 
+//                                        ndet, nsky, nphase,
+//                                        mval_arr, nval_arr);        
+//        SrtlibRlCrabSmthPfPm::GetSkyFlux_ByPm(
+//            fp_log, sky_1_arr, flux_1_arr,
+//            mval_arr, nval_arr, flux_target_arr,
+//            nskyx, nskyy, nphase, mu, gamma,
+//            npm, tol_pm, nnewton, tol_newton,
+//            sky_2_arr, flux_2_arr,
+//            &helldist_pm2,
+//            &flag_converge_pm2);
+//        if (flag_converge_pm2 == 0){
+//            MiIolib::Printf2(
+//                fp_log,
+//                "iem = %d: pm2: not converged: helldist_pm2 = %.2e\n",
+//                iem,
+//                helldist_pm2);
+//        }
+//
+//        MibBlas::Sub(sky_1_arr, sky_0_arr, nsky, u_sky_arr);
+//        MibBlas::Sub(flux_1_arr, flux_0_arr, nphase, u_flux_arr);        
+//        MibBlas::Sub(sky_2_arr, sky_1_arr, nsky, v_sky_arr);
+//        MibBlas::Sub(flux_2_arr, flux_1_arr, nphase, v_flux_arr);        
+//        MibBlas::Sub(v_sky_arr, u_sky_arr, nsky, diff_sky_arr);
+//        MibBlas::Sub(v_flux_arr, u_flux_arr, nphase, diff_flux_arr);
+//
+//        double num = ddot_(nsky, u_sky_arr, 1, u_sky_arr, 1)
+//            + ddot_(nphase, u_flux_arr, 1, u_flux_arr, 1);
+//        double den = ddot_(nsky, u_sky_arr, 1, diff_sky_arr, 1)
+//            + ddot_(nphase, u_flux_arr, 1, diff_flux_arr, 1);
+//        double cval = -1.0 * num / den;
+//        MiIolib::Printf2(fp_log, "cval = %e\n", cval);
+//
+//        if (cval < 0.0){
+//            // usual update
+//            dcopy_(nsky, sky_1_arr, 1, sky_0_new_arr, 1);
+//            dcopy_(nphase, flux_1_arr, 1, flux_0_new_arr, 1);
+//        } else {
+//            int nk = 10000;
+//            double eta = 0.8;
+//            int flag_find = 0;
+//            for (int ik = 0; ik < nk; ik ++){
+//                double cval0 = cval * pow(eta, ik);
+//                dcopy_(nsky, sky_1_arr, 1, sky_0_new_arr, 1);
+//                dcopy_(nphase, flux_1_arr, 1, flux_0_new_arr, 1);
+//                dscal_(nsky, (1.0 - cval0), sky_0_new_arr, 1);
+//                dscal_(nphase, (1.0 - cval0), flux_0_new_arr, 1);
+//                daxpy_(nsky, cval0, sky_2_arr, 1, sky_0_new_arr, 1);
+//                daxpy_(nphase, cval0, flux_2_arr, 1, flux_0_new_arr, 1);
+//                
+//                int nneg_tmp = 0;
+//                for(int isky = 0; isky < nsky; isky ++){
+//                    if(sky_0_new_arr[isky] < 0.0){
+//                        nneg_tmp ++;
+//                    }
+//                }
+//                for(int iphase = 0; iphase < nphase; iphase ++){
+//                    if(flux_0_new_arr[iphase] < 0.0){
+//                        nneg_tmp ++;
+//                    }
+//                }
+//                if (nneg_tmp > 0){
+//                    continue;
+//                } else{
+//                    MiIolib::Printf2(fp_log, "cval0 = %e\n", cval0);
+//                    flag_find = 1;
+//                    break;
+//                }
+//            }
+//            if(flag_find == 0){
+//                // usual update
+//                dcopy_(nsky, sky_2_arr, 1, sky_0_new_arr, 1);
+//                dcopy_(nphase, flux_2_arr, 1, flux_0_new_arr, 1);
+//            }
+//        }
+//        double helldist  = SrtlibRlStatvalCrab::GetHellingerDist(
+//            sky_0_arr, flux_0_arr,
+//            sky_0_new_arr, flux_0_new_arr,
+//            nsky, nphase);
+//        MiIolib::Printf2(
+//            fp_log, "iem = %d, helldist = %e\n",
+//            iem, helldist);
+//        if (helldist < tol_em){
+//            MiIolib::Printf2(
+//                fp_log, "iem = %d, helldist = %e\n",
+//                iem, helldist);
+//            break;
+//        }
+//        dcopy_(nsky, sky_0_new_arr, 1, sky_0_arr, 1);
+//        dcopy_(nphase, flux_0_new_arr, 1, flux_0_arr, 1);
+//        if (access( "/tmp/rl_stop", R_OK ) != -1){
+//            MiIolib::Printf2(
+//                fp_log,
+//                "/tmp/rl_stop file is found, then stop.\n");
+//            break;
+//        }
+//    }
+//    dcopy_(nsky, sky_0_new_arr, 1, sky_new_arr, 1);
+//    dcopy_(nphase, flux_0_new_arr, 1, flux_new_arr, 1);
+//
+//    delete [] sky_0_arr;
+//    delete [] sky_1_arr;
+//    delete [] sky_2_arr;
+//    delete [] u_sky_arr;
+//    delete [] v_sky_arr;
+//    delete [] diff_sky_arr;
+//    delete [] sky_0_new_arr;
+//
+//    delete [] flux_0_arr;
+//    delete [] flux_1_arr;
+//    delete [] flux_2_arr;
+//    delete [] u_flux_arr;
+//    delete [] v_flux_arr;
+//    delete [] diff_flux_arr;
+//    delete [] flux_0_new_arr;
+//}
+//

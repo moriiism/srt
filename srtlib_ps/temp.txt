@@ -1,0 +1,17 @@
+
+git rm  ../richlucy_bg/sub_bg.cc
+git rm    ../richlucy_bg/sub_bg.h
+git rm    ../richlucy_bg2_smooth/Makefile
+git rm    ../richlucy_bg2_smooth/arg_richlucy_bg2_smooth.cc
+git rm    ../richlucy_bg2_smooth/arg_richlucy_bg2_smooth.h
+git rm    ../richlucy_bg2_smooth/example.txt
+git rm    ../richlucy_bg2_smooth/example_crab.txt
+git rm    ../richlucy_bg2_smooth/richlucy_bg2_smooth.cc
+git rm    ../richlucy_bg2_smooth/sub.cc
+git rm    ../richlucy_bg2_smooth/sub.h
+git rm    ../richlucy_bg2_smooth/sub_newton.cc
+git rm    ../richlucy_bg2_smooth/sub_newton.h
+git rm    ../richlucy_bg2_smooth/sub_pm.cc
+git rm    ../richlucy_bg2_smooth/sub_pm.h
+git rm    sub_smooth.cc
+git rm    sub_smooth.h
