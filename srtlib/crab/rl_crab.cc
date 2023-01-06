@@ -8,7 +8,7 @@ void SrtlibRlCrab::GetDetArr(const double* const sky_arr,
                              double* const det_arr) // ndet
 {
     // det_arr = R_mat %*% sky_arr
-    char transa[1];
+    char transa[2];
     strcpy(transa, "N");
 
     // y := alpha*A*x + beta*y
@@ -65,7 +65,7 @@ void SrtlibRlCrab::GetMvalArr(const double* const* const y_dash_arr,
     }
 
     double* coeff_arr = new double[nsky];
-    char transa[1];
+    char transa[2];
     strcpy(transa, "T");
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,
