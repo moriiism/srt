@@ -11,3 +11,12 @@ SRTLIB_LIB := -L$(SRT_DIR)/srtlib -lsrtlib
 ### srtlib_crab
 SRTLIB_CRAB_INC := -I$(SRT_DIR)/srtlib/crab
 SRTLIB_CRAB_LIB := -L$(SRT_DIR)/srtlib/crab -lsrtlib_crab
+
+### srtlib_ps
+SRTLIB_PS_INC := -I$(SRT_DIR)/srtlib_ps
+SRTLIB_PS_LIB := -L$(SRT_DIR)/srtlib_ps -lsrtlib_ps
+
+### srtlib_ps_crab
+SRTLIB_PS_CRAB_INC := -I$(SRT_DIR)/srtlib_ps/crab
+SRTLIB_PS_CRAB_LIB := -L$(SRT_DIR)/srtlib_ps/crab -lsrtlib_ps_crab
+

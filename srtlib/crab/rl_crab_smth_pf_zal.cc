@@ -29,6 +29,9 @@ void SrtlibRlCrabSmthPfZal::GetSkyNewArr(
         double den = 2.0 * mu * alpha_arr[isky];
         sky_new_arr[isky] = num / den;
     }
+    delete [] alpha_arr;
+    delete [] beta_arr;
+    delete [] bval_arr;
 }
 
 void SrtlibRlCrabSmthPfZal::GetFluxNewArr(

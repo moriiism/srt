@@ -7,7 +7,7 @@ include ../../mitool/mirootlib/Makefile.in
 INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
-TARGET := libsrtlib.a
+TARGET := libsrtlib_ps.a
 
 OBJ := rl.o  rl_statval.o  sim.o  rl_bg.o  smth.o \
 	rl_bg2_smth_em.o  rl_bg2_smth_pm.o  rl_bg2_smth_newton.o
@@ -38,11 +38,11 @@ OBJ := rl.o  rl_statval.o  sim.o  rl_bg.o  smth.o \
 
 all: $(TARGET) 
 
-libsrtlib.a: ${OBJ}
+libsrtlib_ps.a: ${OBJ}
 	$(AR) -r $@ $(OBJ)
 	ranlib $@
 
-libsrtlib.so: ${OBJ}
+libsrtlib_ps.so: ${OBJ}
 	$(CC) -shared -g -O2 -o $@ ${OBJ}
 
 .SUFFIXES:

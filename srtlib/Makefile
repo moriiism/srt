@@ -4,12 +4,16 @@ include ../../mitool/miblaslib/Makefile.in
 include ../../mitool/mifitslib/Makefile.in
 include ../../mitool/mirootlib/Makefile.in
 
-INCLUDE = $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
+CUDABLAS_INC = -I/usr/local/cuda/include
+
+INCLUDE = $(CUBLAS_INC) $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
 
-TARGET := libsrtlib.a
+TARGET := libsrtlib.a  libsrtlib_cuda.a
 
 OBJ := smth_zal.o
+
+OBJ_CUDA := smth_zal.o  smth_zal_cuda.o
 
 all: $(TARGET) 
 
@@ -20,8 +24,16 @@ libsrtlib.a: ${OBJ}
 libsrtlib.so: ${OBJ}
 	$(CC) -shared -g -O2 -o $@ ${OBJ}
 
+libsrtlib_cuda.a: ${OBJ_CUDA}
+	$(AR) -r $@ $(OBJ_CUDA)
+	ranlib $@
+
+libsrtlib_cuda.so: ${OBJ_CUDA}
+	$(CC) -shared -g -O2 -o $@ ${OBJ_CUDA}
+
+
 .SUFFIXES:
-.SUFFIXES: .o .c .f .F .cc
+.SUFFIXES: .o .c .f .F .cc .cu
 
 .c.o:
 	$(CCN) -c $<
@@ -34,6 +46,9 @@ libsrtlib.so: ${OBJ}
 
 .cc.o:
 	${CXXN} -c $<
+
+.cu.o:
+	${NVCCN} -c $<
 
 install: all
 	if [ ! -d $(INST_BIN_DIR) ]; then mkdir $(INST_BIN_DIR); fi
