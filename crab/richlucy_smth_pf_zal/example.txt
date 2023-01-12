@@ -260,13 +260,14 @@ ndetx=$ndetx
 ndety=$ndety
 outdir=rl_allphase
 outfile_head=hxt1_crab_4phase
-nem=5000
+nem=100000
 tol_em=1.0e-8
 mu=1.0e-2
 gamma=1.0e-2
-acc_method=sqs3
+#acc_method=sqs3
+acc_method=none
 
-~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/richlucy_smth_pf_zal \
+~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/richlucy_smth_pf_zal_cuda \
 $data_list \
 $bg_file \
 $fixed_src_norm_file \

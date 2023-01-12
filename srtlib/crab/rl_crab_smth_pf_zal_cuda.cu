@@ -1,3 +1,4 @@
+#include "../smth_zal_cuda.h"
 #include "rl_crab_cuda.h"
 #include "rl_crab_statval_cuda.h"
 #include "rl_crab_smth_pf_zal_cuda.h"
@@ -5,20 +6,24 @@
 #include "cublas_v2.h"
 
 __global__
-void SrtlibRlCrabCuda::GetSkyNewCuda(
+void SrtlibRlCrabSmthPfZalCuda::GetSkyNewCuda(
     const double* const alpha_dev_arr,
     const double* const beta_dev_arr,
     const double* const mval_dev_arr,
+    int nsky, double mu,
     double* const sky_new_dev_arr)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    double bval = 1.0 - mu * beta_dev_arr[index];
-    double num = -1.0 * bval
-        + sqrt(bval * bval
-               + 4.0 * mu * alpha_dev_arr[index]
-               * mval_dev_arr[index]);
-    double den = 2.0 * mu * alpha_dev_arr[index];
-    sky_new_dev_arr[index] = num / den;
+    if(index < nsky){ 
+        double bval = 1.0 - mu * beta_dev_arr[index];
+        double num = -1.0 * bval
+            + sqrt(bval * bval
+                   + 4.0 * mu * alpha_dev_arr[index]
+                   * mval_dev_arr[index]);
+        double den = 2.0 * mu * alpha_dev_arr[index];
+        sky_new_dev_arr[index] = num / den;
+    }
+    __syncthreads();    
 }
 
 void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
@@ -34,19 +39,23 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
         nskyx, nskyy, alpha_arr);
 
     double* alpha_dev_arr = NULL;
-    size_t mem_size_sky = nsky * sizeof(double);
+    size_t mem_size_nsky = nsky * sizeof(double);
     cudaMalloc((void **)&alpha_dev_arr, mem_size_nsky);
     cublasSetVector(nsky, sizeof(double), alpha_arr, 1,
 		    alpha_dev_arr, 1);
     
     double* beta_dev_arr = NULL;
     cudaMalloc((void **)&beta_dev_arr, mem_size_nsky);
-    SrtlibSmthZalCuda::GetDerivUBetaArr<<<1,1>>>(
-        sky_arr, nskyx, nskyy, beta_dev_arr);
-    SrtlibRlCrabCuda::GetSkyNewCuda<<<1,1>>>(
+    int blocksize = 512;
+    dim3 block (blocksize, 1, 1);
+    dim3 grid  (nsky / block.x + 1, 1, 1);
+    SrtlibSmthZalCuda::GetDerivUBetaArr<<<grid,block>>>(
+        sky_dev_arr, nskyx, nskyy, beta_dev_arr);
+    SrtlibRlCrabSmthPfZalCuda::GetSkyNewCuda<<<grid,block>>>(
         alpha_dev_arr,
         beta_dev_arr,
         mval_dev_arr,
+        nsky, mu,
         sky_new_dev_arr);
 
     cudaFree(alpha_dev_arr);
@@ -54,27 +63,25 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
     delete [] alpha_arr;
 }
 
+__global__
 void SrtlibRlCrabSmthPfZalCuda::GetFluxNewArr(
-    cublasHandle_t handle,
-    const double* const nval_arr,
-    const double* const flux_target_arr,
-    const double* const phase_arr,
+    const double* const nval_dev_arr,
+    const double* const flux_target_dev_arr,
+    const double* const phase_dev_arr,
     int nphase, double gamma,
-    double* const flux_new_arr)
+    double* const flux_new_dev_arr)
 {
-    double* bval_arr = new double[nphase];
-    dcopy_(nphase, const_cast<double*>(phase_arr), 1, bval_arr, 1);
-    daxpy_(nphase, -2.0 * gamma, const_cast<double*>(flux_target_arr), 1,
-           bval_arr, 1);
-
-    for(int iphase = 0; iphase < nphase; iphase++){
-        double num = -1 * bval_arr[iphase] +
-            sqrt(bval_arr[iphase] * bval_arr[iphase]
-                 + 8.0 * gamma * nval_arr[iphase]);
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if(index < nphase){ 
+        double bval = phase_dev_arr[index]
+            - 2.0 * gamma * flux_target_dev_arr[index];
+        double num = -1.0 * bval
+            + sqrt(bval * bval
+                   + 8.0 * gamma * nval_dev_arr[index]);
         double den = 4.0 * gamma;
-        flux_new_arr[iphase] = num / den;
+        flux_new_dev_arr[index] = num / den;
     }
-    delete [] bval_arr;
+    __syncthreads();
 }
 
 void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
@@ -95,6 +102,9 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
     int nsky = nskyx * nskyy;
     double** den_dev_arr = new double*[nphase];
     double** y_dash_dev_arr = new double*[nphase];
+    size_t mem_size_ndet = ndet * sizeof(double);
+    size_t mem_size_nsky = nsky * sizeof(double);
+    size_t mem_size_nphase = nphase * sizeof(double);
     for(int iphase = 0; iphase < nphase; iphase++){
         cudaMalloc((void **)&den_dev_arr[iphase], mem_size_ndet);
         cudaMalloc((void **)&y_dash_dev_arr[iphase], mem_size_ndet);
@@ -112,8 +122,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
                                 resp_norm_mat_dev_arr,
                                 ndet, nsky, nphase,
                                 den_dev_arr);
-    SrtlibRlCrabCuda::GetYDashArr(handle,
-                                  data_dev_arr,
+    SrtlibRlCrabCuda::GetYDashArr(data_dev_arr,
                                   den_dev_arr,
                                   ndet, nphase,
                                   y_dash_dev_arr);
@@ -129,17 +138,21 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
                                  det_0_dev_arr,
                                  ndet, nphase,
                                  nval_dev_arr);
-    SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(handle,
-                                            sky_pre_dev_arr,
-                                            mval_dev_arr,
-                                            nskyx, nskyy, mu,
-                                            sky_new_dev_arr);
-    SrtlibRlCrabSmthPfZalCuda::GetFluxNewArr(handle,
-                                             nval_dev_arr,
-                                             flux_target_dev_arr,
-                                             phase_dev_arr,
-                                             nphase, gamma,
-                                             flux_new_dev_arr);
+    SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
+        handle,
+        sky_pre_dev_arr,
+        mval_dev_arr,
+        nskyx, nskyy, mu,
+        sky_new_dev_arr);
+    int blocksize = 512;
+    dim3 block (blocksize, 1, 1);
+    dim3 grid  (nphase / block.x + 1, 1, 1);
+    SrtlibRlCrabSmthPfZalCuda::GetFluxNewArr<<<grid,block>>>(
+        nval_dev_arr,
+        flux_target_dev_arr,
+        phase_dev_arr,
+        nphase, gamma,
+        flux_new_dev_arr);
     for(int iphase = 0; iphase < nphase; iphase++){
         cudaFree(den_dev_arr[iphase]);
         cudaFree(y_dash_dev_arr[iphase]);
@@ -192,6 +205,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     }
     cudaMalloc((void **)&bg_dev_arr, mem_size_ndet);
     cudaMalloc((void **)&flux_target_dev_arr, mem_size_nphase);
+    cudaMalloc((void **)&phase_dev_arr, mem_size_nphase);
     cudaMalloc((void **)&det_0_dev_arr, mem_size_ndet);
     cudaMalloc((void **)&resp_norm_mat_dev_arr, mem_size_nsky_ndet);
     cudaMalloc((void **)&sky_new_dev_arr, mem_size_nsky);
@@ -202,16 +216,19 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     cublasSetVector(nphase, sizeof(double), flux_init_arr, 1,
 		    flux_init_dev_arr, 1);
     for(int iphase = 0; iphase < nphase; iphase++){
-        cublasSetVector(nsky, sizeof(double), data_dev_arr[iphase], 1,
+        cublasSetVector(ndet, sizeof(double), data_arr[iphase], 1,
                         data_dev_arr[iphase], 1);
     }
     cublasSetVector(ndet, sizeof(double), bg_arr, 1,
 		    bg_dev_arr, 1);
     cublasSetVector(nphase, sizeof(double), flux_target_arr, 1,
 		    flux_target_dev_arr, 1);
+    cublasSetVector(nphase, sizeof(double), phase_arr, 1,
+		    phase_dev_arr, 1);
     cublasSetVector(ndet, sizeof(double), det_0_arr, 1,
 		    det_0_dev_arr, 1);
-    cublasSetVector(ndet * nsky, sizeof(double), resp_norm_mat_arr, 1,
+    cublasSetVector(ndet * nsky, sizeof(double),
+                    resp_norm_mat_arr, 1,
 		    resp_norm_mat_dev_arr, 1);
     
     cublasHandle_t handle;
@@ -221,8 +238,10 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     double* flux_pre_dev_arr = NULL;
     cudaMalloc((void **)&sky_pre_dev_arr, mem_size_nsky);
     cudaMalloc((void **)&flux_pre_dev_arr, mem_size_nphase);
-    cublasDcopy(handle, nsky, sky_init_dev_arr, 1, sky_pre_dev_arr, 1);
-    cublasDcopy(handle, nphase, flux_init_dev_arr, 1, flux_pre_dev_arr, 1);
+    cublasDcopy(handle, nsky, sky_init_dev_arr, 1,
+                sky_pre_dev_arr, 1);
+    cublasDcopy(handle, nphase, flux_init_dev_arr, 1,
+                flux_pre_dev_arr, 1);
     
     for(int iem = 0; iem < nem; iem ++){
         SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
@@ -239,24 +258,28 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
             mu, gamma,
             sky_new_dev_arr,
             flux_new_dev_arr);
-        double helldist  = SrtlibCrabRlCrabStatvalCuda::GetHellingerDist(
-            handle,
-            sky_pre_dev_arr, flux_pre_dev_arr,
-            sky_new_dev_arr, flux_new_dev_arr,
-            nsky, nphase);
+        double helldist
+            = SrtlibCrabRlCrabStatvalCuda::GetHellingerDist(
+                handle,
+                sky_pre_dev_arr, flux_pre_dev_arr,
+                sky_new_dev_arr, flux_new_dev_arr,
+                nsky, nphase);
         if (access( "/tmp/rl_crab_smth_pf_zal_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
-                "/tmp/rl_crab_smth_pf_zal_stop file is found, then stop.\n");
+                "/tmp/rl_crab_smth_pf_zal_stop file is found,"
+                "then stop.\n");
             break;
         }
         if (helldist < tol_em){
             MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
                              iem, helldist);
             break;
-        }
-        cublasDcopy(handle, nsky, sky_new_dev_arr, 1, sky_pre_dev_arr, 1);
-        cublasDcopy(handle, nphase, flux_new_dev_arr, 1, flux_pre_dev_arr, 1);
+         }
+        cublasDcopy(handle, nsky, sky_new_dev_arr, 1,
+                    sky_pre_dev_arr, 1);
+        cublasDcopy(handle, nphase, flux_new_dev_arr, 1,
+                    flux_pre_dev_arr, 1);
         MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
                          iem, helldist);
     }

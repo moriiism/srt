@@ -8,20 +8,28 @@ __global__
 void SrtlibRlCrabCuda::VecDiv(
     const double* const vec1_arr,
     const double* const vec2_arr,
+    int nsize,
     double* const vec3_arr)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    vec3_arr[index] = vec1_arr[index] / vec2_arr[index];
+    if(index < nsize){
+        vec3_arr[index] = vec1_arr[index] / vec2_arr[index];
+    }
+    __syncthreads();
 }
 
 __global__
 void SrtlibRlCrabCuda::VecMul(
     const double* const vec1_arr,
     const double* const vec2_arr,
+    int nsize,
     double* const vec3_arr)
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    vec3_arr[i] = vec1_arr[i] * vec2_arr[i];
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if(index < nsize){    
+        vec3_arr[index] = vec1_arr[index] * vec2_arr[index];
+    }
+    __syncthreads();
 }
 
 void SrtlibRlCrabCuda::GetDetArr(
@@ -56,12 +64,16 @@ void SrtlibRlCrabCuda::GetDenArr(
     SrtlibRlCrabCuda::GetDetArr(handle, sky_dev_arr,
                                 resp_norm_mat_dev_arr,
                                 ndet, nsky, det_dev_arr);
+    double* flux_arr = new double[nphase];
+    cublasGetVector(nphase, sizeof(double), flux_dev_arr, 1,
+                    flux_arr, 1);
     for(int iphase = 0; iphase < nphase; iphase++){
+        double flux_tmp = flux_arr[iphase];
         cublasDcopy(handle, ndet,
                     bg_dev_arr, 1,
                     den_dev_arr[iphase], 1);
         cublasDaxpy(handle, ndet,
-                    &flux_dev_arr[iphase],
+                    &flux_tmp,
                     det_0_dev_arr, 1,
                     den_dev_arr[iphase], 1);
         double alpha = 1.0;
@@ -69,6 +81,7 @@ void SrtlibRlCrabCuda::GetDenArr(
                     &alpha, det_dev_arr, 1,
                     den_dev_arr[iphase], 1);
     }
+    delete [] flux_arr;
     cudaFree(det_dev_arr);
 }
 
@@ -79,9 +92,13 @@ void SrtlibRlCrabCuda::GetYDashArr(
     int ndet, int nphase,
     double* const* const y_dash_dev_arr)
 {
+    int blocksize = 512;
+    dim3 block (blocksize, 1, 1);
+    dim3 grid (ndet / block.x + 1, 1, 1);
     for(int iphase = 0; iphase < nphase; iphase++){
-        SrtlibRlCrabCuda::VecDiv<<<1,1>>>(data_dev_arr[iphase], den_dev_arr[iphase],
-                                 y_dash_dev_arr[iphase]);
+        SrtlibRlCrabCuda::VecDiv<<<grid,block>>>(
+            data_dev_arr[iphase], den_dev_arr[iphase],
+            ndet, y_dash_dev_arr[iphase]);
     }
 }
 
@@ -115,7 +132,11 @@ void SrtlibRlCrabCuda::GetMvalArr(
                 resp_norm_mat_dev_arr, ndet,
                 y_dash_sum_dev_arr, 1,
                 &beta, coeff_dev_arr, 1);
-    SrtlibRlCrabCuda::VecMul<<<1,1>>>(coeff_dev_arr, sky_dev_arr, mval_dev_arr);
+    int blocksize = 512;
+    dim3 block (blocksize, 1, 1);
+    dim3 grid (nsky / block.x + 1, 1, 1);
+    SrtlibRlCrabCuda::VecMul<<<grid,block>>>(
+        coeff_dev_arr, sky_dev_arr, nsky, mval_dev_arr);
     cudaFree(y_dash_sum_dev_arr);
     cudaFree(coeff_dev_arr);
 }
@@ -128,11 +149,26 @@ void SrtlibRlCrabCuda::GetNvalArr(
     int ndet, int nphase,
     double* const nval_dev_arr)
 {
+    double* dot_arr = new double[nphase];
     for(int iphase = 0; iphase < nphase; iphase++){
-        double ddot = 0.0;
+        double dot = 0.0;
         cublasDdot(handle, ndet,
                    y_dash_dev_arr[iphase], 1,
-                   det_0_dev_arr, 1, &ddot);
-        nval_dev_arr[iphase] = flux_dev_arr[iphase] * ddot;
+                   det_0_dev_arr, 1, &dot);
+        dot_arr[iphase] = dot;
     }
+    double* dot_dev_arr = NULL;
+    size_t mem_size_nphase = nphase * sizeof(double);
+    cudaMalloc((void **)&dot_dev_arr, mem_size_nphase);
+    cublasSetVector(nphase, sizeof(double), dot_arr, 1,
+		    dot_dev_arr, 1);
+    int blocksize = 512;
+    dim3 block (blocksize, 1, 1);
+    dim3 grid (nphase / block.x + 1, 1, 1);
+    SrtlibRlCrabCuda::VecMul<<<grid,block>>>(flux_dev_arr,
+                                             dot_dev_arr,
+                                             nphase,
+                                             nval_dev_arr);
+    delete [] dot_arr;
+    cudaFree(dot_dev_arr);
 }

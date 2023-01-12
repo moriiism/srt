@@ -28,23 +28,27 @@ INCLUDE_CUDA = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} \
 	$(CUDABLAS_INC) \
 	$(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 	$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS_CUDA  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} \
+LDLIBS_CUDA  = ${SRTLIB_CRAB_CUDA_LIB} ${SRTLIB_CUDA_LIB} \
+	${SRTLIB_CRAB_LIB} \
 	$(CUDABLAS_LIB) \
 	$(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) \
 	$(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) $(LAPACK_LIB) $(BLAS_LIB) \
 	$(MT_LIB) $(LIB) -lgfortran
 
 
-
-TARGET = richlucy_smth_pf_zal
+TARGET = richlucy_smth_pf_zal  richlucy_smth_pf_zal_cuda
 
 all: $(TARGET) 
 
 richlucy_smth_pf_zal: richlucy_smth_pf_zal.o  arg_richlucy_smth_pf_zal.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
 
+richlucy_smth_pf_zal_cuda: richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o
+#	$(NVCCN) richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o ${LDLIBS_CUDA} -o $@
+	$(CXXN) richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o ${LDLIBS_CUDA} -o $@
+
 .SUFFIXES:
-.SUFFIXES: .o .c .f .F .cc
+.SUFFIXES: .o .c .f .F .cc .cu
 
 .c.o:
 	$(CCN) -c $<
@@ -57,6 +61,10 @@ richlucy_smth_pf_zal: richlucy_smth_pf_zal.o  arg_richlucy_smth_pf_zal.o
 
 .cc.o:
 	${CXXN} -c $<
+
+.cu.o:
+	${NVCCN} -c $<
+
 
 install: all
 	if [ ! -d $(INST_BIN_DIR) ]; then mkdir $(INST_BIN_DIR); fi

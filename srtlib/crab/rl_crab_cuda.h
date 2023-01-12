@@ -17,12 +17,14 @@ namespace SrtlibRlCrabCuda
     void VecDiv(
         const double* const vec1_arr,
         const double* const vec2_arr,
+        int nsize,
         double* const vec3_arr);
 
     __global__
     void VecMul(
         const double* const vec1_arr,
         const double* const vec2_arr,
+        int nsize,
         double* const vec3_arr);
     
     void GetDetArr(

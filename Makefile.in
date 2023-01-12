@@ -7,10 +7,12 @@ SRT_DIR := /home/morii/work/github/moriiism/srt
 ### srtlib
 SRTLIB_INC := -I$(SRT_DIR)/srtlib
 SRTLIB_LIB := -L$(SRT_DIR)/srtlib -lsrtlib
+SRTLIB_CUDA_LIB := -L$(SRT_DIR)/srtlib -lsrtlib_cuda
 
 ### srtlib_crab
 SRTLIB_CRAB_INC := -I$(SRT_DIR)/srtlib/crab
 SRTLIB_CRAB_LIB := -L$(SRT_DIR)/srtlib/crab -lsrtlib_crab
+SRTLIB_CRAB_CUDA_LIB := -L$(SRT_DIR)/srtlib/crab -lsrtlib_crab_cuda
 
 ### srtlib_ps
 SRTLIB_PS_INC := -I$(SRT_DIR)/srtlib_ps
