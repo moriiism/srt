@@ -1,0 +1,70 @@
+#
+# cv.py.txt
+#
+
+source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
+
+cd /home/morii/work/arb/ana/run/crab/hxt1/rl_smth_pf_zal
+
+# response format
+nskyx=101
+nskyy=101
+ndetx=80
+ndety=80
+
+# data_list
+cat << EOF > data.list
+# data_file  phase_tag  phase_ratio  flux_0
+# /home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_00_151_300_x1178y1175_w80.fits  all  1.0   ***
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_151_300_x1178y1175_w80.fits  on2   0.25  389.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits  off1  0.40  0.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits  on1   0.20  113.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits  off2  0.15  96.0
+EOF
+
+
+data_list=data.list
+bg_file=none
+rand_seed=1
+nfold=5
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+resp_dir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/151_300/gimage_100
+posx_point_src=54
+posy_point_src=41
+outdir=cv
+outfile_head=hxt1_crab_4phase
+nem=100
+tol_em=1.0e-8
+mu_gamma_file=temp
+acc_method=none
+
+#fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
+#resp_file=resp/arb_resp.fits
+#eff_file=resp/arb_eff.fits
+
+
+~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/cv/cv.py \
+$data_list \
+$bg_file \
+$rand_seed \
+$nfold \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$resp_dir \
+$posx_point_src \
+$posy_point_src \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$mu_gamma_file \
+$acc_method
+
+
+
+

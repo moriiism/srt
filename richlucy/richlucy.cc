@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
     if( MiIolib::TestFileExist(argval->GetOutdir()) ){
         char cmd[kLineSize];
         sprintf(cmd, "mkdir -p %s", argval->GetOutdir().c_str());
-        system(cmd);
+        int ret = system(cmd);
+        (void) ret;
     }
     sprintf(logfile, "%s/%s_%s.log",
             argval->GetOutdir().c_str(),
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
                           &bitpix_data, &data_arr);
     int nph_data = MirMath::GetSum(ndet, data_arr);
-    MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);    
+    MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);
 
     // load response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
@@ -101,7 +102,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-
     // sky image to be reconstructed
     double* rho_init_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
@@ -125,7 +125,6 @@ int main(int argc, char* argv[])
         delete [] sky_ref_arr;
         delete img_info_sky;
     }
-    
     double* rho_new_arr = new double[nsky];
     if (argval->GetAccMethod() == "none"){
         SrtlibRl::Richlucy(fp_log,

@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
     MiIolib::Printf2(fp_log, "-----------------------------\n");
     argval->Print(fp_log);
 
+
+    
     // load response
     int nphoton_input = argval->GetNphotonInput();
     int nskyx = argval->GetNskyx();

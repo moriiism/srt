@@ -47,7 +47,7 @@ double SrtlibRlStatval::GetNegLogLike(
     
     // - log likelihood = - sum_v [ Y(v) log( sum_u t(v,u) rho_u ) ]
     double* det_arr = new double[ndet];
-    char transa[1];
+    char transa[2];
     strcpy(transa, "N");
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,

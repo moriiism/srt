@@ -10,9 +10,8 @@ void SrtlibRl::GetDetArr(const double* const rho_arr,
                          double* const det_arr) // ndet
 {
     // det_arr = R_mat %*% rho_arr
-    char transa[1];
+    char transa[2];
     strcpy(transa, "N");
-
     // y := alpha*A*x + beta*y
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,
@@ -40,12 +39,13 @@ void SrtlibRl::GetRhoNewArr(const double* const rho_arr,
     }
 
     double* tmp_arr = new double[nsky];
-    char transa[1];
+    char transa[2];
     strcpy(transa, "T");
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,
            const_cast<double*>(div_arr), 1,
            0.0, tmp_arr, 1);
+
     for(int isky = 0; isky < nsky; isky ++){
         rho_new_arr[isky] = tmp_arr[isky] * rho_arr[isky];
         rho_new_arr[isky] /= sum;

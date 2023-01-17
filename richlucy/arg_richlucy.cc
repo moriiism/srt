@@ -135,7 +135,9 @@ void ArgValRichlucy::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "datafile  skyfile  resp_file  eff_file  outdir  outfile_head  "
+            "datafile  skyfile  resp_file  eff_file  "
+            "nskyx  nskyy  ndetx  ndety  "
+            "outdir  outfile_head  "
             "nem  tol_em  acc_method\n",
             progname_.c_str());
     abort();

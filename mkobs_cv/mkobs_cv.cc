@@ -31,7 +31,8 @@ int main(int argc, char* argv[])
     if( MiIolib::TestFileExist(argval->GetOutdir()) ){
         char cmd[kLineSize];
         sprintf(cmd, "mkdir -p %s", argval->GetOutdir().c_str());
-        system(cmd);
+        int ret = system(cmd);
+        (void) ret;
     }
     sprintf(logfile, "%s/%s_%s.log",
             argval->GetOutdir().c_str(),
@@ -67,11 +68,11 @@ int main(int argc, char* argv[])
 
     double* obs_bin_arr = new double[ndet];
     int*    obs_evt_arr = new int[nph_int];
-    GenRandomEvtFromProbDist(org_norm_arr, ndet,
-                             nph_int,
-                             argval->GetRandSeed(),
-                             obs_bin_arr,
-                             obs_evt_arr);
+    SrtlibSim::GenRandomEvtFromProbDist(org_norm_arr, ndet,
+                                        nph_int,
+                                        argval->GetRandSeed(),
+                                        obs_bin_arr,
+                                        obs_evt_arr);
     {
         long naxes[2];
         naxes[0] = ndetx;
@@ -92,12 +93,12 @@ int main(int argc, char* argv[])
         obs_tr_arr[ifold] = new double[ndet];
         obs_vl_arr[ifold] = new double[ndet];
     }
-    GenCVImageByPartition(obs_evt_arr, nph_int,
-                          argval->GetNfold(),
-                          argval->GetRandSeed(),
-                          ndet,
-                          obs_tr_arr,
-                          obs_vl_arr);
+    SrtlibSim::GenCVImageByPartition(obs_evt_arr, nph_int,
+                                     argval->GetNfold(),
+                                     argval->GetRandSeed(),
+                                     ndet,
+                                     obs_tr_arr,
+                                     obs_vl_arr);
     for(int ifold = 0; ifold < argval->GetNfold(); ifold ++){
         long naxes[2];
         naxes[0] = ndetx;

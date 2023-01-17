@@ -239,9 +239,8 @@ $nskyy
 
 
 
-
 cat << EOF > data.list
-# data_file  phase_tag  phase_ratio  nu_0
+# data_file  phase_tag  phase_ratio  flux_0
 ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on2_rate_x1175y1185_w80.fits   on2   0.25  389.0
 ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_off1_rate_x1175y1185_w80.fits  off1  0.40  0.0
 ../../../../../hitomi/hxt/gimage_hxt1/crab_hxi1_gti_on1_rate_x1175y1185_w80.fits   on1   0.20  113.0

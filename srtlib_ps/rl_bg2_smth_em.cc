@@ -306,7 +306,7 @@ void SrtlibRlBg2SmthEm::GetMArrNval(
         div_arr[idet] = data_arr[idet] / den_arr[idet];
     }
     double* tmp_arr = new double[nsky];
-    char transa[1];
+    char transa[2];
     strcpy(transa, "T");    
     dgemv_(transa, ndet, nsky, 1.0,
            const_cast<double*>(resp_norm_mat_arr), ndet,
