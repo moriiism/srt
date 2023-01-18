@@ -22,6 +22,31 @@ cat << EOF > data.list
 /home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits  off2  0.15  96.0
 EOF
 
+# mu, gamma list
+~/work/github/moriiism/srt/script/logbin.py \
+1e-7 1e0 7
+
+cat << EOF > cv/mu.list
+1.0000e-07
+1.0000e-06
+1.0000e-05
+1.0000e-04
+1.0000e-03
+1.0000e-02
+1.0000e-01
+1.0000e+00
+EOF
+
+cat << EOF > cv/gamma.list
+1.0000e-07
+1.0000e-06
+1.0000e-05
+1.0000e-04
+1.0000e-03
+1.0000e-02
+1.0000e-01
+1.0000e+00
+EOF
 
 data_list=data.list
 bg_file=none
@@ -36,14 +61,11 @@ posx_point_src=54
 posy_point_src=41
 outdir=cv
 outfile_head=hxt1_crab_4phase
-nem=100
-tol_em=1.0e-8
-mu_gamma_file=temp
+nem=10000
+tol_em=1.0e-7
+mu_list=cv/mu.list
+gamma_list=cv/gamma.list
 acc_method=none
-
-#fixed_src_norm_file=skyorg/crab_pulsar_norm.fits
-#resp_file=resp/arb_resp.fits
-#eff_file=resp/arb_eff.fits
 
 
 ~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/cv/cv.py \
@@ -62,8 +84,28 @@ $outdir \
 $outfile_head \
 $nem \
 $tol_em \
-$mu_gamma_file \
+$mu_list \
+$gamma_list \
 $acc_method
+
+
+~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/cv/cv_smr.py \
+$data_list \
+$rand_seed \
+$nfold \
+$outdir \
+$outfile_head \
+$mu_list \
+$gamma_list
+
+
+
+
+/home/morii/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/eval_val \
+cv/resp/hxt1_resp_norm.fits \
+cv/rec/mu1.0e-07/gamma1.0e-07/nfold05/ifold01/rec_rec_00.fits \
+cv/obs_cv/on2/hxt1_crab_4phase_obs_0001_05fold01_vl.fits \
+5 cv/rec/mu1.0e-07/gamma1.0e-07/nfold05/ifold01 eval
 
 
 

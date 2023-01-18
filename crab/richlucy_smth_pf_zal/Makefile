@@ -36,7 +36,7 @@ LDLIBS_CUDA  = ${SRTLIB_CRAB_CUDA_LIB} ${SRTLIB_CUDA_LIB} \
 	$(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = richlucy_smth_pf_zal  richlucy_smth_pf_zal_cuda
+TARGET = richlucy_smth_pf_zal  richlucy_smth_pf_zal_cuda  eval_val
 
 all: $(TARGET) 
 
@@ -46,6 +46,9 @@ richlucy_smth_pf_zal: richlucy_smth_pf_zal.o  arg_richlucy_smth_pf_zal.o
 richlucy_smth_pf_zal_cuda: richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o
 #	$(NVCCN) richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o ${LDLIBS_CUDA} -o $@
 	$(CXXN) richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o ${LDLIBS_CUDA} -o $@
+
+eval_val: eval_val.o  arg_eval_val.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
 
 .SUFFIXES:
 .SUFFIXES: .o .c .f .F .cc .cu

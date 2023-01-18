@@ -17,7 +17,7 @@ Details:
 import os
 import sys
 import subprocess
-import pandas as pd
+#import pandas as pd
 import math
 
 iarg = 1
