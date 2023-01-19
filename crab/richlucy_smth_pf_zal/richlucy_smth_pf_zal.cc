@@ -16,6 +16,20 @@ int g_flag_debug = 0;
 int g_flag_help = 0;
 int g_flag_verbose = 0;
 
+double GetRootMeanSquareError(const double* const det_arr,
+                              const double* const val_arr,
+                              int ndet)
+{
+    double sum = 0.0;
+    for(int idet = 0; idet < ndet; idet ++){
+        double diff = det_arr[idet] - val_arr[idet];
+        sum += diff * diff;
+    }
+    double ave = sum / ndet;
+    double ans = sqrt(ave);
+    return ans;
+}
+
 int main(int argc, char* argv[])
 {
     int status_prog = kRetNormal;
@@ -56,6 +70,7 @@ int main(int argc, char* argv[])
     int nphase = nphase_long;
     printf("nphase = %d\n", nphase);
     string* data_list_arr = new string[nphase];
+    string* data_vl_list_arr = new string[nphase];
     string* phase_tag_arr = new string[nphase];
     double* phase_arr = new double[nphase];
     double* flux_target_arr = new double[nphase];
@@ -63,10 +78,15 @@ int main(int argc, char* argv[])
         int nsplit = 0;
         string* split_arr = NULL;
         MiStr::GenSplit(line_data_list_arr[iphase], &nsplit, &split_arr);
+        if(nsplit != 5){
+            printf("error: bad nsplit(=%d)\n", nsplit);
+            abort();
+        }
         data_list_arr[iphase] = split_arr[0];
-        phase_tag_arr[iphase] = split_arr[1];
-        phase_arr[iphase] = atof(split_arr[2].c_str());
-        flux_target_arr[iphase] = atof(split_arr[3].c_str());
+        data_vl_list_arr[iphase] = split_arr[1];
+        phase_tag_arr[iphase] = split_arr[2];
+        phase_arr[iphase] = atof(split_arr[3].c_str());
+        flux_target_arr[iphase] = atof(split_arr[4].c_str());
         MiStr::DelSplit(split_arr);
     }
     MiIolib::DelReadFile(line_data_list_arr);
@@ -127,19 +147,23 @@ int main(int argc, char* argv[])
                      nph_fixed_src_norm);
 
     
-    // load response file
-    int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
-    int naxis1 = MifFits::GetAxisSize(argval->GetRespFile(), 1);
+    // load normalized response file
+    int naxis0 = MifFits::GetAxisSize(argval->GetRespNormFile(), 0);
+    int naxis1 = MifFits::GetAxisSize(argval->GetRespNormFile(), 1);
     if ((naxis0 != ndet) || (naxis1 != nsky)){
-        MiIolib::Printf2(fp_log, "Error: response file size error.\n");
+        MiIolib::Printf2(
+            fp_log,
+            "Error: normalized response file size error.\n");
         abort();
     }
-    double* resp_mat_arr = NULL;
+    double* resp_norm_mat_arr = NULL;
     int bitpix_resp = 0;
     MifImgInfo* img_info_resp = new MifImgInfo;
     img_info_resp->InitSetImg(1, 1, ndet, nsky);
-    MifFits::InFitsImageD(argval->GetRespFile(), img_info_resp,
-                          &bitpix_resp, &resp_mat_arr);
+    MifFits::InFitsImageD(argval->GetRespNormFile(),
+                          img_info_resp,
+                          &bitpix_resp,
+                          &resp_norm_mat_arr);
 
     // load efficiency file
     double* eff_mat_arr = NULL;
@@ -149,19 +173,7 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetEffFile(), img_info_eff,
                           &bitpix_eff, &eff_mat_arr);
 
-    // normalize response file
-    double* resp_norm_mat_arr = new double [ndet * nsky];
-    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
-            int isky = nskyx * iskyy + iskyx;
-            int imat = isky * ndet;
-            for(int idet = 0; idet < ndet; idet ++){
-                resp_norm_mat_arr[imat + idet]
-                    = resp_mat_arr[imat + idet] / eff_mat_arr[isky];
-            }
-        }
-    }
-    // check
+    // check response file
     for(int iskyy = 0; iskyy < nskyy; iskyy ++){
         for(int iskyx = 0; iskyx < nskyx; iskyx ++){
             int isky = nskyx * iskyy + iskyx;
@@ -171,7 +183,8 @@ int main(int argc, char* argv[])
                 resp_norm_sum += resp_norm_mat_arr[imat + idet];
             }
             if ( fabs(resp_norm_sum - 1.0) > 1.0e-10){
-                // printf("warning: resp_norm_sum = %e\n", resp_norm_sum);
+                printf("warning: resp_norm_sum = %e\n",
+                       resp_norm_sum);
             }
         }
     }
@@ -268,7 +281,7 @@ int main(int argc, char* argv[])
     FILE* fp_qdp = NULL;
     fp_qdp = fopen(qdp_file, "w");
     fprintf(fp_qdp, "skip sing\n");
-    fprintf(fp_qdp, "! flux_new__arr\n");
+    fprintf(fp_qdp, "! flux_new_arr\n");
     for(int iphase = 0; iphase < nphase; iphase ++){
         fprintf(fp_qdp, "%d  %e\n",
                 iphase, flux_new_arr[iphase]);
@@ -302,6 +315,61 @@ int main(int argc, char* argv[])
                 + flux_new_arr[iphase] * sky_fixed_src_norm_arr[isky];
         }
     }
+
+    // evaluate resultant images with validation images
+    // load validation image data
+    double** data_vl_arr = new double*[nphase];
+    int* nph_data_vl_arr = new int[nphase];
+    int nph_data_vl = 0;
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        MifImgInfo* img_info_data_vl = new MifImgInfo;
+        img_info_data_vl->InitSetImg(1, 1, ndetx, ndety);
+        int bitpix_data_vl = 0;
+        MifFits::InFitsImageD(data_vl_list_arr[iphase], img_info_data_vl,
+                              &bitpix_data_vl, &data_vl_arr[iphase]);
+        nph_data_vl_arr[iphase] = MirMath::GetSum(
+            ndet, data_vl_arr[iphase]);
+        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
+                         nph_data_vl_arr[iphase]);
+        nph_data_vl += nph_data_vl_arr[iphase];
+    }
+    MiIolib::Printf2(fp_log, "N photon (vl) = %d\n", nph_data_vl);
+
+    double num_rmse = 0.0;
+    double den_rmse = 0.0;
+    //   det images of resultant images
+    double** det_pulse_arr = new double*[nphase];
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        det_pulse_arr[iphase] = new double[ndet];
+        SrtlibRlCrab::GetDetArr(sky_pulse_arr[iphase],
+                                resp_norm_mat_arr,
+                                ndet, nsky,
+                                det_pulse_arr[iphase]);
+        // add non X-ray background
+        daxpy_(ndet, 1.0, bg_arr, 1, det_pulse_arr[iphase], 1);
+        // multiply phase ratio
+        dscal_(ndet, phase_arr[iphase],
+               det_pulse_arr[iphase], 1);
+        // scale det_pulse_arr by 1.0/(nfold - 1) for
+        // evalution between validation data
+        dscal_(ndet, 1.0 / (argval->GetNfoldCv() - 1),
+               det_pulse_arr[iphase], 1);
+        double rmse = GetRootMeanSquareError(
+            det_pulse_arr[iphase], data_vl_arr[iphase], ndet);
+        printf("iphase = %d, rmse = %e\n", iphase, rmse);
+        num_rmse += rmse * rmse * ndet;
+        den_rmse += ndet;
+    }
+    double rmse_tot = sqrt(num_rmse / den_rmse);
+    printf("rmse_tot = %e\n", rmse_tot);
+
+    char outfile[kLineSize];
+    sprintf(outfile, "%s/%s_rmse.txt",
+            argval->GetOutdir().c_str(),
+            argval->GetOutfileHead().c_str());
+    FILE* fp_out = fopen(outfile, "w");
+    fprintf(fp_out, "%e\n", rmse_tot);
+    fclose(fp_out);
     
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
@@ -333,9 +401,8 @@ int main(int argc, char* argv[])
     }
 
     double time_ed = MiTime::GetTimeSec();
-    MiIolib::Printf2(fp_log, "duration = %e sec.\n", time_ed - time_st);
-
+    MiIolib::Printf2(fp_log, "duration = %e sec.\n",
+                     time_ed - time_st);
     fclose(fp_log);
-    
     return status_prog;
 }

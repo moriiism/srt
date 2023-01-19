@@ -2,9 +2,27 @@
 # cv.py.txt
 #
 
+# setup mitool
+export LANG=C
 source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
 
-cd /home/morii/work/arb/ana/run/crab/hxt1/rl_smth_pf_zal
+# working directory
+work_dir=/home/morii/work/arb/ana/run
+
+# target object
+# telescope name
+# energy band
+# response version
+# reconstruction program
+
+target=crab
+telescope=hxt1
+ene_band=151_300
+resp_ver=barycen_3rd
+rec_prog=crab_rl_smth_pf_zal
+
+mkdir -p $work_dir/$target/$telescope/$ene_band/$resp_ver/$rec_prog
+cd $work_dir/$target/$telescope/$ene_band/$resp_ver/$rec_prog
 
 # response format
 nskyx=101
@@ -14,37 +32,38 @@ ndety=80
 
 # data_list
 cat << EOF > data.list
-# data_file  phase_tag  phase_ratio  flux_0
-# /home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_00_151_300_x1178y1175_w80.fits  all  1.0   ***
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_151_300_x1178y1175_w80.fits  on2   0.25  389.0
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits  off1  0.40  0.0
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits  on1   0.20  113.0
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits  off2  0.15  96.0
+# data_file  phase_id  phase_tag  phase_ratio  flux_0
+#/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_00_151_300_x1178y1175_w80.fits  20  all  1.0   ***
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_151_300_x1178y1175_w80.fits  21  on2   0.25  389.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits  22  off1  0.40  0.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits  23  on1   0.20  113.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits  24  off2  0.15  96.0
 EOF
 
 # mu, gamma list
 ~/work/github/moriiism/srt/script/logbin.py \
 1e-7 1e0 7
 
+mkdir cv
 cat << EOF > cv/mu.list
 1.0000e-07
-1.0000e-06
-1.0000e-05
-1.0000e-04
-1.0000e-03
-1.0000e-02
-1.0000e-01
+#1.0000e-06
+#1.0000e-05
+#1.0000e-04
+#1.0000e-03
+#1.0000e-02
+#1.0000e-01
 1.0000e+00
 EOF
 
 cat << EOF > cv/gamma.list
 1.0000e-07
-1.0000e-06
-1.0000e-05
-1.0000e-04
-1.0000e-03
-1.0000e-02
-1.0000e-01
+#1.0000e-06
+#1.0000e-05
+#1.0000e-04
+#1.0000e-03
+#1.0000e-02
+#1.0000e-01
 1.0000e+00
 EOF
 
@@ -60,8 +79,7 @@ resp_dir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/151_300/gimage_100
 posx_point_src=54
 posy_point_src=41
 outdir=cv
-outfile_head=hxt1_crab_4phase
-nem=10000
+nem=10
 tol_em=1.0e-7
 mu_list=cv/mu.list
 gamma_list=cv/gamma.list
@@ -81,7 +99,6 @@ $resp_dir \
 $posx_point_src \
 $posy_point_src \
 $outdir \
-$outfile_head \
 $nem \
 $tol_em \
 $mu_list \

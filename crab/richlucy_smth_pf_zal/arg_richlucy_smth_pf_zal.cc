@@ -18,7 +18,7 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 16;
+    int narg = 17;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
@@ -27,7 +27,7 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     data_list_      = argv[iarg]; iarg++;
     bg_file_        = argv[iarg]; iarg++;    
     fixed_src_norm_file_ = argv[iarg]; iarg++;
-    resp_file_      = argv[iarg]; iarg++;
+    resp_norm_file_ = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
     nskyy_          = atoi(argv[iarg]); iarg++;
@@ -40,6 +40,7 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     mu_             = atof(argv[iarg]); iarg++;
     gamma_          = atof(argv[iarg]); iarg++;
     acc_method_     = argv[iarg]; iarg++;
+    nfold_cv_       = atoi(argv[iarg]); iarg++;
 }
 
 void ArgValRichlucySmthPfZal::Print(FILE* fp) const
@@ -53,7 +54,7 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
     fprintf(fp, "%s: bg_file_        : %s\n", __func__, bg_file_.c_str());
     fprintf(fp, "%s: fixed_src_norm_file_ : %s\n",
             __func__, fixed_src_norm_file_.c_str());
-    fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
+    fprintf(fp, "%s: resp_norm_file_ : %s\n", __func__, resp_norm_file_.c_str());
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
     fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
@@ -66,6 +67,7 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
     fprintf(fp, "%s: mu_             : %e\n", __func__, mu_);
     fprintf(fp, "%s: gamma_          : %e\n", __func__, gamma_);
     fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
+    fprintf(fp, "%s: nfold_cv_       : %d\n", __func__, nfold_cv_);
 }
 
 // private
@@ -76,7 +78,7 @@ void ArgValRichlucySmthPfZal::Null()
     data_list_ = "";
     bg_file_ = "";
     fixed_src_norm_file_ = "";
-    resp_file_ = "";
+    resp_norm_file_ = "";
     eff_file_  = "";
     nskyx_     = 0;
     nskyy_     = 0;
@@ -89,6 +91,7 @@ void ArgValRichlucySmthPfZal::Null()
     mu_         = 0.0;
     gamma_      = 0.0;    
     acc_method_ = "";
+    nfold_cv_   = 0;
 }
 
 void ArgValRichlucySmthPfZal::SetOption(int argc, char* argv[], option* long_options)
@@ -145,11 +148,12 @@ void ArgValRichlucySmthPfZal::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "data_list  bg_file  fixed_src_norm_file  resp_file  eff_file  "
+            "data_list  bg_file  fixed_src_norm_file  "
+            "resp_norm_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
             "nem  tol_em  mu  gamma  "
-            "acc_method\n",
+            "acc_method  nfold_cv\n",
             progname_.c_str());
     abort();
 }

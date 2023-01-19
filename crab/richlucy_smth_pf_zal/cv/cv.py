@@ -36,7 +36,6 @@ respdir        = sys.argv[iarg]; iarg += 1
 posx_point_src = int(sys.argv[iarg]); iarg += 1
 posy_point_src = int(sys.argv[iarg]); iarg += 1
 outdir         = sys.argv[iarg]; iarg += 1
-outfile_head   = sys.argv[iarg]; iarg += 1
 nem            = int(sys.argv[iarg]); iarg += 1
 tol_em         = float(sys.argv[iarg]); iarg += 1
 mu_list        = sys.argv[iarg]; iarg += 1
@@ -55,7 +54,6 @@ print("respdir = ", respdir)
 print("posx_point_src = ", posx_point_src)
 print("posy_point_src = ", posy_point_src)
 print("outdir = ", outdir)
-print("outfile_head = ", outfile_head)
 print("nem = ", nem)
 print("tol_em = ", tol_em)
 print("mu_list = ", mu_list)
@@ -67,6 +65,7 @@ srt_dir = "/home/morii/work/github/moriiism/srt"
 # data_list
 print("data_list ...")
 data_file_lst = []
+phase_id_lst = []
 phase_tag_lst = []
 phase_ratio_lst = []
 flux_0_lst = []
@@ -76,38 +75,41 @@ for line in data_list_fptr:
     if(line[0] == "#"):
         continue
     print(line)
-    (data_file, phase_tag, phase_ratio, flux_0) = line.split()
+    (data_file, phase_id, phase_tag,
+     phase_ratio, flux_0) = line.split()
     data_file_lst.append(data_file)
+    phase_id_lst.append(phase_id)
     phase_tag_lst.append(phase_tag)
     phase_ratio_lst.append(phase_ratio)
     flux_0_lst.append(flux_0)
     
 data_list_fptr.close()
 print(data_file_lst)
+print(phase_id_lst)
 print(phase_tag_lst)
 print(phase_ratio_lst)
 print(flux_0_lst)
 print("data_list ... done.")
 
+
 # make observation image for cross-validation
 print("obs_cv ...")
 for index in range(len(data_file_lst)):
-    outdir_mkobs_cv = outdir + "/" + "obs_cv" + "/" + phase_tag_lst[index]
-    outfile_head_mkobs_cv = outfile_head
-    print(outdir_mkobs_cv)
+    outdir_mkobs_cv = (outdir + "/" + "obs_cv" + "/"
+                       + phase_id_lst[index] + "_"
+                       + phase_tag_lst[index])
+    outfile_head_mkobs_cv = "sim"
     cmd = [srt_dir + "/" + "mkobs_cv/mkobs_cv",
            data_file_lst[index], str(rand_seed), str(nfold),
            outdir_mkobs_cv, outfile_head_mkobs_cv]
     print(cmd)
     subprocess.call(cmd)
-
 print("obs_cv ... done.")
-
 
 # make response matrix, normed response matrix, 
 # and efficiency matrix files
 outdir_resp = outdir + "/" + "resp"
-outfile_head_resp = "hxt1"
+outfile_head_resp = "cv"
 nphoton_input_resp = 100
 cmd = ["/home/morii/work/github/moriiism/srt/mkresp/mkresp", 
        respdir, outdir_resp, outfile_head_resp,
@@ -129,49 +131,58 @@ point_src_dat_file_fptr.close()
 
 outdir_point_src = outdir + "/" + "skyorg"
 outfile_head_point_src = "crab_pulsar"
-cmd = ["/home/morii/work/github/moriiism/srt/mkimg_points/mkimg_points",
+cmd = [srt_dir + "/" + "mkimg_points/mkimg_points",
        point_src_dat_file, outdir_point_src,
        outfile_head_point_src,
        str(nskyx), str(nskyy)]
 print(cmd)
 subprocess.call(cmd)
 
-# hyper_par_list
-#hyper_par_lst = []
-#hyper_par_fptr = open(hyper_par_list, "r")
-#for line in hyper_par_fptr:
-#    mu = line.rstrip('\n')
-#    mu_lst.append(mu)
-#mu_list_file_fptr.close()
+mu_par_lst = []
+mu_list_fptr = open(mu_list, "r")
+for line in mu_list_fptr:
+    line = line.rstrip()
+    if(line[0] == "#"):
+        continue
+    print(line)
+    mu = line.rstrip('\n')
+    mu = float(mu)
+    mu_par_lst.append(mu)
+mu_list_fptr.close()
+print(mu_par_lst)
 
+gamma_par_lst = []
+gamma_list_fptr = open(gamma_list, "r")
+for line in gamma_list_fptr:
+    line = line.rstrip()
+    if(line[0] == "#"):
+        continue
+    print(line)
+    gamma = line.rstrip('\n')
+    gamma = float(gamma)
+    gamma_par_lst.append(gamma)
+gamma_list_fptr.close()
+print(gamma_par_lst)
 
-mu_lst = [1.0e-7, 1.0e-6, 1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0]
-gamma_lst = [1.0e-7, 1.0e-6, 1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0]
-
-#mu_lst = [1.0e-3]
-#gamma_lst = [1.0e-3]
 
 cmd = ["mkdir", outdir + "/" + "rec"]
 print(cmd)
 subprocess.call(cmd)
 
-for mu in mu_lst:
-    print("mu = %e", mu)
+for mu in mu_par_lst:
+    print("mu = ", mu)
     mu_dir = f"mu{mu:.1e}"
     cmd = ["mkdir", outdir + "/" + "rec" + "/"
            + mu_dir]
     print(cmd)
     subprocess.call(cmd)
-    for gamma in gamma_lst:
-        print("  gamma = %s", gamma)
+    for gamma in gamma_par_lst:
+        print("  gamma = ", gamma)
         gamma_dir = f"gamma{gamma:.1e}"
         cmd = ["mkdir", outdir + "/" + "rec" + "/"
                + mu_dir + "/" + gamma_dir]
         print(cmd)
         subprocess.call(cmd)
-        mu = float(mu)
-        gamma = float(gamma)
-
         nfold_dir = f"nfold{nfold:02}"
         cmd = ["mkdir", outdir + "/" + "rec" + "/"
                + mu_dir + "/" + gamma_dir + "/"
@@ -179,8 +190,7 @@ for mu in mu_lst:
         print(cmd)
         subprocess.call(cmd)
         for ifold in range(nfold):
-            print("      nfold(%d):ifold(%d)",
-                  nfold, ifold)
+            print(f"      nfold({nfold:02}):ifold({ifold:02})")
             ifold_dir = f"ifold{ifold:02}"
             cmd = ["mkdir", outdir + "/" + "rec" + "/"
                    + mu_dir + "/" + gamma_dir + "/"
@@ -194,41 +204,50 @@ for mu in mu_lst:
                          + f"ifold{ifold:02}" + "/"
                          + "data.list")
             data_list_fptr = open(data_list, "w")
-            print(f"# data_file  phase_tag  phase_ratio  flux_0",
+            print(f"# data_file  data_vl_file  phase_tag  phase_ratio  flux_0",
                   file=data_list_fptr)
             for index in range(len(phase_tag_lst)):
                 data_file = (
                     outdir + "/" + "obs_cv" + "/"
+                    + phase_id_lst[index] + "_"
                     + phase_tag_lst[index] + "/"
-                    + f"{outfile_head}_obs_{rand_seed:04}_"
+                    + f"sim_obs_{rand_seed:04}_"
                     + f"{nfold:02}fold{ifold:02}_tr.fits")
-                print(f"{data_file} {phase_tag_lst[index]} "
-                      f"{phase_ratio_lst[index]} {flux_0_lst[index]}",
+                data_vl_file = (
+                    outdir + "/" + "obs_cv" + "/"
+                    + phase_id_lst[index] + "_"
+                    + phase_tag_lst[index] + "/"
+                    + f"sim_obs_{rand_seed:04}_"
+                    + f"{nfold:02}fold{ifold:02}_vl.fits")
+                print(f"{data_file} {data_vl_file} " +
+                      f"{phase_tag_lst[index]} " +
+                      f"{phase_ratio_lst[index]} " +
+                      f"{flux_0_lst[index]}",
                       file=data_list_fptr)
-
             data_list_fptr.close()
 
-            bg_file = "none"
             fixed_src_norm_file = (
-                f"{outdir}/skyorg/{outfile_head_point_src}_norm.fits")
-            resp_file = (
-                f"{outdir}/resp/{outfile_head_resp}_resp.fits")
+                f"{outdir}/skyorg" + "/" +
+                f"{outfile_head_point_src}_norm.fits")
+            resp_norm_file = (
+                f"{outdir}/resp" + "/" +
+                "cv_resp_norm.fits")
             eff_file = (
-                f"{outdir}/resp/{outfile_head_resp}_eff.fits")
+                f"{outdir}/resp" + "/" +
+                "cv_eff.fits")
             outdir_rec = (
                 f"{outdir}/rec/mu{mu:.1e}/gamma{gamma:.1e}/" +
                 f"nfold{nfold:02}/ifold{ifold:02}")
-            outfile_head_rec = (f"rec")
-
+            outfile_head_rec = "rl"
             cmd = [srt_dir + "/" + "crab" + "/"
                    + "richlucy_smth_pf_zal" + "/"
                    + "richlucy_smth_pf_zal_cuda",
                    data_list, bg_file,
-                   fixed_src_norm_file, resp_file, eff_file,
+                   fixed_src_norm_file, resp_norm_file, eff_file,
                    str(nskyx), str(nskyy), str(ndetx), str(ndety),
                    outdir_rec, outfile_head_rec,
                    str(nem), str(tol_em),
-                   str(mu), str(gamma), acc_method]
+                   str(mu), str(gamma), acc_method, nfold]
             print(cmd)
             subprocess.call(cmd)
 

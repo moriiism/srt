@@ -139,18 +139,22 @@ int main(int argc, char* argv[])
 
     
     // load response file
-    int naxis0 = MifFits::GetAxisSize(argval->GetRespFile(), 0);
-    int naxis1 = MifFits::GetAxisSize(argval->GetRespFile(), 1);
+    int naxis0 = MifFits::GetAxisSize(argval->GetRespNormFile(), 0);
+    int naxis1 = MifFits::GetAxisSize(argval->GetRespNormFile(), 1);
     if ((naxis0 != ndet) || (naxis1 != nsky)){
-        MiIolib::Printf2(fp_log, "Error: response file size error.\n");
+        MiIolib::Printf2(
+            fp_log,
+            "Error: normalized response file size error.\n");
         abort();
     }
-    double* resp_mat_arr = NULL;
+    double* resp_norm_mat_arr = NULL;
     int bitpix_resp = 0;
     MifImgInfo* img_info_resp = new MifImgInfo;
     img_info_resp->InitSetImg(1, 1, ndet, nsky);
-    MifFits::InFitsImageD(argval->GetRespFile(), img_info_resp,
-                          &bitpix_resp, &resp_mat_arr);
+    MifFits::InFitsImageD(argval->GetRespNormFile(),
+                          img_info_resp,
+                          &bitpix_resp,
+                          &resp_norm_mat_arr);
 
     // load efficiency file
     double* eff_mat_arr = NULL;
@@ -160,19 +164,7 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetEffFile(), img_info_eff,
                           &bitpix_eff, &eff_mat_arr);
 
-    // normalize response file
-    double* resp_norm_mat_arr = new double [ndet * nsky];
-    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
-            int isky = nskyx * iskyy + iskyx;
-            int imat = isky * ndet;
-            for(int idet = 0; idet < ndet; idet ++){
-                resp_norm_mat_arr[imat + idet]
-                    = resp_mat_arr[imat + idet] / eff_mat_arr[isky];
-            }
-        }
-    }
-    // check
+    // check response file
     for(int iskyy = 0; iskyy < nskyy; iskyy ++){
         for(int iskyx = 0; iskyx < nskyx; iskyx ++){
             int isky = nskyx * iskyy + iskyx;
@@ -182,7 +174,8 @@ int main(int argc, char* argv[])
                 resp_norm_sum += resp_norm_mat_arr[imat + idet];
             }
             if ( fabs(resp_norm_sum - 1.0) > 1.0e-10){
-                // printf("warning: resp_norm_sum = %e\n", resp_norm_sum);
+                printf("warning: resp_norm_sum = %e\n",
+                       resp_norm_sum);
             }
         }
     }
