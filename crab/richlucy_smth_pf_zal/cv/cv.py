@@ -68,6 +68,7 @@ data_file_lst = []
 phase_id_lst = []
 phase_tag_lst = []
 phase_ratio_lst = []
+live_time_ratio_lst = []
 flux_0_lst = []
 data_list_fptr = open(data_list, "r")
 for line in data_list_fptr:
@@ -76,11 +77,12 @@ for line in data_list_fptr:
         continue
     print(line)
     (data_file, phase_id, phase_tag,
-     phase_ratio, flux_0) = line.split()
+     phase_ratio, live_time_ratio, flux_0) = line.split()
     data_file_lst.append(data_file)
     phase_id_lst.append(phase_id)
     phase_tag_lst.append(phase_tag)
     phase_ratio_lst.append(phase_ratio)
+    live_time_ratio_lst.append(live_time_ratio)
     flux_0_lst.append(flux_0)
     
 data_list_fptr.close()
@@ -88,9 +90,9 @@ print(data_file_lst)
 print(phase_id_lst)
 print(phase_tag_lst)
 print(phase_ratio_lst)
+print(live_time_ratio_lst)
 print(flux_0_lst)
 print("data_list ... done.")
-
 
 # make observation image for cross-validation
 print("obs_cv ...")
@@ -111,7 +113,7 @@ print("obs_cv ... done.")
 outdir_resp = outdir + "/" + "resp"
 outfile_head_resp = "cv"
 nphoton_input_resp = 100
-cmd = ["/home/morii/work/github/moriiism/srt/mkresp/mkresp", 
+cmd = [srt_dir + "/" + "mkresp/mkresp",
        respdir, outdir_resp, outfile_head_resp,
        str(nskyx), str(nskyy), str(nphoton_input_resp)]
 print(cmd)
@@ -204,7 +206,7 @@ for mu in mu_par_lst:
                          + f"ifold{ifold:02}" + "/"
                          + "data.list")
             data_list_fptr = open(data_list, "w")
-            print(f"# data_file  data_vl_file  phase_tag  phase_ratio  flux_0",
+            print(f"# data_file  data_vl_file  phase_tag  phase_ratio  live_time_ratio  flux_0",
                   file=data_list_fptr)
             for index in range(len(phase_tag_lst)):
                 data_file = (
@@ -222,6 +224,7 @@ for mu in mu_par_lst:
                 print(f"{data_file} {data_vl_file} " +
                       f"{phase_tag_lst[index]} " +
                       f"{phase_ratio_lst[index]} " +
+                      f"{live_time_ratio_lst[index]} " +
                       f"{flux_0_lst[index]}",
                       file=data_list_fptr)
             data_list_fptr.close()
@@ -247,7 +250,7 @@ for mu in mu_par_lst:
                    str(nskyx), str(nskyy), str(ndetx), str(ndety),
                    outdir_rec, outfile_head_rec,
                    str(nem), str(tol_em),
-                   str(mu), str(gamma), acc_method, nfold]
+                   str(mu), str(gamma), acc_method, str(nfold)]
             print(cmd)
             subprocess.call(cmd)
 

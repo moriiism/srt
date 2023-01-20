@@ -10,12 +10,14 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewCuda(
     const double* const alpha_dev_arr,
     const double* const beta_dev_arr,
     const double* const mval_dev_arr,
+    double live_time_ratio_ave,
     int nsky, double mu,
     double* const sky_new_dev_arr)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if(index < nsky){ 
-        double bval = 1.0 - mu * beta_dev_arr[index];
+        double bval = live_time_ratio_ave
+            - mu * beta_dev_arr[index];
         double num = -1.0 * bval
             + sqrt(bval * bval
                    + 4.0 * mu * alpha_dev_arr[index]
@@ -30,6 +32,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
     cublasHandle_t handle,
     const double* const sky_dev_arr,
     const double* const mval_dev_arr,
+    double live_time_ratio_ave,
     int nskyx, int nskyy, double mu,
     double* const sky_new_dev_arr)
 {
@@ -55,9 +58,9 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
         alpha_dev_arr,
         beta_dev_arr,
         mval_dev_arr,
+        live_time_ratio_ave,
         nsky, mu,
         sky_new_dev_arr);
-
     cudaFree(alpha_dev_arr);
     cudaFree(beta_dev_arr);
     delete [] alpha_arr;
@@ -68,12 +71,14 @@ void SrtlibRlCrabSmthPfZalCuda::GetFluxNewArr(
     const double* const nval_dev_arr,
     const double* const flux_target_dev_arr,
     const double* const phase_dev_arr,
+    const double* const live_time_ratio_dev_arr,
     int nphase, double gamma,
     double* const flux_new_dev_arr)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if(index < nphase){ 
-        double bval = phase_dev_arr[index]
+        double bval =
+            phase_dev_arr[index] * live_time_ratio_dev_arr[index]
             - 2.0 * gamma * flux_target_dev_arr[index];
         double num = -1.0 * bval
             + sqrt(bval * bval
@@ -92,6 +97,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
     const double* const bg_dev_arr,
     const double* const flux_target_dev_arr,
     const double* const phase_dev_arr,
+    const double* const live_time_ratio_dev_arr,
     const double* const det_0_dev_arr,
     const double* const resp_norm_mat_dev_arr,    
     int ndet, int nskyx, int nskyy, int nphase,
@@ -138,10 +144,15 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
                                  det_0_dev_arr,
                                  ndet, nphase,
                                  nval_dev_arr);
+    double live_time_ratio_ave = 0.0;
+    cublasDdot(handle, nphase, phase_dev_arr, 1,
+               live_time_ratio_dev_arr, 1,
+               &live_time_ratio_ave);
     SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
         handle,
         sky_pre_dev_arr,
         mval_dev_arr,
+        live_time_ratio_ave,
         nskyx, nskyy, mu,
         sky_new_dev_arr);
     int blocksize = 512;
@@ -151,6 +162,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
         nval_dev_arr,
         flux_target_dev_arr,
         phase_dev_arr,
+        live_time_ratio_dev_arr,
         nphase, gamma,
         flux_new_dev_arr);
     for(int iphase = 0; iphase < nphase; iphase++){
@@ -171,6 +183,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     const double* const bg_arr,
     const double* const flux_target_arr,
     const double* const phase_arr,
+    const double* const live_time_ratio_arr,
     const double* const det_0_arr,
     const double* const resp_norm_mat_arr,
     int ndet, int nskyx, int nskyy, int nphase,
@@ -189,6 +202,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     double* bg_dev_arr = NULL;
     double* flux_target_dev_arr = NULL;
     double* phase_dev_arr = NULL;
+    double* live_time_ratio_dev_arr = NULL;
     double* det_0_dev_arr = NULL;
     double* resp_norm_mat_dev_arr = NULL;
     double* sky_new_dev_arr = NULL;
@@ -206,6 +220,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     cudaMalloc((void **)&bg_dev_arr, mem_size_ndet);
     cudaMalloc((void **)&flux_target_dev_arr, mem_size_nphase);
     cudaMalloc((void **)&phase_dev_arr, mem_size_nphase);
+    cudaMalloc((void **)&live_time_ratio_dev_arr, mem_size_nphase);
     cudaMalloc((void **)&det_0_dev_arr, mem_size_ndet);
     cudaMalloc((void **)&resp_norm_mat_dev_arr, mem_size_nsky_ndet);
     cudaMalloc((void **)&sky_new_dev_arr, mem_size_nsky);
@@ -225,6 +240,9 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
 		    flux_target_dev_arr, 1);
     cublasSetVector(nphase, sizeof(double), phase_arr, 1,
 		    phase_dev_arr, 1);
+    cublasSetVector(nphase, sizeof(double),
+                    live_time_ratio_arr, 1,
+		    live_time_ratio_dev_arr, 1);    
     cublasSetVector(ndet, sizeof(double), det_0_arr, 1,
 		    det_0_dev_arr, 1);
     cublasSetVector(ndet * nsky, sizeof(double),
@@ -252,6 +270,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
             bg_dev_arr,
             flux_target_dev_arr,
             phase_dev_arr,
+            live_time_ratio_dev_arr,
             det_0_dev_arr,
             resp_norm_mat_dev_arr,    
             ndet, nskyx, nskyy, nphase,
@@ -300,6 +319,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
     cudaFree(bg_dev_arr);
     cudaFree(flux_target_dev_arr);
     cudaFree(phase_dev_arr);
+    cudaFree(live_time_ratio_dev_arr);
     cudaFree(det_0_dev_arr);
     cudaFree(resp_norm_mat_dev_arr);
     cudaFree(sky_new_dev_arr);

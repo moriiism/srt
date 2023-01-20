@@ -4,6 +4,10 @@
 
 SRT_DIR := /home/morii/work/github/moriiism/srt
 
+### srt_math_lib
+SRT_MATH_LIB_INC := -I$(SRT_DIR)/srtmathlib
+SRT_MATH_LIB_LIB := -L$(SRT_DIR)/srtmathlib -lsrtmathlib
+
 ### srtlib
 SRTLIB_INC := -I$(SRT_DIR)/srtlib
 SRTLIB_LIB := -L$(SRT_DIR)/srtlib -lsrtlib

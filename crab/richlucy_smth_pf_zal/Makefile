@@ -8,35 +8,34 @@ include ../../Makefile.in
 CUDABLAS_INC = -I/usr/local/cuda/include
 CUDABLAS_LIB = -L/usr/local/cuda/lib64 -lcublas -lcudart
 
-INCLUDE = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} \
+INCLUDE = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} ${SRT_MATH_LIB_INC} \
 	$(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 	$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} \
+LDLIBS  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} ${SRT_MATH_LIB_LIB} \
 	$(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) \
 	$(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) $(LAPACK_LIB) $(BLAS_LIB) \
 	$(MT_LIB) $(LIB) -lgfortran
 
-INCLUDE_OPENBLAS = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} \
+INCLUDE_OPENBLAS = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} ${SRT_MATH_LIB_INC} \
 	$(MIROOTLIB_INC) $(MIFITSLIB_INC) \
 	$(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS_OPENBLAS  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} \
+LDLIBS_OPENBLAS  = ${SRTLIB_CRAB_LIB} ${SRTLIB_LIB} ${SRT_MATH_LIB_LIB} \
 	$(MIROOTLIB_LIB) $(MIFITSLIB_LIB) \
 	$(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) \
 	$(LAPACK_LIB) $(OPENBLAS_LIB) $(MT_LIB) $(LIB) -lgfortran
 
-INCLUDE_CUDA = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} \
+INCLUDE_CUDA = ${SRTLIB_CRAB_INC} ${SRTLIB_INC} ${SRT_MATH_LIB_INC} \
 	$(CUDABLAS_INC) \
 	$(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 	$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC) $(MT_INC)
-LDLIBS_CUDA  = ${SRTLIB_CRAB_CUDA_LIB} ${SRTLIB_CUDA_LIB} \
-	${SRTLIB_CRAB_LIB} \
-	$(CUDABLAS_LIB) \
+LDLIBS_CUDA  = ${SRTLIB_CRAB_CUDA_LIB} ${SRTLIB_CRAB_LIB} ${SRTLIB_CUDA_LIB} \
+	${SRT_MATH_LIB_LIB} $(CUDABLAS_LIB) \
 	$(MIROOTLIB_LIB) $(MIFITSLIB_LIB) $(MIBLASLIB_LIB) \
 	$(MILIB_LIB) $(CFITSIO_LIB) $(ROOT_ALLLIBS) $(LAPACK_LIB) $(BLAS_LIB) \
 	$(MT_LIB) $(LIB) -lgfortran
 
 
-TARGET = richlucy_smth_pf_zal  richlucy_smth_pf_zal_cuda  eval_val
+TARGET = richlucy_smth_pf_zal  richlucy_smth_pf_zal_cuda  calc_flux0
 
 all: $(TARGET) 
 
@@ -49,6 +48,10 @@ richlucy_smth_pf_zal_cuda: richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal
 
 eval_val: eval_val.o  arg_eval_val.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+
+calc_flux0: calc_flux0.o  arg_calc_flux0.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+
 
 .SUFFIXES:
 .SUFFIXES: .o .c .f .F .cc .cu

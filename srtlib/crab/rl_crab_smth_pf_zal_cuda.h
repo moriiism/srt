@@ -14,6 +14,7 @@ namespace SrtlibRlCrabSmthPfZalCuda
         const double* const alpha_dev_arr,
         const double* const beta_dev_arr,
         const double* const mval_dev_arr,
+        double live_time_ratio_ave,
         int nsky, double mu,
         double* const sky_new_dev_arr);
 
@@ -21,6 +22,7 @@ namespace SrtlibRlCrabSmthPfZalCuda
         cublasHandle_t handle,
         const double* const sky_dev_arr,
         const double* const mval_dev_arr,
+        double live_time_ratio_ave,
         int nskyx, int nskyy, double mu,
         double* const sky_new_dev_arr);
     
@@ -29,6 +31,7 @@ namespace SrtlibRlCrabSmthPfZalCuda
         const double* const nval_dev_arr,
         const double* const flux_target_dev_arr,
         const double* const phase_dev_arr,
+        const double* const live_time_ratio_dev_arr,
         int nphase, double gamma,
         double* const flux_new_dev_arr);
 
@@ -40,6 +43,7 @@ namespace SrtlibRlCrabSmthPfZalCuda
         const double* const bg_dev_arr,
         const double* const flux_target_dev_arr,
         const double* const phase_dev_arr,
+        const double* const live_time_ratio_dev_arr,
         const double* const det_0_dev_arr,
         const double* const resp_norm_mat_dev_arr,    
         int ndet, int nskyx, int nskyy, int nphase,
@@ -55,6 +59,7 @@ namespace SrtlibRlCrabSmthPfZalCuda
         const double* const bg_arr,
         const double* const flux_target_arr,
         const double* const phase_arr,
+        const double* const live_time_ratio_arr,
         const double* const det_0_arr,
         const double* const resp_norm_mat_arr,
         int ndet, int nskyx, int nskyy, int nphase,

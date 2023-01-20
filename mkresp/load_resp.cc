@@ -1,47 +1,37 @@
 #include "load_resp.h"
 
-void LoadResp(string respdir, long nskyx, long nskyy,
-              long nphoton_input,
+void LoadResp(string respdir, int nskyx, int nskyy,
+              int nphoton_input,
               double** const resp_arr_ptr,
               double** const resp_norm_arr_ptr,
               double** const eff_arr_ptr,
-              long* const ndetx_ptr,
-              long* const ndety_ptr)
+              int* const ndetx_ptr,
+              int* const ndety_ptr)
 {
     printf("--- LoadResp --- \n");
     //    row: detector
     //    col: sky
-    long ndetx = 0;
-    long ndety = 0;
+    int ndetx = 0;
+    int ndety = 0;
     GetNdet(respdir, &ndetx, &ndety);
     printf("LoadResp: ndetx = %d\n", ndetx);
     printf("LoadResp: ndety = %d\n", ndety);
     MifImgInfo* img_info = new MifImgInfo;
     img_info->InitSetImg(1, 1, ndetx, ndety);
 
-    printf("jjjjj\n");
-    
-    long ndet = ndetx * ndety;
-    long nsky = nskyx * nskyy;
+    int ndet = ndetx * ndety;
+    int nsky = nskyx * nskyy;
     printf("LoadResp: ndet = %d, nsky = %d\n", ndet, nsky);
 
     printf("ndet * nsky = %d\n", ndet * nsky);
     
     double* resp_arr = new double [ndet * nsky];
-
-    printf("jjjjj\n");
-    
     double* resp_norm_arr = new double [ndet * nsky];
-    printf("jjjjj\n");
-    
     double* eff_arr = new double [nsky];
-
-    printf("jjjjj\n");
-
-    for(long iskyy = 0; iskyy < nskyy; iskyy ++){
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
         // debug
         printf("isky = %d\n", iskyy);
-        for(long iskyx = 0; iskyx < nskyx; iskyx ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
             char infile[kLineSize];
             sprintf(infile, "%s/gimage_%3.3d_%3.3d.img",
                     respdir.c_str(), iskyx, iskyy);
@@ -50,22 +40,22 @@ void LoadResp(string respdir, long nskyx, long nskyy,
             MifFits::InFitsImageD(infile, img_info,
                                   &bitpix, &data_arr);
             // force to be non-negative
-            for (long idet = 0; idet < ndet; idet ++){
+            for (int idet = 0; idet < ndet; idet ++){
                 if(data_arr[idet] < 0.0){
                     data_arr[idet] = 0.0;
                 }
             }
             // div by nphoton_input
-            for(long idet = 0; idet < ndet; idet ++){
+            for(int idet = 0; idet < ndet; idet ++){
                 data_arr[idet] /= nphoton_input;
             }
             double eff = 0.0;
-            for(long idet = 0; idet < ndet; idet ++){
+            for(int idet = 0; idet < ndet; idet ++){
                 eff += data_arr[idet];
             }
-            long isky = nskyx * iskyy + iskyx;
-            long imat = isky * ndet;
-            for(long idet = 0; idet < ndet; idet ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
+            for(int idet = 0; idet < ndet; idet ++){
                 resp_arr[imat + idet] = data_arr[idet];
                 resp_norm_arr[imat + idet] = data_arr[idet] / eff;
             }
@@ -77,12 +67,12 @@ void LoadResp(string respdir, long nskyx, long nskyy,
     delete img_info;
 
     // check
-    for(long iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(long iskyx = 0; iskyx < nskyx; iskyx ++){
-            long isky = nskyx * iskyy + iskyx;
-            long imat = isky * ndet;
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
             double resp_norm_sum = 0.0;
-            for(long idet = 0; idet < ndet; idet ++){
+            for(int idet = 0; idet < ndet; idet ++){
                 resp_norm_sum += resp_norm_arr[imat + idet];
             }
             // printf("resp_norm_sum = %e\n", resp_norm_sum);
@@ -93,12 +83,12 @@ void LoadResp(string respdir, long nskyx, long nskyy,
     }
 
     // check
-    for(long iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(long iskyx = 0; iskyx < nskyx; iskyx ++){
-            long isky = nskyx * iskyy + iskyx;
-            long imat = isky * ndet;
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
+            int imat = isky * ndet;
             double resp_sum = 0.0;
-            for(long idet = 0; idet < ndet; idet ++){
+            for(int idet = 0; idet < ndet; idet ++){
                 resp_sum += resp_arr[imat + idet];
             }
             //printf("resp_sum = %e, eff_arr[isky] = %e\n",
@@ -113,9 +103,9 @@ void LoadResp(string respdir, long nskyx, long nskyy,
 
     // average efficiency
     double ave_eff = 0.0;
-    for(long iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(long iskyx = 0; iskyx < nskyx; iskyx ++){
-            long isky = nskyx * iskyy + iskyx;
+    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
+        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
+            int isky = nskyx * iskyy + iskyx;
             ave_eff += eff_arr[isky];
         }
     }
