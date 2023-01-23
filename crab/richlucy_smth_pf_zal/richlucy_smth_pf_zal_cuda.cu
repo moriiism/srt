@@ -352,7 +352,8 @@ int main(int argc, char* argv[])
             // add non X-ray background
             daxpy_(ndet, 1.0, bg_arr, 1, det_pulse_arr[iphase], 1);
             // multiply phase ratio
-            dscal_(ndet, phase_arr[iphase],
+            dscal_(ndet, phase_arr[iphase]
+                   * live_time_ratio_arr[iphase],
                    det_pulse_arr[iphase], 1);
             // scale det_pulse_arr by 1.0/(nfold - 1) for
             // evalution between validation data
