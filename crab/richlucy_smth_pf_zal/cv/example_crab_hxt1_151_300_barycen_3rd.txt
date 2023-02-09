@@ -1,6 +1,49 @@
 #
-# cv.py.txt
+# example.txt
 #
+
+barycen_3rd/hxt1/000_2047
+barycen_3rd/hxt1/036_150
+barycen_3rd/hxt1/036_300
+barycen_3rd/hxt1/151_300
+barycen_3rd/hxt1/301_700
+barycen_3rd/hxt1/649_1150
+
+barycen_3rd/hxt2/000_2047
+barycen_3rd/hxt2/036_150
+barycen_3rd/hxt2/036_300
+barycen_3rd/hxt2/151_300
+barycen_3rd/hxt2/301_700
+barycen_3rd/hxt2/649_1150
+
+barycen_3rd_m0p1/hxt1/000_2047
+barycen_3rd_m0p1/hxt1/036_150 
+barycen_3rd_m0p1/hxt1/036_300 
+barycen_3rd_m0p1/hxt1/151_300 
+barycen_3rd_m0p1/hxt1/301_700 
+barycen_3rd_m0p1/hxt1/649_1150
+
+barycen_3rd_m0p1/hxt2/000_2047
+barycen_3rd_m0p1/hxt2/036_150 
+barycen_3rd_m0p1/hxt2/036_300 
+barycen_3rd_m0p1/hxt2/151_300 
+barycen_3rd_m0p1/hxt2/301_700 
+barycen_3rd_m0p1/hxt2/649_1150
+
+barycen_3rd_p0p1/hxt1/000_2047
+barycen_3rd_p0p1/hxt1/036_150 
+barycen_3rd_p0p1/hxt1/036_300 
+barycen_3rd_p0p1/hxt1/151_300 
+barycen_3rd_p0p1/hxt1/301_700 
+barycen_3rd_p0p1/hxt1/649_1150
+
+barycen_3rd_p0p1/hxt2/000_2047
+barycen_3rd_p0p1/hxt2/036_150 
+barycen_3rd_p0p1/hxt2/036_300 
+barycen_3rd_p0p1/hxt2/151_300 
+barycen_3rd_p0p1/hxt2/301_700 
+barycen_3rd_p0p1/hxt2/649_1150
+
 
 # setup mitool
 export LANG=C

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# cv.py
+# cv_rec.py
 #
 '''
 Overview:
@@ -187,14 +187,14 @@ subprocess.call(cmd)
 
 cmd_lst = []
 for mu in mu_par_lst:
-    print("mu = ", mu)
+    print("cv_rec.py: mu = ", mu)
     mu_dir = f"mu{mu:.1e}"
     cmd = ["mkdir", outdir + "/" + "rec" + "/"
            + mu_dir]
     print(cmd)
     subprocess.call(cmd)
     for gamma in gamma_par_lst:
-        print("  gamma = ", gamma)
+        print("cv_rec.py: mu = ", mu, " gamma = ", gamma)
         gamma_dir = f"gamma{gamma:.1e}"
         cmd = ["mkdir", outdir + "/" + "rec" + "/"
                + mu_dir + "/" + gamma_dir]
@@ -207,7 +207,8 @@ for mu in mu_par_lst:
         print(cmd)
         subprocess.call(cmd)
         for ifold in range(nfold):
-            print(f"      nfold({nfold:02}):ifold({ifold:02})")
+            print("cv_rec.py: mu = ", mu, " gamma = ", gamma,
+                  f" nfold({nfold:02}):ifold({ifold:02})")
             ifold_dir = f"ifold{ifold:02}"
             cmd = ["mkdir", outdir + "/" + "rec" + "/"
                    + mu_dir + "/" + gamma_dir + "/"
@@ -270,13 +271,13 @@ for mu in mu_par_lst:
                    str(mu), str(gamma), acc_method, str(nfold)]
             print(cmd)
             cmd_lst.append(cmd)
-            # subprocess.call(cmd)
 
-print(cmd_lst)
-
+print("len of cmd_lst = ", len(cmd_lst))
 with ProcessPoolExecutor(max_workers=cpu_num) as executor:
-    result = list(executor.map(run_cmd, cmd_lst),
-                       total=len(cmd_lst))
+    #result = list(executor.map(run_cmd, cmd_lst),
+    #              total=len(cmd_lst))
+    executor.map(run_cmd, cmd_lst)
+
 
 # reconstruct for full data
 for mu in mu_par_lst:
@@ -291,7 +292,7 @@ for mu in mu_par_lst:
                      + mu_dir + "/" + gamma_dir + "/"
                      + "data.list")
         data_list_fptr = open(data_list, "w")
-        print(f"# data_file  data_vl_file  phase_tag  phase_ratio  live_time_ratio  flux_0  flux_0_err",
+        print(f"# data_file  data_vl_file  phase_tag  phase_ratio  live_time_ratio  flux0  flux0_err",
               file=data_list_fptr)
         for index in range(len(phase_tag_lst)):
             data_vl_file = data_file_lst[index];

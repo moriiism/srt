@@ -1,6 +1,49 @@
 #
-# cv.py.txt
+# example.txt
 #
+
+barycen_3rd/hxt1/000_2047
+barycen_3rd/hxt1/036_150
+barycen_3rd/hxt1/036_300
+barycen_3rd/hxt1/151_300
+barycen_3rd/hxt1/301_700
+barycen_3rd/hxt1/649_1150
+
+barycen_3rd/hxt2/000_2047
+barycen_3rd/hxt2/036_150
+barycen_3rd/hxt2/036_300
+barycen_3rd/hxt2/151_300
+barycen_3rd/hxt2/301_700
+barycen_3rd/hxt2/649_1150
+
+barycen_3rd_m0p1/hxt1/000_2047
+barycen_3rd_m0p1/hxt1/036_150 
+barycen_3rd_m0p1/hxt1/036_300 
+barycen_3rd_m0p1/hxt1/151_300 
+barycen_3rd_m0p1/hxt1/301_700 
+barycen_3rd_m0p1/hxt1/649_1150
+
+barycen_3rd_m0p1/hxt2/000_2047
+barycen_3rd_m0p1/hxt2/036_150 
+barycen_3rd_m0p1/hxt2/036_300 
+barycen_3rd_m0p1/hxt2/151_300 
+barycen_3rd_m0p1/hxt2/301_700 
+barycen_3rd_m0p1/hxt2/649_1150
+
+barycen_3rd_p0p1/hxt1/000_2047
+barycen_3rd_p0p1/hxt1/036_150 
+barycen_3rd_p0p1/hxt1/036_300 
+barycen_3rd_p0p1/hxt1/151_300 
+barycen_3rd_p0p1/hxt1/301_700 
+barycen_3rd_p0p1/hxt1/649_1150
+
+barycen_3rd_p0p1/hxt2/000_2047
+barycen_3rd_p0p1/hxt2/036_150 
+barycen_3rd_p0p1/hxt2/036_300 
+barycen_3rd_p0p1/hxt2/151_300 
+barycen_3rd_p0p1/hxt2/301_700 
+barycen_3rd_p0p1/hxt2/649_1150
+
 
 # setup mitool
 export LANG=C
@@ -17,7 +60,7 @@ work_dir=/home/morii/work/arb/ana/run
 
 target=crab
 telescope=hxt1
-ene_band=151_300
+ene_band=036_150
 resp_ver=barycen_3rd
 rec_prog=crab_rl_smth_pf_zal
 
@@ -27,8 +70,8 @@ cd $work_dir/$target/$telescope/$ene_band/$resp_ver/$rec_prog
 # flux0
 
 # phase: 21, on2
-data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_151_300_x1178y1175_w80.fits
-data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits
+data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_036_150_x1178y1175_w80.fits
+data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_036_150_x1178y1175_w80.fits
 phase_ratio_on=0.25
 phase_ratio_off=0.40
 live_time_ratio_on=0.750493
@@ -42,11 +85,12 @@ $phase_ratio_off \
 $live_time_ratio_on \
 $live_time_ratio_off
 
---> flux0 = 8.319799e+04 +- 1.604338e+03
+-->
+flux0 = 5.051442e+05 +- 4.402958e+03
 
 # phase: 23, on1
-data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits
-data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits
+data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_036_150_x1178y1175_w80.fits
+data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_036_150_x1178y1175_w80.fits
 phase_ratio_on=0.20
 phase_ratio_off=0.40
 live_time_ratio_on=0.747301
@@ -60,11 +104,11 @@ $phase_ratio_off \
 $live_time_ratio_on \
 $live_time_ratio_off
 
----> flux0 = 8.583232e+04 +- 1.744996e+03
+---> flux0 = 5.535261e+05 +- 4.802434e+03
 
 # phase: 24, off2
-data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits
-data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits
+data_on_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_036_150_x1178y1175_w80.fits
+data_off_file=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_036_150_x1178y1175_w80.fits
 phase_ratio_on=0.15
 phase_ratio_off=0.40
 live_time_ratio_on=0.772788
@@ -78,7 +122,7 @@ $phase_ratio_off \
 $live_time_ratio_on \
 $live_time_ratio_off
 
----> flux0 = 2.827672e+04 +- 1.788496e+03
+---> flux0 = 1.549140e+05 +- 4.948652e+03
 
 
 # response format
@@ -90,7 +134,7 @@ ndety=80
 # get pulsar position
 
 # mkresp
-respdir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/151_300/gimage_100
+respdir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/036_150/gimage_100
 outdir=resp_tmp
 outfile_head=resp_tmp
 nskyx=$nskyx
@@ -106,7 +150,7 @@ $nskyy \
 $nphoton_input
 
 # richlucy
-datafile=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits
+datafile=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_036_150_x1178y1175_w80.fits
 skyfile=none
 resp_file=resp_tmp/resp_tmp_resp.fits
 eff_file=resp_tmp/resp_tmp_eff.fits
@@ -137,94 +181,15 @@ $acc_method
 
 -----> (51, 51)
 
-
-################# temp
-
-# response format
-nskyx=101
-nskyy=101
-ndetx=80
-ndety=80
-
-# get pulsar position
-
-# mkresp
-respdir=/home/morii/work/arb/hitomi/hxt/gimage_hxt1/gimage_100
-outdir=resp_tmp
-outfile_head=resp_tmp
-nskyx=$nskyx
-nskyy=$nskyy
-nphoton_input=100
-
-~/work/github/moriiism/srt/mkresp/mkresp \
-$respdir \
-$outdir \
-$outfile_head \
-$nskyx \
-$nskyy \
-$nphoton_input
-
-# richlucy
-
-datafile=../../../hitomi/hxt/gimage_hxt1/ah100044010hx1_p1camrec_cl_151_300_x1175y1185_w80.fits
-skyfile=none
-resp_file=resp_tmp/resp_tmp_resp.fits
-eff_file=resp_tmp/resp_tmp_eff.fits
-nskyx=$nskyx
-nskyy=$nskyy
-ndetx=$ndetx
-ndety=$ndety
-outdir=rec_tmp
-outfile_head=rec_tmp
-nem=1000
-tol_em=1e-8
-acc_method=none
-
-~/work/github/moriiism/srt/richlucy/richlucy \
-$datafile \
-$skyfile \
-$resp_file \
-$eff_file \
-$nskyx \
-$nskyy \
-$ndetx \
-$ndety \
-$outdir \
-$outfile_head \
-$nem \
-$tol_em \
-$acc_method
-
-
-for resp_file=resp_tmp/resp_tmp_resp_norm.fits
-BAD!
-
-for resp_file=resp_tmp/resp_tmp_resp.fits
-GOOD!
-
-
-#################
-
-
-
-
-
-
-
-
-
-
-
 # cv
 
 # data_list
 cat << EOF > data.list
 # data_file  phase_id  phase_tag  phase_ratio  live_time_ratio flux_0 flux_0_err
-#/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_00_151_300_x1178y1175_w80.fits  20  all  1.0   0.766339  ***  ***
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_151_300_x1178y1175_w80.fits  21  on2   0.25  0.750493  8.319799e+04 1.604338e+03
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_151_300_x1178y1175_w80.fits  22  off1  0.40  0.783388    0.0        0.0
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_151_300_x1178y1175_w80.fits  23  on1   0.20  0.747301  8.583232e+04 1.744996e+03
-/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_151_300_x1178y1175_w80.fits  24  off2  0.15  0.772788  2.827672e+04 1.788496e+03
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_21_036_150_x1178y1175_w80.fits  21  on2   0.25  0.750493  5.051442e+05  4.402958e+03
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_22_036_150_x1178y1175_w80.fits  22  off1  0.40  0.783388    0.0         0.0
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_23_036_150_x1178y1175_w80.fits  23  on1   0.20  0.747301  5.535261e+05  4.802434e+03
+/home/ymaeda/work/share/hxt/barycen_3rd/hxt1_phase_24_036_150_x1178y1175_w80.fits  24  off2  0.15  0.772788  1.549140e+05  4.948652e+03
 EOF
 
 # mu, gamma list
@@ -268,7 +233,7 @@ nskyx=$nskyx
 nskyy=$nskyy
 ndetx=$ndetx
 ndety=$ndety
-resp_dir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/151_300/gimage_100
+resp_dir=/home/ymaeda/work/share/hxt/barycen_3rd/hxt1/036_150/gimage_100
 posx_point_src=51
 posy_point_src=51
 outdir=cv
@@ -277,7 +242,7 @@ tol_em=1.0e-7
 mu_list=cv/mu.list
 gamma_list=cv/gamma.list
 acc_method=none
-
+cpu_num=1
 
 ~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/cv/cv.py \
 $data_list \
@@ -296,8 +261,10 @@ $nem \
 $tol_em \
 $mu_list \
 $gamma_list \
-$acc_method
+$acc_method \
+$cpu_num
 
+# 2023/01/25
 
 ~/work/github/moriiism/srt/crab/richlucy_smth_pf_zal/cv/cv_smr.py \
 $data_list \

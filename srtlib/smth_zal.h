@@ -5,7 +5,6 @@
 #include "mi_sort.h"
 #include "mi_time.h"
 #include "mif_fits.h"
-#include "mir_math.h"
 
 namespace SrtlibSmthZal
 {

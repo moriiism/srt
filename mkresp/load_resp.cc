@@ -30,7 +30,7 @@ void LoadResp(string respdir, int nskyx, int nskyy,
     double* eff_arr = new double [nsky];
     for(int iskyy = 0; iskyy < nskyy; iskyy ++){
         // debug
-        printf("isky = %d\n", iskyy);
+        // printf("isky = %d\n", iskyy);
         for(int iskyx = 0; iskyx < nskyx; iskyx ++){
             char infile[kLineSize];
             sprintf(infile, "%s/gimage_%3.3d_%3.3d.img",

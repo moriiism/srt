@@ -1,11 +1,11 @@
 // Image reconstruction by Richardson-Lucy method
 
-#include "mi_time.h"
+#include "mir_math.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
-#include "arg_richlucy.h"
+#include "mi_time.h"
+#include "arg_richlucy_ps.h"
 #include "rl.h"
-#include "srtmathlib.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     
     double time_st = MiTime::GetTimeSec();
     
-    ArgValRichlucy* argval = new ArgValRichlucy;
+    ArgValRichlucyPs* argval = new ArgValRichlucyPs;
     argval->Init(argc, argv);
     argval->Print(stdout);
 
@@ -51,34 +51,16 @@ int main(int argc, char* argv[])
     double* data_arr = NULL;
     MifFits::InFitsImageD(argval->GetDatafile(), img_info_data,
                           &bitpix_data, &data_arr);
-    int nph_data = SrtMathlib::GetSum(ndet, data_arr);
+    int nph_data = MirMath::GetSum(ndet, data_arr);
     MiIolib::Printf2(fp_log, "N photon = %d\n", nph_data);
-
-    // load bg model data
-    double* bg_arr = NULL;
-    if(argval->GetBgFile() == "none"){
-        int ndet = ndetx * ndety;
-        bg_arr = new double[ndet];
-        for(int idet = 0; idet < ndet; idet++){
-            bg_arr[idet] = 0.0;
-        }
-    } else {
-        MifImgInfo* img_info_bg = new MifImgInfo;
-        img_info_bg->InitSetImg(1, 1, ndetx, ndety);
-        int bitpix_bg = 0;
-        MifFits::InFitsImageD(argval->GetBgFile(), img_info_bg,
-                              &bitpix_bg, &bg_arr);
-        int nph_bg = SrtMathlib::GetSum(ndet, bg_arr);
-        MiIolib::Printf2(fp_log, "N bg = %d\n", nph_bg);
-        delete img_info_bg;
-    }
 
     // load response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespNormFile(), 0);
     int naxis1 = MifFits::GetAxisSize(argval->GetRespNormFile(), 1);
     if ((naxis0 != ndet) || (naxis1 != nsky)){
-        MiIolib::Printf2(fp_log,
-                         "Error: response file size error.\n");
+        MiIolib::Printf2(
+            fp_log,
+            "Error: response file size error.\n");
         abort();
     }
     double* resp_norm_mat_arr = NULL;
@@ -98,82 +80,66 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetEffFile(), img_info_eff,
                           &bitpix_eff, &eff_mat_arr);
 
-    // check
-    for(int iskyy = 0; iskyy < nskyy; iskyy ++){
-        for(int iskyx = 0; iskyx < nskyx; iskyx ++){
-            int isky = nskyx * iskyy + iskyx;
-            int imat = isky * ndet;            
-            double resp_norm_sum = 0.0;
-            for(int idet = 0; idet < ndet; idet ++){
-                resp_norm_sum += resp_norm_mat_arr[imat + idet];
-            }
-            if ( fabs(resp_norm_sum - 1.0) > 1.0e-10){
-                // printf("warning: resp_norm_sum = %e\n",
-                // resp_norm_sum);
-            }
-        }
-    }
-
     // sky image to be reconstructed
-    double* sky_init_arr = new double[nsky];
+    double* rho_init_arr = new double[nsky];
     for(int isky = 0; isky < nsky; isky ++){
-        sky_init_arr[isky] = float(nph_data) / nsky;
+        rho_init_arr[isky] = 1.0 / nsky;
     }
-    printf("nph_data = %d, nsky = %d\n", nph_data, nsky);
-    
-    double* sky_new_arr = new double[nsky];
+    double* rho_new_arr = new double[nsky];
     if (argval->GetAccMethod() == "none"){
-        SrtlibRl::Richlucy(
+        SrtlibPsRl::Richlucy(
             fp_log,
-            sky_init_arr,
-            data_arr, bg_arr,
-            resp_norm_mat_arr,
+            rho_init_arr,
+            data_arr, resp_norm_mat_arr,
             ndet, nsky,
             argval->GetOutdir(), argval->GetOutfileHead(),
             argval->GetNem(), argval->GetTolEm(),
-            sky_new_arr);
-//    } else if (argval->GetAccMethod() == "kuroda"){
-//        int k_restart = 2;
-//        double delta_restart = 1.0;
-//        SrtlibRl::RichlucyAccKuroda(
-//            fp_log,
-//            sky_init_arr,
-//            data_arr, bg_arr,
-//            resp_norm_mat_arr,
-//            ndet, nsky,
-//            argval->GetOutdir(), argval->GetOutfileHead(),
-//            argval->GetNem(), argval->GetTolEm(),
-//            k_restart, delta_restart,
-//            sky_new_arr);
+            rho_new_arr);
+    } else if (argval->GetAccMethod() == "kuroda"){
+        int k_restart = 2;
+        double delta_restart = 1.0;
+        SrtlibPsRl::RichlucyAccKuroda(
+            fp_log,
+            rho_init_arr,
+            data_arr, resp_norm_mat_arr,
+            ndet, nsky,
+            argval->GetOutdir(), argval->GetOutfileHead(),
+            argval->GetNem(), argval->GetTolEm(),
+            k_restart, delta_restart,
+            rho_new_arr);
     } else if (argval->GetAccMethod() == "squarem"){
-        SrtlibRl::RichlucyAccSquarem(
+        SrtlibPsRl::RichlucyAccSquarem(
             fp_log,
-            sky_init_arr,
-            data_arr, bg_arr,
-            resp_norm_mat_arr,
+            rho_init_arr,
+            data_arr, resp_norm_mat_arr,
             ndet, nsky,
             argval->GetOutdir(), argval->GetOutfileHead(),
             argval->GetNem(), argval->GetTolEm(),
-            sky_new_arr);
-//    } else if (argval->GetAccMethod() == "ikeda"){
-//        int rand_seed = 1;
-//        SrtlibRl::RichlucyAccIkeda(
-//            fp_log,
-//            sky_init_arr,
-//            data_arr, bg_arr,
-//            resp_norm_mat_arr,
-//            ndet, nsky,
-//            argval->GetOutdir(), argval->GetOutfileHead(),
-//            argval->GetNem(), argval->GetTolEm(),
-//            nph_data, rand_seed,
-//            sky_new_arr);
+            rho_new_arr);
+    } else if (argval->GetAccMethod() == "ikeda"){
+        int rand_seed = 1;
+        SrtlibPsRl::RichlucyAccIkeda(
+            fp_log,
+            rho_init_arr,
+            data_arr, resp_norm_mat_arr,
+            ndet, nsky,
+            argval->GetOutdir(), argval->GetOutfileHead(),
+            argval->GetNem(), argval->GetTolEm(),
+            nph_data, rand_seed,
+            rho_new_arr);
     } else {
         printf("bad acc_method\n");
         abort();
     }
     
-    double sum_sky_new = SrtMathlib::GetSum(nsky, sky_new_arr);
+    // output reconstructed sky image
+    double* sky_new_arr = new double[nsky];
+    for(int isky = 0; isky < nsky; isky ++){
+        sky_new_arr[isky] = rho_new_arr[isky] * nph_data;
+    }
+    double sum_sky_new = MirMath::GetSum(nsky, sky_new_arr);
     MiIolib::Printf2(fp_log, "sum_sky_new = %e\n", sum_sky_new);
+
 
     // div by eff_arr
     for(int isky = 0; isky < nsky; isky ++){
@@ -191,8 +157,8 @@ int main(int argc, char* argv[])
                            naxes, sky_new_arr);
 
     double time_ed = MiTime::GetTimeSec();
-    MiIolib::Printf2(fp_log,
-                     "duration = %e sec.\n", time_ed - time_st);
+    MiIolib::Printf2(fp_log, "duration = %e sec.\n",
+                     time_ed - time_st);
 
     fclose(fp_log);
     

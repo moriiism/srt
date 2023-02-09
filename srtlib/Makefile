@@ -2,18 +2,21 @@ include ../../mitool/Makefile.in
 include ../../mitool/milib/Makefile.in
 include ../../mitool/miblaslib/Makefile.in
 include ../../mitool/mifitslib/Makefile.in
-include ../../mitool/mirootlib/Makefile.in
+# include ../../mitool/mirootlib/Makefile.in
 
 CUDABLAS_INC = -I/usr/local/cuda/include
 
-INCLUDE = $(CUBLAS_INC) $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
-$(MILIB_INC) $(CFITSIO_INC) $(ROOT_INC)
+INCLUDE = $(CUBLAS_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
+	$(MILIB_INC) $(CFITSIO_INC)
+
+# $(MIROOTLIB_INC) 
+# $(ROOT_INC)
 
 TARGET := libsrtlib.a  libsrtlib_cuda.a
 
-OBJ := smth_zal.o
+OBJ := smth_zal.o  rl.o  rl_statval.o
 
-OBJ_CUDA := smth_zal.o  smth_zal_cuda.o
+OBJ_CUDA := smth_zal.o  smth_zal_cuda.o  rl.o  rl_statval.o
 
 all: $(TARGET) 
 

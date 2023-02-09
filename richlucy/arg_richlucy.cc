@@ -25,8 +25,8 @@ void ArgValRichlucy::Init(int argc, char* argv[])
     }
     int iarg = optind;
     datafile_       = argv[iarg]; iarg++;
-    skyfile_        = argv[iarg]; iarg++;
-    resp_file_      = argv[iarg]; iarg++;
+    bg_file_        = argv[iarg]; iarg++;
+    resp_norm_file_ = argv[iarg]; iarg++;
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
     nskyy_          = atoi(argv[iarg]); iarg++;
@@ -41,24 +41,41 @@ void ArgValRichlucy::Init(int argc, char* argv[])
 
 void ArgValRichlucy::Print(FILE* fp) const
 {
-    fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
-    fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
-    fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
+    fprintf(fp, "%s: g_flag_debug   : %d\n",
+            __func__, g_flag_debug);
+    fprintf(fp, "%s: g_flag_help    : %d\n",
+            __func__, g_flag_help);
+    fprintf(fp, "%s: g_flag_verbose : %d\n",
+            __func__, g_flag_verbose);
 
-    fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
-    fprintf(fp, "%s: datafile_       : %s\n", __func__, datafile_.c_str());
-    fprintf(fp, "%s: skyfile_        : %s\n", __func__, skyfile_.c_str());
-    fprintf(fp, "%s: resp_file_      : %s\n", __func__, resp_file_.c_str());
-    fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
-    fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
-    fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
-    fprintf(fp, "%s: ndetx_          : %d\n", __func__, ndetx_);
-    fprintf(fp, "%s: ndety_          : %d\n", __func__, ndety_);
-    fprintf(fp, "%s: outdir_         : %s\n", __func__, outdir_.c_str());
-    fprintf(fp, "%s: outfile_head_   : %s\n", __func__, outfile_head_.c_str());
-    fprintf(fp, "%s: nem_            : %d\n", __func__, nem_);
-    fprintf(fp, "%s: tol_em_         : %f\n", __func__, tol_em_);
-    fprintf(fp, "%s: acc_method_     : %s\n", __func__, acc_method_.c_str());
+    fprintf(fp, "%s: progname_       : %s\n",
+            __func__, progname_.c_str());
+    fprintf(fp, "%s: datafile_       : %s\n",
+            __func__, datafile_.c_str());
+    fprintf(fp, "%s: bg_file_       : %s\n",
+            __func__, bg_file_.c_str());    
+    fprintf(fp, "%s: resp_norm_file_      : %s\n",
+            __func__, resp_norm_file_.c_str());
+    fprintf(fp, "%s: eff_file_       : %s\n",
+            __func__, eff_file_.c_str());
+    fprintf(fp, "%s: nskyx_          : %d\n",
+            __func__, nskyx_);
+    fprintf(fp, "%s: nskyy_          : %d\n",
+            __func__, nskyy_);
+    fprintf(fp, "%s: ndetx_          : %d\n",
+            __func__, ndetx_);
+    fprintf(fp, "%s: ndety_          : %d\n",
+            __func__, ndety_);
+    fprintf(fp, "%s: outdir_         : %s\n",
+            __func__, outdir_.c_str());
+    fprintf(fp, "%s: outfile_head_   : %s\n",
+            __func__, outfile_head_.c_str());
+    fprintf(fp, "%s: nem_            : %d\n",
+            __func__, nem_);
+    fprintf(fp, "%s: tol_em_         : %f\n",
+            __func__, tol_em_);
+    fprintf(fp, "%s: acc_method_     : %s\n",
+            __func__, acc_method_.c_str());
 }
 
 // private
@@ -67,8 +84,8 @@ void ArgValRichlucy::Null()
 {
     progname_ = "";
     datafile_ = "";
-    skyfile_  = "";
-    resp_file_  = "";
+    bg_file_ = "";
+    resp_norm_file_  = "";
     eff_file_  = "";
     nskyx_     = 0;
     nskyy_     = 0;
@@ -135,7 +152,7 @@ void ArgValRichlucy::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "datafile  skyfile  resp_file  eff_file  "
+            "datafile  bg_file  resp_norm_file  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
             "nem  tol_em  acc_method\n",

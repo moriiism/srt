@@ -25,30 +25,34 @@ void ArgValCalcFlux0::Init(int argc, char* argv[])
     }
     int iarg = optind;
     data_on_file_         = argv[iarg]; iarg++;
-    data_off_file_        = argv[iarg]; iarg++;
     phase_ratio_on_       = atof(argv[iarg]); iarg++;
-    phase_ratio_off_      = atof(argv[iarg]); iarg++;
     live_time_ratio_on_   = atof(argv[iarg]); iarg++;
+    data_off_file_        = argv[iarg]; iarg++;
+    phase_ratio_off_      = atof(argv[iarg]); iarg++;
     live_time_ratio_off_  = atof(argv[iarg]); iarg++;
 }
 
 void ArgValCalcFlux0::Print(FILE* fp) const
 {
-    fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
-    fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
-    fprintf(fp, "%s: g_flag_verbose : %d\n", __func__, g_flag_verbose);
+    fprintf(fp, "%s: g_flag_debug   : %d\n", __func__,
+            g_flag_debug);
+    fprintf(fp, "%s: g_flag_help    : %d\n", __func__,
+            g_flag_help);
+    fprintf(fp, "%s: g_flag_verbose : %d\n", __func__,
+            g_flag_verbose);
 
-    fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
+    fprintf(fp, "%s: progname_       : %s\n", __func__,
+            progname_.c_str());
     fprintf(fp, "%s: data_on_file_   : %s\n", __func__,
             data_on_file_.c_str());
-    fprintf(fp, "%s: data_off_file_  : %s\n", __func__,
-            data_off_file_.c_str());
     fprintf(fp, "%s: phase_ratio_on_ : %e\n", __func__,
             phase_ratio_on_);
+    fprintf(fp, "%s: live_time_ratio_on_ : %e\n", __func__,
+            live_time_ratio_on_);    
+    fprintf(fp, "%s: data_off_file_  : %s\n", __func__,
+            data_off_file_.c_str());
     fprintf(fp, "%s: phase_ratio_off_ : %e\n", __func__,
             phase_ratio_off_);
-    fprintf(fp, "%s: live_time_ratio_on_ : %e\n", __func__,
-            live_time_ratio_on_);
     fprintf(fp, "%s: live_time_ratio_off_ : %e\n", __func__,
             live_time_ratio_off_);
 }
@@ -60,10 +64,10 @@ void ArgValCalcFlux0::Null()
 {
     progname_ = "";
     data_on_file_ = "";
-    data_off_file_ = "";
     phase_ratio_on_ = 0.0;
-    phase_ratio_off_ = 0.0;
     live_time_ratio_on_ = 0.0;
+    data_off_file_ = "";
+    phase_ratio_off_ = 0.0;
     live_time_ratio_off_ = 0.0;
 }
 
@@ -121,9 +125,19 @@ void ArgValCalcFlux0::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "data_on_file  data_off_file  "
-            "phase_ratio_on  phase_ratio_off "
-            "live_time_ratio_on  live_time_ratio_off\n",
+            "data_on_file  phase_ratio_on  live_time_ratio_on  "
+            "data_off_file  phase_ratio_off  live_time_ratio_off\n",
             progname_.c_str());
+    fprintf(fp, "\n");
+    fprintf(fp,
+            "flux0 = flux_on - flux_off,\n");
+    fprintf(fp,
+            "flux_on = nevt_on / "
+            "(phase_ratio_on * live_time_ratio_on)\n");
+    fprintf(fp,
+            "flux_off = nevt_off / "
+            "(phase_ratio_off * live_time_ratio_off)\n");
+    fprintf(fp, "if (data_off_file = none): "
+            "flux0 = flux_on\n");
     abort();
 }

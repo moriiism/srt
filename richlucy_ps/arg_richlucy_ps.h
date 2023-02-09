@@ -1,15 +1,14 @@
-#ifndef MORIIISM_SRT_RICHLUCY_ARG_RICHLUCY_H_
-#define MORIIISM_SRT_RICHLUCY_ARG_RICHLUCY_H_
+#ifndef MORIIISM_SRT_RICHLUCY_PS_ARG_RICHLUCY_PS_H_
+#define MORIIISM_SRT_RICHLUCY_PS_ARG_RICHLUCY_PS_H_
 
 #include "mi_base.h"
 
-class ArgValRichlucy : public MiArgBase{
+class ArgValRichlucyPs : public MiArgBase{
 public:
-    ArgValRichlucy() :
+    ArgValRichlucyPs() :
         MiArgBase(),
         progname_(""),
         datafile_(""),
-        bg_file_(""),
         resp_norm_file_(""),
         eff_file_(""),
         nskyx_(0),
@@ -21,7 +20,7 @@ public:
         nem_(0),
         tol_em_(0.0),
         acc_method_("") {}
-    ~ArgValRichlucy(){
+    ~ArgValRichlucyPs(){
         Null();
     }
     void Init(int argc, char* argv[]);
@@ -29,7 +28,6 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDatafile() const {return datafile_;};
-    string GetBgFile() const {return bg_file_;};
     string GetRespNormFile() const {return resp_norm_file_;};
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
@@ -45,7 +43,6 @@ public:
 private:
     string progname_;
     string datafile_;
-    string bg_file_;
     string resp_norm_file_;
     string eff_file_;
     int nskyx_;
@@ -63,4 +60,4 @@ private:
     void Usage(FILE* fp) const;
 };
 
-#endif // MORIIISM_SRT_RICHLUCY_ARG_RICHLUCY_H_
+#endif // MORIIISM_SRT_RICHLUCY_PS_ARG_RICHLUCY_PS_H_

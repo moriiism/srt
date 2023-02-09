@@ -49,7 +49,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyNewArr(
     
     double* beta_dev_arr = NULL;
     cudaMalloc((void **)&beta_dev_arr, mem_size_nsky);
-    int blocksize = 512;
+    int blocksize = 128;        
     dim3 block (blocksize, 1, 1);
     dim3 grid  (nsky / block.x + 1, 1, 1);
     SrtlibSmthZalCuda::GetDerivUBetaArr<<<grid,block>>>(
@@ -155,7 +155,7 @@ void SrtlibRlCrabSmthPfZalCuda::GetSkyFluxNewArr(
         live_time_ratio_ave,
         nskyx, nskyy, mu,
         sky_new_dev_arr);
-    int blocksize = 512;
+    int blocksize = 128;            
     dim3 block (blocksize, 1, 1);
     dim3 grid  (nphase / block.x + 1, 1, 1);
     SrtlibRlCrabSmthPfZalCuda::GetFluxNewArr<<<grid,block>>>(
@@ -299,8 +299,10 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
                     sky_pre_dev_arr, 1);
         cublasDcopy(handle, nphase, flux_new_dev_arr, 1,
                     flux_pre_dev_arr, 1);
-        MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
-                         iem, helldist);
+        if(iem % 100 == 0){
+            MiIolib::Printf2(fp_log, "iem = %d, helldist = %e\n",
+                             iem, helldist);
+        }
     }
     cudaFree(sky_pre_dev_arr);
     cudaFree(flux_pre_dev_arr);

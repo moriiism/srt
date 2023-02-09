@@ -92,7 +92,7 @@ void SrtlibRlCrabCuda::GetYDashArr(
     int ndet, int nphase,
     double* const* const y_dash_dev_arr)
 {
-    int blocksize = 512;
+    int blocksize = 128;
     dim3 block (blocksize, 1, 1);
     dim3 grid (ndet / block.x + 1, 1, 1);
     for(int iphase = 0; iphase < nphase; iphase++){
@@ -132,7 +132,7 @@ void SrtlibRlCrabCuda::GetMvalArr(
                 resp_norm_mat_dev_arr, ndet,
                 y_dash_sum_dev_arr, 1,
                 &beta, coeff_dev_arr, 1);
-    int blocksize = 512;
+    int blocksize = 128;    
     dim3 block (blocksize, 1, 1);
     dim3 grid (nsky / block.x + 1, 1, 1);
     SrtlibRlCrabCuda::VecMul<<<grid,block>>>(
@@ -162,7 +162,7 @@ void SrtlibRlCrabCuda::GetNvalArr(
     cudaMalloc((void **)&dot_dev_arr, mem_size_nphase);
     cublasSetVector(nphase, sizeof(double), dot_arr, 1,
 		    dot_dev_arr, 1);
-    int blocksize = 512;
+    int blocksize = 128;    
     dim3 block (blocksize, 1, 1);
     dim3 grid (nphase / block.x + 1, 1, 1);
     SrtlibRlCrabCuda::VecMul<<<grid,block>>>(flux_dev_arr,

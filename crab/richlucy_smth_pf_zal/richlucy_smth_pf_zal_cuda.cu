@@ -62,12 +62,13 @@ int main(int argc, char* argv[])
     double* phase_arr = new double[nphase];
     double* live_time_ratio_arr = new double[nphase];
     double* flux_target_arr = new double[nphase];
+    double* flux_target_err_arr = new double[nphase];
     for(int iphase = 0; iphase < nphase; iphase ++){
         int nsplit = 0;
         string* split_arr = NULL;
         MiStr::GenSplit(line_data_list_arr[iphase],
                         &nsplit, &split_arr);
-        if(nsplit != 6){
+        if(nsplit != 7){
             printf("error: bad nsplit(=%d)\n", nsplit);
             abort();
         }
@@ -77,6 +78,7 @@ int main(int argc, char* argv[])
         phase_arr[iphase] = atof(split_arr[3].c_str());
         live_time_ratio_arr[iphase] = atof(split_arr[4].c_str());
         flux_target_arr[iphase] = atof(split_arr[5].c_str());
+        flux_target_err_arr[iphase] = atof(split_arr[6].c_str());
         MiStr::DelSplit(split_arr);
     }
     MiIolib::DelReadFile(line_data_list_arr);
@@ -89,6 +91,11 @@ int main(int argc, char* argv[])
         printf("flux_target_arr[%d] = %e\n",
                iphase, flux_target_arr[iphase]);
     }
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        printf("flux_target_err_arr[%d] = %e\n",
+               iphase, flux_target_err_arr[iphase]);
+    }
+
     
     // load image data
     double** data_arr = new double*[nphase];
@@ -279,9 +286,10 @@ int main(int argc, char* argv[])
     FILE* fp_qdp = NULL;
     fp_qdp = fopen(qdp_file, "w");
     fprintf(fp_qdp, "skip sing\n");
-    fprintf(fp_qdp, "! flux_new__arr\n");
+    fprintf(fp_qdp, "read serr 2\n");
+    fprintf(fp_qdp, "! flux_new_arr\n");
     for(int iphase = 0; iphase < nphase; iphase ++){
-        fprintf(fp_qdp, "%d  %e\n",
+        fprintf(fp_qdp, "%d  %e  0.0\n",
                 iphase, flux_new_arr[iphase]);
     }
     fprintf(fp_qdp, "\n");
@@ -289,17 +297,20 @@ int main(int argc, char* argv[])
     fprintf(fp_qdp, "\n");
     fprintf(fp_qdp, "! flux_target_arr\n");
     for(int iphase = 0; iphase < nphase; iphase ++){
-        fprintf(fp_qdp, "%d  %e\n",
-                iphase, flux_target_arr[iphase]);
+        fprintf(fp_qdp, "%d  %e  %e\n",
+                iphase, flux_target_arr[iphase],
+                flux_target_err_arr[iphase]);
     }
     fprintf(fp_qdp, "\n");
     fprintf(fp_qdp, "la file\n");
     fprintf(fp_qdp, "time off\n");    
-    fprintf(fp_qdp, "lw 5\n");
+    fprintf(fp_qdp, "lw 7\n");
     fprintf(fp_qdp, "csize 1.2\n");
     fprintf(fp_qdp, "la rot \n");
     fprintf(fp_qdp, "loc 0.05 0.05 0.95 0.95\n");
     fprintf(fp_qdp, "la pos y 3.0\n");
+    fprintf(fp_qdp, "ma 6 on\n");
+    fprintf(fp_qdp, "line on\n");
     fprintf(fp_qdp, "\n");
     fclose(fp_qdp);
 

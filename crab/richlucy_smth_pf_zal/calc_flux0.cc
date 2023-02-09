@@ -34,27 +34,51 @@ int main(int argc, char* argv[])
     delete [] data_on_arr;
     delete img_info_data_on;
 
-    // load data_off_file
-    double* data_off_arr = NULL;
-    MifImgInfo* img_info_data_off = new MifImgInfo;
-    img_info_data_off->InitSetImg(1, 1, ndetx, ndety);
-    int bitpix_data_off = 0;
-    MifFits::InFitsImageD(argval->GetDataOffFile(),
-                          img_info_data_off,
-                          &bitpix_data_off, &data_off_arr);
-    double nevt_off = MirMath::GetSum(ndet, data_off_arr);
-    printf("nevt_off = %e\n", nevt_off);
-    delete [] data_off_arr;
-    delete img_info_data_off;
+    
+    double nevt_off = 0.0;
+    if(argval->GetDataOffFile() != "none"){
+        // load data_off_file
+        double* data_off_arr = NULL;
+        MifImgInfo* img_info_data_off = new MifImgInfo;
+        img_info_data_off->InitSetImg(1, 1, ndetx, ndety);
+        int bitpix_data_off = 0;
+        MifFits::InFitsImageD(argval->GetDataOffFile(),
+                              img_info_data_off,
+                              &bitpix_data_off, &data_off_arr);
+        nevt_off = MirMath::GetSum(ndet, data_off_arr);
+        printf("nevt_off = %e\n", nevt_off);
+        delete [] data_off_arr;
+        delete img_info_data_off;
+    } else {
+        printf("data_off_file == none, then flux_off = 0\n");
+    }
 
     double phase_ratio_on = argval->GetPhaseRatioOn();
     double phase_ratio_off = argval->GetPhaseRatioOff();
     double live_time_ratio_on = argval->GetLiveTimeRatioOn();
     double live_time_ratio_off = argval->GetLiveTimeRatioOff();
 
-    double flux0 = nevt_on /(phase_ratio_on * live_time_ratio_on)
-        - nevt_off /(phase_ratio_off * live_time_ratio_off);
-    printf("flux0 = %e\n", flux0);
-    
+    double flux_on = nevt_on /
+        (phase_ratio_on * live_time_ratio_on);
+    double flux0 = 0.0;
+    double flux0_err = 0.0;
+    if(argval->GetDataOffFile() != "none"){
+        double flux_off = nevt_off /
+            (phase_ratio_off * live_time_ratio_off);
+        flux0 = flux_on - flux_off;
+        flux0_err = sqrt(
+            nevt_on /
+            pow(phase_ratio_on * live_time_ratio_on, 2)
+            + nevt_off /
+            pow(phase_ratio_off * live_time_ratio_off, 2));
+    } else {
+        flux0 = flux_on;
+        flux0_err = sqrt(
+            nevt_on /
+            pow(phase_ratio_on * live_time_ratio_on, 2));
+    }
+    printf("flux0  flux0_err\n");
+    printf("%e  %e\n", flux0, flux0_err);
+
     return status_prog;
 }

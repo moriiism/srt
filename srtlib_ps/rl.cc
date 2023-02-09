@@ -4,10 +4,10 @@
 #include "rl_statval.h"
 #include "sim.h"
 
-void SrtlibRl::GetDetArr(const double* const rho_arr,
-                         const double* const resp_norm_mat_arr,
-                         int ndet, int nsky,
-                         double* const det_arr) // ndet
+void SrtlibPsRl::GetDetArr(const double* const rho_arr,
+                           const double* const resp_norm_mat_arr,
+                           int ndet, int nsky,
+                           double* const det_arr) // ndet
 {
     // det_arr = R_mat %*% rho_arr
     char transa[2];
@@ -19,11 +19,11 @@ void SrtlibRl::GetDetArr(const double* const rho_arr,
            0.0, det_arr, 1);
 }
 
-void SrtlibRl::GetRhoNewArr(const double* const rho_arr,
-                            const double* const data_arr,
-                            const double* const resp_norm_mat_arr,
-                            int ndet, int nsky,
-                            double* const rho_new_arr)
+void SrtlibPsRl::GetRhoNewArr(const double* const rho_arr,
+                              const double* const data_arr,
+                              const double* const resp_norm_mat_arr,
+                              int ndet, int nsky,
+                              double* const rho_new_arr)
 {
     double* den_arr = new double[ndet];
     for(int idet = 0; idet < ndet; idet ++){
@@ -55,23 +55,25 @@ void SrtlibRl::GetRhoNewArr(const double* const rho_arr,
     delete [] tmp_arr;
 }
 
-void SrtlibRl::Richlucy(FILE* const fp_log,
-                        const double* const rho_init_arr,
-                        const double* const data_arr,
-                        const double* const resp_norm_mat_arr,
-                        int ndet, int nsky,
-                        string outdir, string outfile_head,
-                        int nem, double tol_em,
-                        double* const rho_new_arr)
+void SrtlibPsRl::Richlucy(FILE* const fp_log,
+                          const double* const rho_init_arr,
+                          const double* const data_arr,
+                          const double* const resp_norm_mat_arr,
+                          int ndet, int nsky,
+                          string outdir, string outfile_head,
+                          int nem, double tol_em,
+                          double* const rho_new_arr)
 {
     double* rho_pre_arr = new double[nsky];
-    dcopy_(nsky, const_cast<double*>(rho_init_arr), 1, rho_pre_arr, 1);
+    dcopy_(nsky, const_cast<double*>(rho_init_arr), 1,
+           rho_pre_arr, 1);
     for(int iem = 0; iem < nem; iem ++){
         GetRhoNewArr(rho_pre_arr, data_arr, resp_norm_mat_arr,
                      ndet, nsky, rho_new_arr);
-        double helldist  = SrtlibRlStatval::GetHellingerDist(rho_pre_arr,
-                                                             rho_new_arr,
-                                                             nsky);
+        double helldist  = SrtlibPsRlStatval::GetHellingerDist(
+            rho_pre_arr,
+            rho_new_arr,
+            nsky);
         if (access( "/tmp/rl_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
@@ -92,14 +94,15 @@ void SrtlibRl::Richlucy(FILE* const fp_log,
 }
 
 // accerelated richardson lucy (SQUAREM)
-void SrtlibRl::RichlucyAccSquarem(FILE* const fp_log,
-                                  const double* const rho_init_arr,
-                                  const double* const data_arr,
-                                  const double* const resp_norm_mat_arr,
-                                  int ndet, int nsky,
-                                  string outdir, string outfile_head,
-                                  int nem, double tol_em,
-                                  double* const rho_new_arr)
+void SrtlibPsRl::RichlucyAccSquarem(
+    FILE* const fp_log,
+    const double* const rho_init_arr,
+    const double* const data_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nsky,
+    string outdir, string outfile_head,
+    int nem, double tol_em,
+    double* const rho_new_arr)
 {
     double* rho_0_arr  = new double[nsky];
     double* rho_1_arr  = new double[nsky];
@@ -186,7 +189,7 @@ void SrtlibRl::RichlucyAccSquarem(FILE* const fp_log,
         
         // double sum = MibBlas::Sum(rho_0_new_arr, nsky);
         // printf("sum = %e\n", sum);
-        double helldist  = SrtlibRlStatval::GetHellingerDist(
+        double helldist  = SrtlibPsRlStatval::GetHellingerDist(
             rho_0_arr, rho_0_new_arr, nsky);
         
         //MibBlas::Sub(rho_0_new_arr, rho_0_arr, nsky, diff_rho_0_arr);
@@ -219,7 +222,7 @@ void SrtlibRl::RichlucyAccSquarem(FILE* const fp_log,
 }
 
 // accerelated richardson lucy (Ikeda)
-void SrtlibRl::RichlucyAccIkeda(FILE* const fp_log,
+void SrtlibPsRl::RichlucyAccIkeda(FILE* const fp_log,
                                     const double* const rho_init_arr,
                                 const double* const data_arr,
                                 const double* const resp_norm_mat_arr,
@@ -306,7 +309,7 @@ void SrtlibRl::RichlucyAccIkeda(FILE* const fp_log,
         
         // double sum = MibBlas::Sum(rho_0_new_arr, nsky);
         // printf("sum = %e\n", sum);
-        double helldist  = SrtlibRlStatval::GetHellingerDist(rho_arr, rho_new_arr, nsky);
+        double helldist  = SrtlibPsRlStatval::GetHellingerDist(rho_arr, rho_new_arr, nsky);
         
         //MibBlas::Sub(rho_0_new_arr, rho_0_arr, nsky, diff_rho_0_arr);
         //double diff = sqrt(ddot_(nsky, diff_rho_0_arr, 1,
@@ -335,7 +338,7 @@ void SrtlibRl::RichlucyAccIkeda(FILE* const fp_log,
     delete [] data_rand_arr;
 }
 
-void SrtlibRl::GetInvVec(const double* const vec_arr, int nelm,
+void SrtlibPsRl::GetInvVec(const double* const vec_arr, int nelm,
                          double* const inv_arr)
 {
     dcopy_(nelm, const_cast<double*>(vec_arr), 1, inv_arr, 1);
@@ -346,7 +349,7 @@ void SrtlibRl::GetInvVec(const double* const vec_arr, int nelm,
 
 
 // accerelated richardson lucy (Kuroda)
-void SrtlibRl::RichlucyAccKuroda(FILE* const fp_log,
+void SrtlibPsRl::RichlucyAccKuroda(FILE* const fp_log,
                                  const double* const rho_init_arr,
                                  const double* const data_arr,
                                  const double* const resp_norm_mat_arr,
@@ -419,11 +422,11 @@ void SrtlibRl::RichlucyAccKuroda(FILE* const fp_log,
             double* rho_tmp_arr = new double[nsky];
             GetRhoNewArr(rho_dot_new_arr, data_arr, resp_norm_mat_arr,
                          ndet, nsky, rho_tmp_arr);
-            double lval_tmp = -1.0 * SrtlibRlStatval::GetNegLogLike(rho_tmp_arr,
+            double lval_tmp = -1.0 * SrtlibPsRlStatval::GetNegLogLike(rho_tmp_arr,
                                                                     data_arr,
                                                                     resp_norm_mat_arr,
                                                                     ndet, nsky, 1.0e-10);
-            double lval_2 = -1.0 * SrtlibRlStatval::GetNegLogLike(rho_2_arr,
+            double lval_2 = -1.0 * SrtlibPsRlStatval::GetNegLogLike(rho_2_arr,
                                                                   data_arr,
                                                                   resp_norm_mat_arr,
                                                                   ndet, nsky, 1.0e-10);

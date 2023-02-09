@@ -97,7 +97,7 @@ double SrtlibCrabRlCrabStatvalCuda::GetHellingerDist(
     cudaMalloc((void **)&diff_sqrt_sky_dev_arr, mem_size_nsky);
     cudaMalloc((void **)&diff_sqrt_flux_dev_arr, mem_size_nphase);
 
-    int blocksize = 512;
+    int blocksize = 128;
     dim3 block (blocksize, 1, 1);
     dim3 grid_sky (nsky / block.x + 1, 1, 1);
     SrtlibCrabRlCrabStatvalCuda::VecDiffSqrt<<<grid_sky,block>>>(

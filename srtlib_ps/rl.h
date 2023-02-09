@@ -1,5 +1,5 @@
-#ifndef MORIIISM_SRT_SRTLIB_RL_H_
-#define MORIIISM_SRT_SRTLIB_RL_H_
+#ifndef MORIIISM_SRT_SRTLIB_PS_RL_H_
+#define MORIIISM_SRT_SRTLIB_PS_RL_H_
 
 #include "mib_blas.h"
 #include "mi_sort.h"
@@ -7,7 +7,7 @@
 #include "mif_fits.h"
 #include "mir_math.h"
 
-namespace SrtlibRl
+namespace SrtlibPsRl
 {
     void GetDetArr(const double* const rho_arr,
                    const double* const resp_norm_mat_arr,
@@ -64,6 +64,6 @@ namespace SrtlibRl
                            int k_restart, double delta_restart,
                            double* const rho_new_arr);
 
-} // namespace SrtlibRl
+} // namespace SrtlibPsRl
 
-#endif // MORIIISM_SRT_SRTLIB_RL_H_
+#endif // MORIIISM_SRT_SRTLIB_PS_RL_H_

@@ -1,0 +1,68 @@
+#
+# richlucy_maeda.txt
+#
+
+# setup mitool
+export LANG=C
+source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
+
+# working directory
+work_dir=/home/morii/work/arb/ana/run
+mkdir -p $work_dir/temp
+cd $work_dir/temp
+
+
+nskyx=220
+nskyy=220
+ndetx=200
+ndety=200
+
+respdir=/home/ymaeda/work/share/hxt/barycen_6th_180rot/hxt1/100_150/gimage_100
+outdir=resp_hxt1_100_150
+outfile_head=arb
+nskyx=$nskyx
+nskyy=$nskyy
+nphoton_input=100
+
+/home/morii/work/github/moriiism/srt/mkresp/mkresp \
+$respdir \
+$outdir \
+$outfile_head \
+$nskyx \
+$nskyy \
+$nphoton_input
+
+
+
+# 2. Deconvolve image
+
+# richlucy
+
+datafile=/mnt/data1/work/itokawa/hitomi/HXI1_filtered_fits.list/HXI1_100_150ch_x1110y1115_w200.fits
+bg_file="none"
+resp_norm_file=resp_hxt1_100_150/arb_resp_norm.fits
+eff_file=resp_hxt1_100_150/arb_eff.fits
+nskyx=$nskyx
+nskyy=$nskyy
+ndetx=$ndetx
+ndety=$ndety
+outdir=rl_true
+outfile_head=hxt1_100_150
+nem=30
+tol_em=0.01
+acc_method=none
+
+~morii/work/github/moriiism/srt/richlucy/richlucy \
+$datafile \
+$bg_file \
+$resp_norm_file \
+$eff_file \
+$nskyx \
+$nskyy \
+$ndetx \
+$ndety \
+$outdir \
+$outfile_head \
+$nem \
+$tol_em \
+$acc_method
