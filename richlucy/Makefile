@@ -15,14 +15,13 @@ LDLIBS = ${SRTLIB_LIB} ${SRT_MATH_LIB_LIB} \
 	$(LIB) -lgfortran
 
 INCLUDE_OPENBLAS = ${SRTLIB_INC} ${SRT_MATH_LIB_INC} \
-	$(MIROOTLIB_INC) $(MIFITSLIB_INC) \
-	$(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC) \
-	$(ROOT_INC) $(MT_INC)
+	$(MIFITSLIB_INC) \
+	$(MIBLASLIB_INC) $(MILIB_INC) $(CFITSIO_INC)
 LDLIBS_OPENBLAS = ${SRTLIB_LIB} ${SRT_MATH_LIB_LIB} \
-	$(MIROOTLIB_LIB) $(MIFITSLIB_LIB) \
+	$(MIFITSLIB_LIB) \
 	$(MIBLASLIB_LIB) $(MILIB_LIB) $(CFITSIO_LIB) \
-	$(ROOT_ALLLIBS) $(LAPACK_LIB) $(OPENBLAS_LIB) \
-	$(MT_LIB) $(LIB) -lgfortran
+	$(LAPACK_LIB) $(OPENBLAS_LIB) \
+	$(LIB) -lgfortran
 
 TARGET = richlucy
 
@@ -30,6 +29,9 @@ all: $(TARGET)
 
 richlucy: richlucy.o  arg_richlucy.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
+
+richlucy_openblas: richlucy.o  arg_richlucy.o
+	$(CXXN) richlucy.o arg_richlucy.o ${LDLIBS_OPENBLAS} -o $@
 
 
 .SUFFIXES:

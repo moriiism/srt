@@ -180,6 +180,16 @@ for index in range(len(out_dir_lst)):
     subprocess.call(cmd)
 
     for index_phase in range(len(phase_id_lst)):
+        outdir_rl = (
+            out_dir_lst[index] + "/"
+            + "phase_"
+            + phase_id_lst[index_phase] + "_"
+            + phase_tag_lst[index_phase] + "/"
+            + "rec")
+        cmd = ["mkdir", "-p", outdir_rl]
+        print(cmd)
+        subprocess.call(cmd)
+        
         # richlucy
         datafile = (ymaeda_share_dir + "/"
                     + "data" + "/"
@@ -195,13 +205,12 @@ for index in range(len(out_dir_lst)):
                           "/" + "rl_resp_norm.fits")
         eff_file = (out_dir_lst[index] + "/" + "resp" +
                     "/" + "rl_eff.fits")
-        outdir_rl = (out_dir_lst[index] + "/" + "rec")
         outfile_head = "rl"
         nem = 1000
         tol_em = 1.0e-8
         acc_method = "squarem"
 
-        cmd = [srt_dir + "/" + "richlucy" + "/" + "richlucy",
+        cmd = [srt_dir + "/" + "richlucy" + "/" + "richlucy_openblas",
                datafile, bg_file, resp_norm_file, eff_file,
                str(nskyx), str(nskyy), str(ndetx), str(ndety),
                outdir_rl, outfile_head, str(nem), str(tol_em),

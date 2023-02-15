@@ -3,7 +3,7 @@
 export LANG=C
 source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
 
-work_dir=/home/morii/work/arb/ana/run/rl_tmp/phase_40
+work_dir=/home/morii/work/arb/ana/run/rl/phase_40
 cd $work_dir
 mkdir conf
 
@@ -75,7 +75,9 @@ nskyx=101
 nskyy=101
 ndetx=80
 ndety=80
-cpu_num=1
+cpu_num=64
+
+export OPENBLAS_NUM_THREADS=1
 
 srt_dir=/home/morii/work/github/moriiism/srt
 $srt_dir/richlucy/run_richlucy.py \

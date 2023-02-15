@@ -154,7 +154,7 @@ gamma_lst = LoadList1(gamma_list)
 (phase_id_lst, phase_st_lst, phase_ed_lst,
  phase_ratio_lst, phase_tag_lst) = LoadPhaseListFile(phase_list)
 
-out_dir_lst = []
+outdir_lst = []
 target_joint_lst = []
 telescope_joint_lst = []
 data_ver_joint_lst = []
@@ -167,14 +167,14 @@ for target in target_lst:
             for resp_ver in resp_ver_lst:        
                 for ene_band in ene_band_lst:
                     for rec_prog in rec_prog_lst:
-                        out_dir = (work_dir + "/"
+                        outdir = (work_dir + "/"
                                    + target + "/"
                                    + telescope + "/"
                                    + "data_" + data_ver + "/"
                                    + "resp_" + resp_ver + "/"
                                    + ene_band + "/"
                                    + rec_prog)
-                        out_dir_lst.append(out_dir)
+                        outdir_lst.append(outdir)
                         target_joint_lst.append(target)
                         telescope_joint_lst.append(telescope)
                         data_ver_joint_lst.append(data_ver)
@@ -182,16 +182,16 @@ for target in target_lst:
                         ene_band_joint_lst.append(ene_band)
                         rec_prog_joint_lst.append(rec_prog)
 
-for out_dir in out_dir_lst:
-    cmd = ["mkdir", "-p", out_dir]
+for outdir in outdir_lst:
+    cmd = ["mkdir", "-p", outdir]
     print(cmd)
     subprocess.call(cmd)
 
 # ymaeda share data
 ymaeda_share_dir = "/home/ymaeda/work/share/crab_hxt"
 
-for index in range(len(out_dir_lst)):
-    print(out_dir_lst[index])
+for index in range(len(outdir_lst)):
+    print(outdir_lst[index])
     data_ver = data_ver_joint_lst[index]
     resp_ver = resp_ver_joint_lst[index]    
     telescope = telescope_joint_lst[index]
@@ -294,7 +294,7 @@ for index in range(len(out_dir_lst)):
     resp_dir = (ymaeda_share_dir + "/" + "resp" + "/"
                 + resp_ver + "/" + telescope + "/"
                 + ene_band + "/" + "gimage_100")
-    outdir_mkresp = (out_dir_lst[index] + "/" + "resp_tmp")
+    outdir_mkresp = (outdir_lst[index] + "/" + "resp_tmp")
     outfile_head = "resp_tmp"
     nphoton_input = 100
     cmd = [srt_dir + "/" + "mkresp" + "/" + "mkresp",
@@ -314,11 +314,11 @@ for index in range(len(out_dir_lst)):
                 + ene_band + "_"
                 + "x1178y1175_w80.fits")
     bg_file = "none"
-    resp_norm_file = (out_dir_lst[index] + "/" + "resp_tmp" + "/"
+    resp_norm_file = (outdir_lst[index] + "/" + "resp_tmp" + "/"
                       "resp_tmp_resp_norm.fits")
-    eff_file = (out_dir_lst[index] + "/" + "resp_tmp" + "/"
+    eff_file = (outdir_lst[index] + "/" + "resp_tmp" + "/"
                 "resp_tmp_eff.fits")
-    outdir_rl = (out_dir_lst[index] + "/" + "rec_tmp")
+    outdir_rl = (outdir_lst[index] + "/" + "rec_tmp")
     outfile_head = "rec_tmp"
     nem = 1000
     tol_em = 1.0e-8
@@ -336,9 +336,9 @@ for index in range(len(out_dir_lst)):
     #
     #-----> ds9: (51, 51) --> (50, 50)
     #
-    print(out_dir_lst[index])
+    print(outdir_lst[index])
     
-    data_list = (out_dir_lst[index] + "/" + "data.list")
+    data_list = (outdir_lst[index] + "/" + "data.list")
     data_list_fptr = open(data_list, "w")
     print("# data_file  phase_id  phase_tag  " +
           "phase_ratio  live_time_ratio  flux0  flux0_err",
@@ -369,7 +369,7 @@ for index in range(len(out_dir_lst)):
                 + ene_band + "/" + "gimage_100")
     posx_point_src = 50
     posy_point_src = 50
-    outdir_rl = (out_dir_lst[index] + "/" + "cv")
+    outdir_rl = (outdir_lst[index] + "/" + "cv")
     nem = 10000
     tol_em = 1.0e-7
     acc_method = "none"
