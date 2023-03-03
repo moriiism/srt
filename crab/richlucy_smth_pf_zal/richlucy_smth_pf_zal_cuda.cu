@@ -1,7 +1,8 @@
 // Simultaneous image reconstruction by Richardson-Lucy method
 // for multiple pulse phase data of Crab pulsar with Crab nebula
 // under regularizations of smoothness for Crab nebula and
-// pulse flux of Crab pulsar. Non X-ray background is also considered.
+// pulse flux of Crab pulsar.
+// Non X-ray background is also considered.
 
 #include "mif_fits.h"
 #include "mif_img_info.h"
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
         nph_fixed_src_norm);
 
     
-    // load response file
+    // load normalized response file
     int naxis0 = MifFits::GetAxisSize(argval->GetRespNormFile(), 0);
     int naxis1 = MifFits::GetAxisSize(argval->GetRespNormFile(), 1);
     if ((naxis0 != ndet) || (naxis1 != nsky)){
@@ -326,6 +327,18 @@ int main(int argc, char* argv[])
         }
     }
 
+    // pulse phase integrated reconstructed
+    // sky image of nebula + pulsar
+    double* sky_integ_arr = new double[nsky];
+    for(int isky = 0; isky < nsky; isky ++){
+        sky_integ_arr[isky] = 0.0;
+        for(int iphase = 0; iphase < nphase; iphase ++){
+            sky_integ_arr[isky] += phase_arr[iphase] *
+                sky_pulse_arr[iphase][isky];
+        }
+    }
+    
+
     // if(nfold > 1): cross validation
     // otherwise:     no cross validation
     if(argval->GetNfoldCv() > 1){ 
@@ -348,7 +361,8 @@ int main(int argc, char* argv[])
                              nph_data_vl_arr[iphase]);
             nph_data_vl += nph_data_vl_arr[iphase];
         }
-        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n", nph_data_vl);
+        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
+                         nph_data_vl);
 
         double num_rmse = 0.0;
         double den_rmse = 0.0;
@@ -362,7 +376,7 @@ int main(int argc, char* argv[])
                                     det_pulse_arr[iphase]);
             // add non X-ray background
             daxpy_(ndet, 1.0, bg_arr, 1, det_pulse_arr[iphase], 1);
-            // multiply phase ratio
+            // multiply phase_ratio * live_time_ratio
             dscal_(ndet, phase_arr[iphase]
                    * live_time_ratio_arr[iphase],
                    det_pulse_arr[iphase], 1);
@@ -394,6 +408,9 @@ int main(int argc, char* argv[])
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
     }
+    for(int isky = 0; isky < nsky; isky ++){
+        sky_integ_arr[isky] /= eff_mat_arr[isky];
+    }
     for(int iphase = 0; iphase < nphase; iphase ++){
         for(int isky = 0; isky < nsky; isky ++){
             sky_pulse_arr[iphase][isky] /= eff_mat_arr[isky];
@@ -409,6 +426,11 @@ int main(int argc, char* argv[])
                            "rec", 2,
                            bitpix_out,
                            naxes, sky_new_arr);
+    MifFits::OutFitsImageD(argval->GetOutdir(),
+                           argval->GetOutfileHead(),
+                           "rec_integ", 2,
+                           bitpix_out,
+                           naxes, sky_integ_arr);
     for(int iphase = 0; iphase < nphase; iphase ++){
         char tag[kLineSize];
         sprintf(tag, "rec_%2.2d", iphase);

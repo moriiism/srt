@@ -1,7 +1,8 @@
 // Simultaneous image reconstruction by Richardson-Lucy method
 // for multiple pulse phase data of Crab pulsar with Crab nebula
 // under regularizations of smoothness for Crab nebula and
-// pulse flux of Crab pulsar. Non X-ray background is also considered.
+// pulse flux of Crab pulsar.
+// Non X-ray background is also considered.
 
 #include "mif_fits.h"
 #include "mif_img_info.h"
@@ -59,13 +60,15 @@ int main(int argc, char* argv[])
     string* data_vl_list_arr = new string[nphase];
     string* phase_tag_arr = new string[nphase];
     double* phase_arr = new double[nphase];
+    double* live_time_ratio_arr = new double[nphase];    
     double* flux_target_arr = new double[nphase];
+    double* flux_target_err_arr = new double[nphase];    
     for(int iphase = 0; iphase < nphase; iphase ++){
         int nsplit = 0;
         string* split_arr = NULL;
         MiStr::GenSplit(line_data_list_arr[iphase],
                         &nsplit, &split_arr);
-        if(nsplit != 5){
+        if(nsplit != 7){
             printf("error: bad nsplit(=%d)\n", nsplit);
             abort();
         }
@@ -73,7 +76,9 @@ int main(int argc, char* argv[])
         data_vl_list_arr[iphase] = split_arr[1];
         phase_tag_arr[iphase] = split_arr[2];
         phase_arr[iphase] = atof(split_arr[3].c_str());
-        flux_target_arr[iphase] = atof(split_arr[4].c_str());
+        live_time_ratio_arr[iphase] = atof(split_arr[4].c_str());
+        flux_target_arr[iphase] = atof(split_arr[5].c_str());
+        flux_target_err_arr[iphase] = atof(split_arr[6].c_str());
         MiStr::DelSplit(split_arr);
     }
     MiIolib::DelReadFile(line_data_list_arr);
@@ -86,7 +91,12 @@ int main(int argc, char* argv[])
         printf("flux_target_arr[%d] = %e\n",
                iphase, flux_target_arr[iphase]);
     }
+    for(int iphase = 0; iphase < nphase; iphase ++){
+        printf("flux_target_err_arr[%d] = %e\n",
+               iphase, flux_target_err_arr[iphase]);
+    }
     
+
     // load image data
     double** data_arr = new double*[nphase];
     int* nph_data_arr = new int[nphase];
@@ -211,6 +221,7 @@ int main(int argc, char* argv[])
             bg_arr,
             flux_target_arr,
             phase_arr,
+            live_time_ratio_arr,
             det_fixed_src_norm_arr,
             resp_norm_mat_arr,
             ndet, nskyx, nskyy, nphase,
@@ -219,40 +230,40 @@ int main(int argc, char* argv[])
             argval->GetOutfileHead(),
             argval->GetNem(), argval->GetTolEm(),
             sky_new_arr, flux_new_arr);
-    } else if (argval->GetAccMethod() == "zalq1"){
-        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfZalQ1(
-            fp_log,
-            sky_init_arr,
-            flux_init_arr,
-            data_arr,
-            bg_arr,
-            flux_target_arr,
-            phase_arr,
-            det_fixed_src_norm_arr,
-            resp_norm_mat_arr,
-            ndet, nskyx, nskyy, nphase,
-            argval->GetMu(), argval->GetGamma(),
-            argval->GetOutdir(),
-            argval->GetOutfileHead(),
-            argval->GetNem(), argval->GetTolEm(),
-            sky_new_arr, flux_new_arr);
-    } else if (argval->GetAccMethod() == "sqs3"){
-        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfSqS3(
-            fp_log,
-            sky_init_arr,
-            flux_init_arr,
-            data_arr,
-            bg_arr,
-            flux_target_arr,
-            phase_arr,
-            det_fixed_src_norm_arr,
-            resp_norm_mat_arr,
-            ndet, nskyx, nskyy, nphase,
-            argval->GetMu(), argval->GetGamma(),
-            argval->GetOutdir(),
-            argval->GetOutfileHead(),
-            argval->GetNem(), argval->GetTolEm(),
-            sky_new_arr, flux_new_arr);
+//    } else if (argval->GetAccMethod() == "zalq1"){
+//        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfZalQ1(
+//            fp_log,
+//            sky_init_arr,
+//            flux_init_arr,
+//            data_arr,
+//            bg_arr,
+//            flux_target_arr,
+//            phase_arr,
+//            det_fixed_src_norm_arr,
+//            resp_norm_mat_arr,
+//            ndet, nskyx, nskyy, nphase,
+//            argval->GetMu(), argval->GetGamma(),
+//            argval->GetOutdir(),
+//            argval->GetOutfileHead(),
+//            argval->GetNem(), argval->GetTolEm(),
+//            sky_new_arr, flux_new_arr);
+//    } else if (argval->GetAccMethod() == "sqs3"){
+//        SrtlibRlCrabSmthPfZal::RichlucyCrabSmthPfSqS3(
+//            fp_log,
+//            sky_init_arr,
+//            flux_init_arr,
+//            data_arr,
+//            bg_arr,
+//            flux_target_arr,
+//            phase_arr,
+//            det_fixed_src_norm_arr,
+//            resp_norm_mat_arr,
+//            ndet, nskyx, nskyy, nphase,
+//            argval->GetMu(), argval->GetGamma(),
+//            argval->GetOutdir(),
+//            argval->GetOutfileHead(),
+//            argval->GetNem(), argval->GetTolEm(),
+//            sky_new_arr, flux_new_arr);
     } else {
         printf("bad acc_method\n");
         abort();
@@ -275,9 +286,10 @@ int main(int argc, char* argv[])
     FILE* fp_qdp = NULL;
     fp_qdp = fopen(qdp_file, "w");
     fprintf(fp_qdp, "skip sing\n");
+    fprintf(fp_qdp, "read serr 2\n");    
     fprintf(fp_qdp, "! flux_new_arr\n");
     for(int iphase = 0; iphase < nphase; iphase ++){
-        fprintf(fp_qdp, "%d  %e\n",
+        fprintf(fp_qdp, "%d  %e  0.0\n",
                 iphase, flux_new_arr[iphase]);
     }
     fprintf(fp_qdp, "\n");
@@ -285,17 +297,20 @@ int main(int argc, char* argv[])
     fprintf(fp_qdp, "\n");
     fprintf(fp_qdp, "! flux_target_arr\n");
     for(int iphase = 0; iphase < nphase; iphase ++){
-        fprintf(fp_qdp, "%d  %e\n",
-                iphase, flux_target_arr[iphase]);
+        fprintf(fp_qdp, "%d  %e  %e\n",
+                iphase, flux_target_arr[iphase],
+                flux_target_err_arr[iphase]);
     }
     fprintf(fp_qdp, "\n");
     fprintf(fp_qdp, "la file\n");
     fprintf(fp_qdp, "time off\n");    
-    fprintf(fp_qdp, "lw 5\n");
+    fprintf(fp_qdp, "lw 7\n");
     fprintf(fp_qdp, "csize 1.2\n");
     fprintf(fp_qdp, "la rot \n");
     fprintf(fp_qdp, "loc 0.05 0.05 0.95 0.95\n");
     fprintf(fp_qdp, "la pos y 3.0\n");
+    fprintf(fp_qdp, "ma 6 on\n");
+    fprintf(fp_qdp, "line on\n");    
     fprintf(fp_qdp, "\n");
     fclose(fp_qdp);
 
@@ -311,6 +326,18 @@ int main(int argc, char* argv[])
         }
     }
 
+    // pulse phase integrated reconstructed
+    // sky image of nebula + pulsar
+    double* sky_integ_arr = new double[nsky];
+    for(int isky = 0; isky < nsky; isky ++){
+        sky_integ_arr[isky] = 0.0;
+        for(int iphase = 0; iphase < nphase; iphase ++){
+            sky_integ_arr[isky] += phase_arr[iphase] *
+                sky_pulse_arr[iphase][isky];
+        }
+    }
+
+    
     // if(nfold > 1): cross validation
     // otherwise:     no cross validation
     if(argval->GetNfoldCv() > 1){ 
@@ -333,7 +360,8 @@ int main(int argc, char* argv[])
                              nph_data_vl_arr[iphase]);
             nph_data_vl += nph_data_vl_arr[iphase];
         }
-        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n", nph_data_vl);
+        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
+                         nph_data_vl);
 
         double num_rmse = 0.0;
         double den_rmse = 0.0;
@@ -347,8 +375,9 @@ int main(int argc, char* argv[])
                                     det_pulse_arr[iphase]);
             // add non X-ray background
             daxpy_(ndet, 1.0, bg_arr, 1, det_pulse_arr[iphase], 1);
-            // multiply phase ratio
-            dscal_(ndet, phase_arr[iphase],
+            // multiply phase_ratio * live_time_ratio
+            dscal_(ndet, phase_arr[iphase]
+                   * live_time_ratio_arr[iphase],
                    det_pulse_arr[iphase], 1);
             // scale det_pulse_arr by 1.0/(nfold - 1) for
             // evalution between validation data
@@ -378,6 +407,9 @@ int main(int argc, char* argv[])
     for(int isky = 0; isky < nsky; isky ++){
         sky_new_arr[isky] /= eff_mat_arr[isky];
     }
+    for(int isky = 0; isky < nsky; isky ++){
+        sky_integ_arr[isky] /= eff_mat_arr[isky];
+    }
     for(int iphase = 0; iphase < nphase; iphase ++){
         for(int isky = 0; isky < nsky; isky ++){
             sky_pulse_arr[iphase][isky] /= eff_mat_arr[isky];
@@ -393,6 +425,11 @@ int main(int argc, char* argv[])
                            "rec", 2,
                            bitpix_out,
                            naxes, sky_new_arr);
+    MifFits::OutFitsImageD(argval->GetOutdir(),
+                           argval->GetOutfileHead(),
+                           "rec_integ", 2,
+                           bitpix_out,
+                           naxes, sky_integ_arr);
     for(int iphase = 0; iphase < nphase; iphase ++){
         char tag[kLineSize];
         sprintf(tag, "rec_%2.2d", iphase);
