@@ -5,20 +5,28 @@
 #include "mi_sort.h"
 #include "mi_time.h"
 #include "mif_fits.h"
-#include "mir_math.h"
+//#include "mir_math.h"
 
 namespace SrtlibRlCrabSmthPfZal
 {
+    void GetSkyNew(
+        const double* const alpha_arr,
+        const double* const beta_arr,
+        const double* const mval_arr,
+        double live_time_ratio_ave,
+        int nsky, double mu,
+        double* const sky_new_arr);
     void GetSkyNewArr(
         const double* const sky_arr,
         const double* const mval_arr,
+        double live_time_ratio_ave,
         int nskyx, int nskyy, double mu,
         double* const sky_new_arr);
-
     void GetFluxNewArr(
         const double* const nval_arr,
         const double* const flux_target_arr,
         const double* const phase_arr,
+        const double* const live_time_ratio_arr,        
         int nphase, double gamma,
         double* const flux_new_arr);
 
@@ -29,6 +37,7 @@ namespace SrtlibRlCrabSmthPfZal
         const double* const bg_arr,
         const double* const flux_target_arr,
         const double* const phase_arr,
+        const double* const live_time_ratio_arr,        
         const double* const det_0_arr,
         const double* const resp_norm_mat_arr,    
         int ndet, int nskyx, int nskyy, int nphase,
@@ -42,8 +51,9 @@ namespace SrtlibRlCrabSmthPfZal
         const double* const flux_init_arr,
         const double* const* const data_arr,
         const double* const bg_arr,
-        const double* const flux_target_arr,        
+        const double* const flux_target_arr,    
         const double* const phase_arr,
+        const double* const live_time_ratio_arr,        
         const double* const det_0_arr,
         const double* const resp_norm_mat_arr,
         int ndet, int nskyx, int nskyy, int nphase,

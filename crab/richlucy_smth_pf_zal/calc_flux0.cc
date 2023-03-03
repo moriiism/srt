@@ -1,8 +1,8 @@
-#include "mir_math.h"
 #include "mib_blas.h"
 #include "mif_fits.h"
 #include "mif_img_info.h"
 #include "mi_time.h"
+#include "srtmathlib.h"
 #include "arg_calc_flux0.h"
 
 // global variable 
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     MifFits::InFitsImageD(argval->GetDataOnFile(),
                           img_info_data_on,
                           &bitpix_data_on, &data_on_arr);
-    double nevt_on = MirMath::GetSum(ndet, data_on_arr);
+    double nevt_on = SrtMathlib::GetSum(ndet, data_on_arr);
     printf("nevt_on = %e\n", nevt_on);
     delete [] data_on_arr;
     delete img_info_data_on;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
         MifFits::InFitsImageD(argval->GetDataOffFile(),
                               img_info_data_off,
                               &bitpix_data_off, &data_off_arr);
-        nevt_off = MirMath::GetSum(ndet, data_off_arr);
+        nevt_off = SrtMathlib::GetSum(ndet, data_off_arr);
         printf("nevt_off = %e\n", nevt_off);
         delete [] data_off_arr;
         delete img_info_data_off;

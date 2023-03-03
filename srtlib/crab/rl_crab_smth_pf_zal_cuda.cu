@@ -286,7 +286,7 @@ void SrtlibRlCrabSmthPfZalCuda::RichlucyCrabSmthPfZal(
         if (access( "/tmp/rl_crab_smth_pf_zal_stop", R_OK ) != -1){
             MiIolib::Printf2(
                 fp_log,
-                "/tmp/rl_crab_smth_pf_zal_stop file is found,"
+                "/tmp/rl_crab_smth_pf_zal_stop file is found, "
                 "then stop.\n");
             break;
         }

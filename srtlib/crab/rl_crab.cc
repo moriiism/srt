@@ -1,11 +1,11 @@
 #include<unistd.h>
-#include "mir_math.h"
 #include "rl_crab.h"
 
-void SrtlibRlCrab::GetDetArr(const double* const sky_arr,
-                             const double* const resp_norm_mat_arr,
-                             int ndet, int nsky,
-                             double* const det_arr) // ndet
+void SrtlibRlCrab::GetDetArr(
+    const double* const sky_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nsky,
+    double* const det_arr) // ndet
 {
     // det_arr = R_mat %*% sky_arr
     char transa[2];
@@ -18,30 +18,34 @@ void SrtlibRlCrab::GetDetArr(const double* const sky_arr,
            0.0, det_arr, 1);
 }
 
-void SrtlibRlCrab::GetDenArr(const double* const sky_arr,
-                             const double* const flux_arr,
-                             const double* const det_0_arr,
-                             const double* const bg_arr,
-                             const double* const resp_norm_mat_arr,
-                             int ndet, int nsky, int nphase,
-                             double* const* const den_arr)
+void SrtlibRlCrab::GetDenArr(
+    const double* const sky_arr,
+    const double* const flux_arr,
+    const double* const det_0_arr,
+    const double* const bg_arr,
+    const double* const resp_norm_mat_arr,
+    int ndet, int nsky, int nphase,
+    double* const* const den_arr)
 {
     double* det_arr = new double[ndet];
     SrtlibRlCrab::GetDetArr(sky_arr, resp_norm_mat_arr,
                             ndet, nsky, det_arr);
     for(int iphase = 0; iphase < nphase; iphase++){
-        dcopy_(ndet, const_cast<double*>(bg_arr), 1, den_arr[iphase], 1);
-        daxpy_(ndet, flux_arr[iphase], const_cast<double*>(det_0_arr), 1,
+        dcopy_(ndet, const_cast<double*>(bg_arr), 1,
+               den_arr[iphase], 1);
+        daxpy_(ndet, flux_arr[iphase],
+               const_cast<double*>(det_0_arr), 1,
                den_arr[iphase], 1);
         daxpy_(ndet, 1.0, det_arr, 1, den_arr[iphase], 1);
     }
     delete [] det_arr;
 }
 
-void SrtlibRlCrab::GetYDashArr(const double* const* const data_arr,
-                               const double* const* const den_arr,
-                               int ndet, int nphase,
-                               double* const* const y_dash_arr)
+void SrtlibRlCrab::GetYDashArr(
+    const double* const* const data_arr,
+    const double* const* const den_arr,
+    int ndet, int nphase,
+    double* const* const y_dash_arr)
 {
     for(int iphase = 0; iphase < nphase; iphase++){
         for(int idet = 0; idet < ndet; idet++){
@@ -51,16 +55,19 @@ void SrtlibRlCrab::GetYDashArr(const double* const* const data_arr,
     }
 }
 
-void SrtlibRlCrab::GetMvalArr(const double* const* const y_dash_arr,
-                              const double* const resp_norm_mat_arr,
-                              const double* const sky_arr,
-                              int ndet, int nsky, int nphase,
-                              double* const mval_arr)
+void SrtlibRlCrab::GetMvalArr(
+    const double* const* const y_dash_arr,
+    const double* const resp_norm_mat_arr,
+    const double* const sky_arr,
+    int ndet, int nsky, int nphase,
+    double* const mval_arr)
 {
     double* y_dash_sum_arr = new double[ndet];
-    dcopy_(ndet, const_cast<double*>(y_dash_arr[0]), 1, y_dash_sum_arr, 1);
+    dcopy_(ndet, const_cast<double*>(y_dash_arr[0]), 1,
+           y_dash_sum_arr, 1);
     for(int iphase = 1; iphase < nphase; iphase++){
-        daxpy_(ndet, 1.0, const_cast<double*>(y_dash_arr[iphase]), 1,
+        daxpy_(ndet, 1.0,
+               const_cast<double*>(y_dash_arr[iphase]), 1,
                y_dash_sum_arr, 1);
     }
 
@@ -78,15 +85,17 @@ void SrtlibRlCrab::GetMvalArr(const double* const* const y_dash_arr,
     delete [] coeff_arr;
 }
 
-void SrtlibRlCrab::GetNvalArr(const double* const* const y_dash_arr,
-                              const double* const flux_arr,
-                              const double* const det_0_arr,
-                              int ndet, int nphase,
-                              double* const nval_arr)
+void SrtlibRlCrab::GetNvalArr(
+    const double* const* const y_dash_arr,
+    const double* const flux_arr,
+    const double* const det_0_arr,
+    int ndet, int nphase,
+    double* const nval_arr)
 {
     for(int iphase = 0; iphase < nphase; iphase++){
         nval_arr[iphase] = flux_arr[iphase]
-            * ddot_(ndet, const_cast<double*>(y_dash_arr[iphase]), 1,
+            * ddot_(ndet,
+                    const_cast<double*>(y_dash_arr[iphase]), 1,
                     const_cast<double*>(det_0_arr), 1);
     }
 }

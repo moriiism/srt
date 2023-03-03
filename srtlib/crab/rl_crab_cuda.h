@@ -5,7 +5,7 @@
 #include "mi_sort.h"
 #include "mi_time.h"
 #include "mif_fits.h"
-#include "mir_math.h"
+//#include "mir_math.h"
 #include "../smth_zal.h"
 #include <cuda_runtime.h>
 #include "cublas_v2.h"

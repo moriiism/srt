@@ -60,15 +60,17 @@ void SrtlibSmthZal::GetDerivUAlphaArr(int nskyx, int nskyy,
     for(int iskyx = 0; iskyx < nskyx; iskyx ++){
         for(int iskyy = 0; iskyy < nskyy; iskyy ++){
             int isky = GetIbin(iskyx, iskyy, nskyx);
-            alpha_arr[isky] = SrtlibSmthZal::GetDerivUAlpha(iskyx, iskyy,
-                                                            nskyx, nskyy);
+            alpha_arr[isky] = SrtlibSmthZal::GetDerivUAlpha(
+                iskyx, iskyy,
+                nskyx, nskyy);
         }
     }
 }
 
-void SrtlibSmthZal::GetDerivUBetaArr(const double* const sky_dash_arr,
-                                     int nskyx, int nskyy,
-                                     double* const beta_arr)
+void SrtlibSmthZal::GetDerivUBetaArr(
+    const double* const sky_dash_arr,
+    int nskyx, int nskyy,
+    double* const beta_arr)
 {
     for(int iskyx = 0; iskyx < nskyx; iskyx ++){
         for(int iskyy = 0; iskyy < nskyy; iskyy ++){
@@ -88,46 +90,53 @@ void SrtlibSmthZal::GetDerivUBetaArr(const double* const sky_dash_arr,
             // term1
             if((0 <= iskyx && iskyx < nskyx - 1) &&
                (0 <= iskyy && iskyy < nskyy - 1)){
-                beta += sky_dash_arr[isky] + sky_dash_arr[isky_plus_x];
+                beta += sky_dash_arr[isky]
+                    + sky_dash_arr[isky_plus_x];
             }
             // term2
             if((1 <= iskyx && iskyx < nskyx) &&
                (0 <= iskyy && iskyy < nskyy - 1)){
-                beta += sky_dash_arr[isky_minus_x] + sky_dash_arr[isky];
+                beta += sky_dash_arr[isky_minus_x]
+                    + sky_dash_arr[isky];
             }
             // term3
             if((0 <= iskyx && iskyx < nskyx - 1) &&
                (0 <= iskyy && iskyy < nskyy - 1)){
-                beta += sky_dash_arr[isky] + sky_dash_arr[isky_plus_y];
+                beta += sky_dash_arr[isky]
+                    + sky_dash_arr[isky_plus_y];
             }
             // term4
             if((0 <= iskyx && iskyx < nskyx - 1) &&
                (1 <= iskyy && iskyy < nskyy)){
-                beta += sky_dash_arr[isky_minus_x] + sky_dash_arr[isky];
+                beta += sky_dash_arr[isky_minus_x]
+                    + sky_dash_arr[isky];
             }
             // term5
             if((0 <= iskyx && iskyx < nskyx - 1) &&
                (nskyy - 1 == iskyy)){
-                beta += sky_dash_arr[isky] + sky_dash_arr[isky_plus_x];
+                beta += sky_dash_arr[isky]
+                    + sky_dash_arr[isky_plus_x];
             }
             // term6
             if((1 <= iskyx && iskyx < nskyx) &&
                (nskyy - 1 == iskyy)){
-                beta += sky_dash_arr[isky_minus_x] + sky_dash_arr[isky];
+                beta += sky_dash_arr[isky_minus_x]
+                    + sky_dash_arr[isky];
             }
             // term7
             if((nskyx - 1 == iskyx) &&
                (0 <= iskyy && iskyy < nskyy - 1)){
-                beta += sky_dash_arr[isky] + sky_dash_arr[isky_plus_y];
+                beta += sky_dash_arr[isky]
+                    + sky_dash_arr[isky_plus_y];
             }
             // term8
             if((nskyx - 1 == iskyx) &&
                (1 <= iskyy && iskyy < nskyy)){
-                beta += sky_dash_arr[isky_minus_y] + sky_dash_arr[isky];
+                beta += sky_dash_arr[isky_minus_y]
+                    + sky_dash_arr[isky];
             }
             beta *= 2.0;
             beta_arr[isky] = beta;
         }
     }
 }
-

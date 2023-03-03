@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
         int bitpix_bg = 0;
         MifFits::InFitsImageD(argval->GetBgFile(), img_info_bg,
                               &bitpix_bg, &bg_arr);
-        int nph_bg = MirMath::GetSum(ndet, bg_arr);
+        int nph_bg = SrtMathlib::GetSum(ndet, bg_arr);
         MiIolib::Printf2(fp_log, "N bg = %d\n", nph_bg);
         delete img_info_bg;
     }
@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
                                   img_info_data_vl,
                                   &bitpix_data_vl,
                                   &data_vl_arr[iphase]);
-            nph_data_vl_arr[iphase] = MirMath::GetSum(
+            nph_data_vl_arr[iphase] = SrtMathlib::GetSum(
                 ndet, data_vl_arr[iphase]);
             MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
                              nph_data_vl_arr[iphase]);
