@@ -14,9 +14,9 @@ INCLUDE = $(CUBLAS_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 
 TARGET := libsrtlib.a  libsrtlib_cuda.a
 
-OBJ := smth_zal.o  rl.o  rl_statval.o
+OBJ := smth_zal.o  rl.o  rl_statval.o  rl_det2.o
 
-OBJ_CUDA := smth_zal.o  smth_zal_cuda.o  rl.o  rl_statval.o
+OBJ_CUDA := smth_zal.o  smth_zal_cuda.o  rl.o  rl_statval.o  rl_det2.o
 
 all: $(TARGET) 
 

@@ -119,6 +119,7 @@ nskyx          = int(sys.argv[iarg]); iarg += 1
 nskyy          = int(sys.argv[iarg]); iarg += 1
 ndetx          = int(sys.argv[iarg]); iarg += 1
 ndety          = int(sys.argv[iarg]); iarg += 1
+use_cuda       = int(sys.argv[iarg]); iarg += 1
 
 print("work_dir = ", work_dir)
 print("target_list = ", target_list)
@@ -135,6 +136,7 @@ print("nskyx = ", nskyx)
 print("nskyy = ", nskyy)
 print("ndetx = ", ndetx)
 print("ndety = ", ndety)
+print("use_cuda = ", use_cuda)
 
 # target object
 # telescope name
@@ -385,7 +387,7 @@ for index in range(len(outdir_lst)):
            str(posx_point_src), str(posy_point_src),
            outdir_rl, str(nem), str(tol_em),
            mu_list, gamma_list,
-           acc_method, str(cpu_num)]
+           acc_method, str(cpu_num), str(use_cuda)]
     print(cmd)
     subprocess.call(cmd)
 

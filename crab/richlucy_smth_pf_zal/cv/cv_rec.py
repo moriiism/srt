@@ -46,6 +46,7 @@ mu_list        = sys.argv[iarg]; iarg += 1
 gamma_list     = sys.argv[iarg]; iarg += 1
 acc_method     = sys.argv[iarg]; iarg += 1
 cpu_num        = int(sys.argv[iarg]); iarg += 1
+use_cuda       = int(sys.argv[iarg]); iarg += 1
 
 print("data_list = ", data_list)
 print("bg_file = ", bg_file)
@@ -65,6 +66,7 @@ print("mu_list = ", mu_list)
 print("gamma_list = ", gamma_list)
 print("acc_method = ", acc_method)
 print("cpu_num = ", cpu_num)
+print("use_cuda = ", use_cuda)
 
 cpu_num_recommend_max = os.cpu_count() // 2
 if(cpu_num > cpu_num_recommend_max):
@@ -185,6 +187,12 @@ cmd = ["mkdir", outdir + "/" + "rec"]
 print(cmd)
 subprocess.call(cmd)
 
+exec_cmd = ""
+if(use_cuda == 1):
+    exec_cmd = "richlucy_smth_pf_zal_cuda"
+else:
+    exec_cmd = "richlucy_smth_pf_zal"
+
 cmd_lst = []
 for mu in mu_par_lst:
     print("cv_rec.py: mu = ", mu)
@@ -262,7 +270,7 @@ for mu in mu_par_lst:
             outfile_head_rec = "rl"
             cmd = [srt_dir + "/" + "crab" + "/"
                    + "richlucy_smth_pf_zal" + "/"
-                   + "richlucy_smth_pf_zal_cuda",
+                   + exec_cmd,
                    data_list, bg_file,
                    fixed_src_norm_file, resp_norm_file, eff_file,
                    str(nskyx), str(nskyy), str(ndetx), str(ndety),
@@ -319,7 +327,7 @@ for mu in mu_par_lst:
         nfold = 0
         cmd = [srt_dir + "/" + "crab" + "/"
                + "richlucy_smth_pf_zal" + "/"
-               + "richlucy_smth_pf_zal_cuda",
+               + exec_cmd,
                data_list, bg_file,
                fixed_src_norm_file, resp_norm_file, eff_file,
                str(nskyx), str(nskyy), str(ndetx), str(ndety),

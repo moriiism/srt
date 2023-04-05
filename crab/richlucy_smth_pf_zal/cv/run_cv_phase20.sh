@@ -91,6 +91,7 @@ nskyx=101
 nskyy=101
 ndetx=80
 ndety=80
+use_cuda=1
 
 srt_dir=/home/morii/work/github/moriiism/srt
 $srt_dir/crab/richlucy_smth_pf_zal/cv/run_cv.py \
@@ -108,4 +109,5 @@ $nfold \
 $nskyx \
 $nskyy \
 $ndetx \
-$ndety
+$ndety \
+$use_cuda
