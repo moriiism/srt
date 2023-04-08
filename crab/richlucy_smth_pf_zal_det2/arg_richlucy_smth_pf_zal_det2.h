@@ -1,17 +1,19 @@
-#ifndef MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_ARG_RICHLUCY_SMTH_PF_ZAL_H_
-#define MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_ARG_RICHLUCY_SMTH_PF_ZAL_H_
+#ifndef MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_DET2_ARG_RICHLUCY_SMTH_PF_ZAL_DET2_H_
+#define MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_DET2_ARG_RICHLUCY_SMTH_PF_ZAL_DET2_H_
 
 #include "mi_base.h"
 
-class ArgValRichlucySmthPfZal : public MiArgBase{
+class ArgValRichlucySmthPfZalDet2 : public MiArgBase{
 public:
-    ArgValRichlucySmthPfZal() :
+    ArgValRichlucySmthPfZalDet2() :
         MiArgBase(),
         progname_(""),
         data_list_(""),
-        bg_file_(""),
+        bg_file1_(""),
+        bg_file2_(""),
         fixed_src_norm_file_(""),
-        resp_norm_file_(""),
+        resp_norm_file1_(""),
+        resp_norm_file2_(""),
         eff_file_(""),
         nskyx_(0),
         nskyy_(0),
@@ -25,7 +27,7 @@ public:
         gamma_(0.0),
         acc_method_(""),
         nfold_cv_(0){}
-    ~ArgValRichlucySmthPfZal(){
+    ~ArgValRichlucySmthPfZalDet2(){
         Null();
     }
     void Init(int argc, char* argv[]);
@@ -33,9 +35,11 @@ public:
 
     string GetProgname() const {return progname_;};
     string GetDataList() const {return data_list_;};
-    string GetBgFile() const {return bg_file_;};
+    string GetBgFile1() const {return bg_file1_;};
+    string GetBgFile2() const {return bg_file2_;};    
     string GetFixedSrcNormFile() const {return fixed_src_norm_file_;};
-    string GetRespNormFile() const {return resp_norm_file_;};
+    string GetRespNormFile1() const {return resp_norm_file1_;};
+    string GetRespNormFile2() const {return resp_norm_file2_;};    
     string GetEffFile() const {return eff_file_;};
     int    GetNskyx() const {return nskyx_;};
     int    GetNskyy() const {return nskyy_;};
@@ -53,9 +57,11 @@ public:
 private:
     string progname_;
     string data_list_;
-    string bg_file_;
+    string bg_file1_;
+    string bg_file2_;    
     string fixed_src_norm_file_;
-    string resp_norm_file_;
+    string resp_norm_file1_;
+    string resp_norm_file2_;    
     string eff_file_;
     int nskyx_;
     int nskyy_;
@@ -75,4 +81,5 @@ private:
     void Usage(FILE* fp) const;
 };
 
-#endif // MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_ARG_RICHLUCY_SMTH_PF_ZAL_H_
+#endif // MORIIISM_SRT_CRAB_RICHLUCY_SMTH_PF_ZAL_DET2_ARG_RICHLUCY_SMTH_PF_ZAL_DET2_H_
+

@@ -9,9 +9,9 @@
 #include "mif_img_info.h"
 #include "mi_time.h"
 #include "srtmathlib.h"
-#include "arg_richlucy_smth_pf_zal.h"
+#include "arg_richlucy_smth_pf_zal_det2.h"
 #include "rl_crab.h"
-#include "rl_crab_smth_pf_zal.h"
+#include "rl_crab_smth_pf_zal_det2.h"
 
 // global variable 
 int g_flag_debug = 0;
@@ -103,7 +103,6 @@ int main(int argc, char* argv[])
                iphase, flux_target_err_arr[iphase]);
     }
     
-
     // load image data (HXI1, HXI2)
     double** data1_arr = new double*[nphase];
     double** data2_arr = new double*[nphase];
@@ -389,59 +388,91 @@ int main(int argc, char* argv[])
                 sky_pulse_arr[iphase][isky];
         }
     }
-
-
-    ////----------------------
     
     // if(nfold > 1): cross validation
     // otherwise:     no cross validation
     if(argval->GetNfoldCv() > 1){ 
         // evaluate resultant images with validation images
         // load validation image data
-        double** data_vl_arr = new double*[nphase];
-        int* nph_data_vl_arr = new int[nphase];
-        int nph_data_vl = 0;
+        double** data_vl_det1_arr = new double*[nphase];
+        double** data_vl_det2_arr = new double*[nphase];
+        int* nph_data_vl_det1_arr = new int[nphase];
+        int* nph_data_vl_det2_arr = new int[nphase];
+        int nph_data_vl_det1 = 0;
+        int nph_data_vl_det2 = 0;        
         for(int iphase = 0; iphase < nphase; iphase ++){
             MifImgInfo* img_info_data_vl = new MifImgInfo;
             img_info_data_vl->InitSetImg(1, 1, ndetx, ndety);
             int bitpix_data_vl = 0;
-            MifFits::InFitsImageD(data_vl_list_arr[iphase],
+            MifFits::InFitsImageD(data_vl_list_det1_arr[iphase],
                                   img_info_data_vl,
                                   &bitpix_data_vl,
-                                  &data_vl_arr[iphase]);
-            nph_data_vl_arr[iphase] = SrtMathlib::GetSum(
-                ndet, data_vl_arr[iphase]);
-            MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
-                             nph_data_vl_arr[iphase]);
-            nph_data_vl += nph_data_vl_arr[iphase];
+                                  &data_vl_det1_arr[iphase]);
+            MifFits::InFitsImageD(data_vl_list_det2_arr[iphase],
+                                  img_info_data_vl,
+                                  &bitpix_data_vl,
+                                  &data_vl_det2_arr[iphase]);
+            nph_data_vl_det1_arr[iphase] = SrtMathlib::GetSum(
+                ndet, data_vl_det1_arr[iphase]);
+            nph_data_vl_det2_arr[iphase] = SrtMathlib::GetSum(
+                ndet, data_vl_det2_arr[iphase]);            
+            MiIolib::Printf2(fp_log, "N photon (vl,det1) = %d\n",
+                             nph_data_vl_det1_arr[iphase]);
+            MiIolib::Printf2(fp_log, "N photon (vl,det2) = %d\n",
+                             nph_data_vl_det2_arr[iphase]);
+            nph_data_vl_det1 += nph_data_vl_det1_arr[iphase];
+            nph_data_vl_det2 += nph_data_vl_det2_arr[iphase];
         }
-        MiIolib::Printf2(fp_log, "N photon (vl) = %d\n",
-                         nph_data_vl);
+        MiIolib::Printf2(fp_log, "N photon (vl,det1) = %d\n",
+                         nph_data_vl_det1);
+        MiIolib::Printf2(fp_log, "N photon (vl,det2) = %d\n",
+                         nph_data_vl_det2);        
 
         double num_rmse = 0.0;
         double den_rmse = 0.0;
         //   det images of resultant images
-        double** det_pulse_arr = new double*[nphase];
+        double** det1_pulse_arr = new double*[nphase];
+        double** det2_pulse_arr = new double*[nphase];        
         for(int iphase = 0; iphase < nphase; iphase ++){
-            det_pulse_arr[iphase] = new double[ndet];
+            det1_pulse_arr[iphase] = new double[ndet];
+            det2_pulse_arr[iphase] = new double[ndet];
             SrtlibRlCrab::GetDetArr(sky_pulse_arr[iphase],
-                                    resp_norm_mat_arr,
+                                    resp_norm_mat_det1_arr,
                                     ndet, nsky,
-                                    det_pulse_arr[iphase]);
+                                    det1_pulse_arr[iphase]);
+            SrtlibRlCrab::GetDetArr(sky_pulse_arr[iphase],
+                                    resp_norm_mat_det2_arr,
+                                    ndet, nsky,
+                                    det2_pulse_arr[iphase]);
             // add non X-ray background
-            daxpy_(ndet, 1.0, bg_arr, 1, det_pulse_arr[iphase], 1);
+            daxpy_(ndet, 1.0, bg1_arr, 1,
+                   det1_pulse_arr[iphase], 1);
+            daxpy_(ndet, 1.0, bg2_arr, 1,
+                   det2_pulse_arr[iphase], 1);
             // multiply phase_ratio * live_time_ratio
             dscal_(ndet, phase_arr[iphase]
-                   * live_time_ratio_arr[iphase],
-                   det_pulse_arr[iphase], 1);
+                   * live_time_ratio_det1_arr[iphase],
+                   det1_pulse_arr[iphase], 1);
+            dscal_(ndet, phase_arr[iphase]
+                   * live_time_ratio_det2_arr[iphase],
+                   det2_pulse_arr[iphase], 1);            
             // scale det_pulse_arr by 1.0/(nfold - 1) for
             // evalution between validation data
             dscal_(ndet, 1.0 / (argval->GetNfoldCv() - 1),
-                   det_pulse_arr[iphase], 1);
-            double rmse = SrtMathlib::GetRootMeanSquareError(
-                det_pulse_arr[iphase], data_vl_arr[iphase], ndet);
-            printf("iphase = %d, rmse = %e\n", iphase, rmse);
-            num_rmse += rmse * rmse * ndet;
+                   det1_pulse_arr[iphase], 1);
+            dscal_(ndet, 1.0 / (argval->GetNfoldCv() - 1),
+                   det2_pulse_arr[iphase], 1);            
+            double rmse1 = SrtMathlib::GetRootMeanSquareError(
+                det1_pulse_arr[iphase], data_vl_det1_arr[iphase],
+                ndet);
+            double rmse2 = SrtMathlib::GetRootMeanSquareError(
+                det2_pulse_arr[iphase], data_vl_det2_arr[iphase],
+                ndet);
+            printf("iphase = %d, rmse1 = %e\n", iphase, rmse1);
+            printf("iphase = %d, rmse2 = %e\n", iphase, rmse2);
+            num_rmse += rmse1 * rmse1 * ndet;
+            num_rmse += rmse2 * rmse2 * ndet;
+            den_rmse += ndet;
             den_rmse += ndet;
         }
         double rmse_tot = sqrt(num_rmse / den_rmse);

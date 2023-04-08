@@ -1,10 +1,10 @@
-#include "arg_richlucy_smth_pf_zal.h"
+#include "arg_richlucy_smth_pf_zal_det2.h"
 
 // public
 
-void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
+void ArgValRichlucySmthPfZalDet2::Init(int argc, char* argv[])
 {
-    progname_ = "richlucy_smth_pf_zal";
+    progname_ = "richlucy_smth_pf_zal_det2";
 
     option long_options[] = {
         {"debug",       required_argument, NULL, 'd'},
@@ -18,16 +18,18 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     SetOption(argc, argv, long_options);
     
     printf("ArgVal::Init: # of arg = %d\n", argc - optind);
-    int narg = 17;
+    int narg = 19;
     if (argc - optind != narg){
         printf("# of arguments must be %d.\n", narg);
         Usage(stdout);
     }
     int iarg = optind;
-    data_list_      = argv[iarg]; iarg++;
-    bg_file_        = argv[iarg]; iarg++;    
+    data_list_       = argv[iarg]; iarg++;
+    bg_file1_        = argv[iarg]; iarg++;
+    bg_file2_        = argv[iarg]; iarg++;
     fixed_src_norm_file_ = argv[iarg]; iarg++;
-    resp_norm_file_ = argv[iarg]; iarg++;
+    resp_norm_file1_ = argv[iarg]; iarg++;
+    resp_norm_file2_ = argv[iarg]; iarg++;    
     eff_file_       = argv[iarg]; iarg++;
     nskyx_          = atoi(argv[iarg]); iarg++;
     nskyy_          = atoi(argv[iarg]); iarg++;
@@ -43,7 +45,7 @@ void ArgValRichlucySmthPfZal::Init(int argc, char* argv[])
     nfold_cv_       = atoi(argv[iarg]); iarg++;
 }
 
-void ArgValRichlucySmthPfZal::Print(FILE* fp) const
+void ArgValRichlucySmthPfZalDet2::Print(FILE* fp) const
 {
     fprintf(fp, "%s: g_flag_debug   : %d\n", __func__, g_flag_debug);
     fprintf(fp, "%s: g_flag_help    : %d\n", __func__, g_flag_help);
@@ -51,10 +53,12 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
 
     fprintf(fp, "%s: progname_       : %s\n", __func__, progname_.c_str());
     fprintf(fp, "%s: data_list_      : %s\n", __func__, data_list_.c_str());
-    fprintf(fp, "%s: bg_file_        : %s\n", __func__, bg_file_.c_str());
+    fprintf(fp, "%s: bg_file1_        : %s\n", __func__, bg_file1_.c_str());
+    fprintf(fp, "%s: bg_file2_        : %s\n", __func__, bg_file2_.c_str());    
     fprintf(fp, "%s: fixed_src_norm_file_ : %s\n",
             __func__, fixed_src_norm_file_.c_str());
-    fprintf(fp, "%s: resp_norm_file_ : %s\n", __func__, resp_norm_file_.c_str());
+    fprintf(fp, "%s: resp_norm_file1_ : %s\n", __func__, resp_norm_file1_.c_str());
+    fprintf(fp, "%s: resp_norm_file2_ : %s\n", __func__, resp_norm_file2_.c_str());    
     fprintf(fp, "%s: eff_file_       : %s\n", __func__, eff_file_.c_str());
     fprintf(fp, "%s: nskyx_          : %d\n", __func__, nskyx_);
     fprintf(fp, "%s: nskyy_          : %d\n", __func__, nskyy_);
@@ -72,13 +76,15 @@ void ArgValRichlucySmthPfZal::Print(FILE* fp) const
 
 // private
 
-void ArgValRichlucySmthPfZal::Null()
+void ArgValRichlucySmthPfZalDet2::Null()
 {
     progname_ = "";
     data_list_ = "";
-    bg_file_ = "";
+    bg_file1_ = "";
+    bg_file2_ = "";    
     fixed_src_norm_file_ = "";
-    resp_norm_file_ = "";
+    resp_norm_file1_ = "";
+    resp_norm_file2_ = "";    
     eff_file_  = "";
     nskyx_     = 0;
     nskyy_     = 0;
@@ -94,7 +100,7 @@ void ArgValRichlucySmthPfZal::Null()
     nfold_cv_   = 0;
 }
 
-void ArgValRichlucySmthPfZal::SetOption(int argc, char* argv[], option* long_options)
+void ArgValRichlucySmthPfZalDet2::SetOption(int argc, char* argv[], option* long_options)
 {
     if(0 < g_flag_verbose){
         MPrintInfo("start...");
@@ -144,12 +150,12 @@ void ArgValRichlucySmthPfZal::SetOption(int argc, char* argv[], option* long_opt
 }
 
 
-void ArgValRichlucySmthPfZal::Usage(FILE* fp) const
+void ArgValRichlucySmthPfZalDet2::Usage(FILE* fp) const
 {
     fprintf(fp,
             "usage: %s [--help (0)] [--verbose (0)] [--debug (0)] "
-            "data_list  bg_file  fixed_src_norm_file  "
-            "resp_norm_file  eff_file  "
+            "data_list  bg_file1  bg_file2  fixed_src_norm_file  "
+            "resp_norm_file1  resp_norm_file2  eff_file  "
             "nskyx  nskyy  ndetx  ndety  "
             "outdir  outfile_head  "
             "nem  tol_em  mu  gamma  "
