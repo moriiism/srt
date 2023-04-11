@@ -1,17 +1,17 @@
 #include "rl_crab.h"
 #include "rl_crab_statval.h"
-#include "rl_crab_smth_pf_zal.h"
+#include "rl_crab_smth_pf_zal_det2.h"
 
-void SrtlibRlCrabSmthPfZal::GetSkyNew(
+void SrtlibRlCrabSmthPfZalDet2::GetSkyNew(
     const double* const alpha_arr,
     const double* const beta_arr,
     const double* const mval_arr,
-    double live_time_ratio_ave,
+    const double* const eff_ave_arr,
     int nsky, double mu,
     double* const sky_new_arr)
 {
     for(int isky = 0; isky < nsky; isky++){    
-        double bval = live_time_ratio_ave
+        double bval = eff_ave_arr[isky]
             - mu * beta_arr[isky];
         double num = -1.0 * bval
             + sqrt(bval * bval
@@ -22,10 +22,10 @@ void SrtlibRlCrabSmthPfZal::GetSkyNew(
     }
 }
 
-void SrtlibRlCrabSmthPfZal::GetSkyNewArr(
+void SrtlibRlCrabSmthPfZalDet2::GetSkyNewArr(
     const double* const sky_arr,
     const double* const mval_arr,
-    double live_time_ratio_ave,    
+    const double* const eff_ave_arr,
     int nskyx, int nskyy, double mu,
     double* const sky_new_arr)
 {
@@ -36,24 +36,22 @@ void SrtlibRlCrabSmthPfZal::GetSkyNewArr(
     double* beta_arr = new double[nsky];
     SrtlibSmthZal::GetDerivUBetaArr(
         sky_arr, nskyx, nskyy, beta_arr);
-    SrtlibRlCrabSmthPfZal::GetSkyNew(
-        alpha_arr, beta_arr, mval_arr, live_time_ratio_ave,
+    SrtlibRlCrabSmthPfZalDet2::GetSkyNew(
+        alpha_arr, beta_arr, mval_arr, eff_ave_arr,
         nsky, mu, sky_new_arr);
     delete [] alpha_arr;
     delete [] beta_arr;
 }
 
-void SrtlibRlCrabSmthPfZal::GetFluxNewArr(
+void SrtlibRlCrabSmthPfZalDet2::GetFluxNewArr(
     const double* const nval_arr,
     const double* const flux_target_arr,
-    const double* const phase_arr,
-    const double* const live_time_ratio_arr,
+    const double* const det_0_ave_arr,
     int nphase, double gamma,
     double* const flux_new_arr)
 {
     for(int iphase = 0; iphase < nphase; iphase++){
-        double bval =
-            phase_arr[iphase] * live_time_ratio_arr[iphase]
+        double bval = det_0_ave_arr[iphase]
             - 2.0 * gamma * flux_target_arr[iphase];
         double num = -1 * bval
             + sqrt(bval * bval
@@ -137,21 +135,62 @@ void SrtlibRlCrabSmthPfZalDet2::GetSkyFluxNewArr(
     live_time_ratio_ave_det2 = ddot_(
         nphase, const_cast<double*>(phase_arr), 1,
         const_cast<double*>(live_time_ratio_det2_arr), 1);
-    //
-    // debug: 230410 here !!!!!
-    // 
+
+    double* eff_ave_det1_arr = new double[nsky];
+    double* eff_ave_det2_arr = new double[nsky];
+    double* eff_ave_arr = new double[nsky];
+    double* live_time_ratio_ave_det1_arr = new double[nsky];
+    double* live_time_ratio_ave_det2_arr = new double[nsky];    
+    MibBlas::SetConstVal(nsky, live_time_ratio_ave_det1,
+                         live_time_ratio_ave_det1_arr);
+    MibBlas::SetConstVal(nsky, live_time_ratio_ave_det2,
+                         live_time_ratio_ave_det2_arr);    
+    char transa[2];
+    strcpy(transa, "T");
+    dgemv_(transa, ndet, nsky, 1.0,
+           const_cast<double*>(resp_norm_mat_det1_arr), ndet,
+           live_time_ratio_ave_det1_arr, 1,
+           0.0, eff_ave_det1_arr, 1);
+    dgemv_(transa, ndet, nsky, 1.0,
+           const_cast<double*>(resp_norm_mat_det2_arr), ndet,
+           live_time_ratio_ave_det2_arr, 1,
+           0.0, eff_ave_det2_arr, 1);
+    MibBlas::Add(eff_ave_det1_arr,
+                 eff_ave_det2_arr,
+                 nsky,
+                 eff_ave_arr);
     
-    SrtlibRlCrabSmthPfZal::GetSkyNewArr(sky_pre_arr,
-                                        mval_arr,
-                                        live_time_ratio_ave,
-                                        nskyx, nskyy, mu,
-                                        sky_new_arr);
-    SrtlibRlCrabSmthPfZal::GetFluxNewArr(nval_arr,
-                                         flux_target_arr,
-                                         phase_arr,
-                                         live_time_ratio_arr,
-                                         nphase, gamma,
-                                         flux_new_arr);
+    double* det_0_ave_arr = new double[nphase];
+    for(iphase = 0; iphase < nphase; iphase ++){
+        det_0_ave_arr[iphase] = 0.0;
+        double det_0_det1_sum = MibBlas::Sum(
+            det_0_det1_arr, ndet);
+        det_0_ave_arr[iphase] += det0_det_0_det1_sum
+            * phase_arr[iphase]
+            * live_time_ratio_det1_arr[iphase];
+        double det_0_det2_sum = MibBlas::Sum(
+            det_0_det2_arr, ndet);
+        det_0_ave_arr[iphase] += det0_det_0_det2_sum
+            * phase_arr[iphase]
+            * live_time_ratio_det2_arr[iphase];
+    }
+
+    
+    SrtlibRlCrabSmthPfZalDet2::GetSkyNewArr(
+        sky_pre_arr,
+        mval_arr,
+        eff_ave_arr,
+        nskyx, nskyy, mu,
+        sky_new_arr);
+    SrtlibRlCrabSmthPfZalDet2::GetFluxNewArr(
+        nval_arr,
+        flux_target_arr,
+        det_0_ave_arr,
+        nphase, gamma,
+        flux_new_arr);
+
+    // debug: here !! 
+    
     for(int iphase = 0; iphase < nphase; iphase++){
         delete [] den_arr[iphase];
         delete [] y_dash_arr[iphase];
