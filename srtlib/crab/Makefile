@@ -12,7 +12,8 @@ INCLUDE = $(CUDABLAS_INC) $(MIROOTLIB_INC) $(MIFITSLIB_INC) $(MIBLASLIB_INC) \
 TARGET := libsrtlib_crab.a  libsrtlib_crab_cuda.a
 
 OBJ := rl_crab.o  rl_crab_smth_pf_zal.o \
-	rl_crab_statval.o
+	rl_crab_statval.o \
+	rl_crab_det2.o  rl_crab_smth_pf_zal_det2.o
 
 OBJ_CUDA := rl_crab_cuda.o  rl_crab_smth_pf_zal_cuda.o \
 	rl_crab_statval_cuda.o

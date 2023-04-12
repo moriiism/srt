@@ -1,4 +1,5 @@
 #include "rl_crab.h"
+#include "rl_crab_det2.h"
 #include "rl_crab_statval.h"
 #include "rl_crab_smth_pf_zal_det2.h"
 
@@ -82,11 +83,15 @@ void SrtlibRlCrabSmthPfZalDet2::GetSkyFluxNewArr(
     double* const flux_new_arr)
 {
     int nsky = nskyx * nskyy;
-    double** den_arr = new double*[nphase];
-    double** y_dash_arr = new double*[nphase];
+    double** den_det1_arr = new double*[nphase];
+    double** den_det2_arr = new double*[nphase];
+    double** y_dash_det1_arr = new double*[nphase];
+    double** y_dash_det2_arr = new double*[nphase];
     for(int iphase = 0; iphase < nphase; iphase++){
-        den_arr[iphase] = new double[ndet];
-        y_dash_arr[iphase] = new double[ndet];
+        den_det1_arr[iphase] = new double[ndet];
+        den_det2_arr[iphase] = new double[ndet];
+        y_dash_det1_arr[iphase] = new double[ndet];
+        y_dash_det2_arr[iphase] = new double[ndet];
     }
     double* mval_arr = new double[nsky];
     double* nval_arr = new double[nphase];
@@ -161,16 +166,16 @@ void SrtlibRlCrabSmthPfZalDet2::GetSkyFluxNewArr(
                  eff_ave_arr);
     
     double* det_0_ave_arr = new double[nphase];
-    for(iphase = 0; iphase < nphase; iphase ++){
+    for(int iphase = 0; iphase < nphase; iphase ++){
         det_0_ave_arr[iphase] = 0.0;
         double det_0_det1_sum = MibBlas::Sum(
             det_0_det1_arr, ndet);
-        det_0_ave_arr[iphase] += det0_det_0_det1_sum
+        det_0_ave_arr[iphase] += det_0_det1_sum
             * phase_arr[iphase]
             * live_time_ratio_det1_arr[iphase];
         double det_0_det2_sum = MibBlas::Sum(
             det_0_det2_arr, ndet);
-        det_0_ave_arr[iphase] += det0_det_0_det2_sum
+        det_0_ave_arr[iphase] += det_0_det2_sum
             * phase_arr[iphase]
             * live_time_ratio_det2_arr[iphase];
     }
@@ -189,16 +194,25 @@ void SrtlibRlCrabSmthPfZalDet2::GetSkyFluxNewArr(
         nphase, gamma,
         flux_new_arr);
 
-    // debug: here !! 
-    
     for(int iphase = 0; iphase < nphase; iphase++){
-        delete [] den_arr[iphase];
-        delete [] y_dash_arr[iphase];
+        delete [] den_det1_arr[iphase];
+        delete [] den_det2_arr[iphase];
+        delete [] y_dash_det1_arr[iphase];
+        delete [] y_dash_det2_arr[iphase];
     }
-    delete [] den_arr;
-    delete [] y_dash_arr;
+    delete [] den_det1_arr;
+    delete [] den_det2_arr;
+    delete [] y_dash_det1_arr;
+    delete [] y_dash_det2_arr;
     delete [] mval_arr;
     delete [] nval_arr;
+
+    delete [] eff_ave_det1_arr;
+    delete [] eff_ave_det2_arr;
+    delete [] eff_ave_arr;
+    delete [] live_time_ratio_ave_det1_arr;
+    delete [] live_time_ratio_ave_det2_arr;
+    delete [] det_0_ave_arr;
 }
 
 void SrtlibRlCrabSmthPfZalDet2::RichlucyCrabSmthPfZalDet2(
