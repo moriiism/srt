@@ -388,7 +388,7 @@ for index in range(len(outdir_lst)):
     for ind in range(len(flux0_det1_lst)):
         flux0_ave = (float(flux0_det1_lst[ind]) +
                      float(flux0_det2_lst[ind])) / 2.0
-        flux0_ave_err = sqrt(
+        flux0_ave_err = np.sqrt(
             float(flux0_err_det1_lst[ind]) *
             float(flux0_err_det1_lst[ind]) +
             float(flux0_err_det2_lst[ind]) *
@@ -451,11 +451,10 @@ for index in range(len(outdir_lst)):
     posx_point_src = 50
     posy_point_src = 50
     outdir_rl = (outdir_lst[index] + "/" + "cv")
-    # nem = 10000
-    nem = 1000
+    nem = 10000
     tol_em = 1.0e-7
     acc_method = "none"
-    cpu_num = 1
+    cpu_num = 63
 
     cmd = [srt_dir + "/" + "crab" + "/" +
            "richlucy_smth_pf_zal_det2" + "/" +

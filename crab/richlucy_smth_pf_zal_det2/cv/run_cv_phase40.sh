@@ -1,6 +1,7 @@
 #!/bin/sh
 
 export LANG=C
+export OPENBLAS_NUM_THREADS=1
 source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
 
 work_dir=/home/morii/work/arb/ana/run/crab_richlucy_smth_pf_zal_det2/phase40
@@ -36,30 +37,30 @@ EOF
 
 cat << EOF > conf/mu.list
 1.0000e-10
-#1.0000e-09
-#1.0000e-08
-#1.0000e-07
-#1.0000e-06
-#1.0000e-05
-#1.0000e-04
-#1.0000e-03
-#1.0000e-02
-#1.0000e-01
-#1.0000e+00
+1.0000e-09
+1.0000e-08
+1.0000e-07
+1.0000e-06
+1.0000e-05
+1.0000e-04
+1.0000e-03
+1.0000e-02
+1.0000e-01
+1.0000e+00
 EOF
 
 cat << EOF > conf/gamma.list
 1.0000e-10
-#1.0000e-09
-#1.0000e-08
-#1.0000e-07
-#1.0000e-06
-#1.0000e-05
-#1.0000e-04
-#1.0000e-03
-#1.0000e-02
-#1.0000e-01
-#1.0000e+00
+1.0000e-09
+1.0000e-08
+1.0000e-07
+1.0000e-06
+1.0000e-05
+1.0000e-04
+1.0000e-03
+1.0000e-02
+1.0000e-01
+1.0000e+00
 EOF
 
 cat << EOF > conf/phase_40.list

@@ -41,7 +41,7 @@ TARGET = richlucy_smth_pf_zal_det2
 all: $(TARGET) 
 
 richlucy_smth_pf_zal_det2: richlucy_smth_pf_zal_det2.o  arg_richlucy_smth_pf_zal_det2.o
-	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
 
 richlucy_smth_pf_zal_cuda: richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o
 #	$(NVCCN) richlucy_smth_pf_zal_cuda.o  arg_richlucy_smth_pf_zal.o ${LDLIBS_CUDA} -o $@
@@ -51,7 +51,7 @@ eval_val: eval_val.o  arg_eval_val.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
 
 calc_flux0: calc_flux0.o  arg_calc_flux0.o
-	$(CXXN) $@.o arg_$@.o ${LDLIBS_OPENBLAS} -o $@
+	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
 
 
 .SUFFIXES:
