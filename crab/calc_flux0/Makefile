@@ -35,11 +35,14 @@ LDLIBS_CUDA  = ${SRTLIB_CRAB_CUDA_LIB} ${SRTLIB_CRAB_LIB} ${SRTLIB_CUDA_LIB} \
 	$(LIB) -lgfortran
 
 
-TARGET = calc_flux0
+TARGET = calc_flux0  calc_flux0_det2
 
 all: $(TARGET) 
 
 calc_flux0: calc_flux0.o  arg_calc_flux0.o
+	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
+
+calc_flux0_det2: calc_flux0_det2.o  arg_calc_flux0_det2.o
 	$(CXXN) $@.o arg_$@.o ${LDLIBS} -o $@
 
 .SUFFIXES:

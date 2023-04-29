@@ -209,75 +209,50 @@ for index in range(len(outdir_lst)):
         phase_id_lst)
     
     # find phase_off
-    flux_det1_lst = []
-    flux_det2_lst = []
-    flux_err_det1_lst = []
-    flux_err_det2_lst = []
+    flux_lst = []
+    flux_err_lst = []
     for index_phase in range(len(phase_id_lst)):
         phase_ratio = phase_ratio_lst[index_phase]
         live_time_ratio_det1 = live_time_ratio_det1_lst[index_phase]
-        # hxt1_phase_42_000_2047_x1178y1175_w80.fits
-        data_on_file = (ymaeda_share_dir + "/"
-                        + "data" + "/"
-                        + data_ver + "/"
-                        + "hxt1" + "/"
-                        + "hxt1" + "_"
-                        + "phase" + "_"
-                        + phase_id_lst[index_phase] + "_"
-                        + ene_band + "_"
-                        + "x1178y1175_w80.fits")
-        cmd = [srt_dir + "/" + "crab" + "/"
-               + "calc_flux0" + "/"
-               + "calc_flux0",
-               data_on_file,
-               phase_ratio,
-               live_time_ratio_det1,
-               "none", str(0.0), str(0.0)]
-        print(cmd)
-        # subprocess.call(cmd)
-        output_str = subprocess.run(
-            cmd, capture_output=True, text=True).stdout
-        
-        (flux_det1, flux_err_det1) = (
-            output_str.splitlines()[-1].split())
-        flux_det1_lst.append(flux_det1)
-        flux_err_det1_lst.append(flux_err_det1)
-
-        # hxt2
         live_time_ratio_det2 = live_time_ratio_det2_lst[index_phase]
-        # hxt2_phase_42_000_2047_x1178y1175_w80.fits
-        data_on_file = (ymaeda_share_dir + "/"
-                        + "data" + "/"
-                        + data_ver + "/"
-                        + "hxt2" + "/"
-                        + "hxt2" + "_"
-                        + "phase" + "_"
-                        + phase_id_lst[index_phase] + "_"
-                        + ene_band + "_"
-                        + "x1178y1175_w80.fits")
+        # hxt1_phase_42_000_2047_x1178y1175_w80.fits
+        data_on_file_det1 = (ymaeda_share_dir + "/"
+                             + "data" + "/"
+                             + data_ver + "/"
+                             + "hxt1" + "/"
+                             + "hxt1" + "_"
+                             + "phase" + "_"
+                             + phase_id_lst[index_phase] + "_"
+                             + ene_band + "_"
+                             + "x1178y1175_w80.fits")
+        data_on_file_det2 = (ymaeda_share_dir + "/"
+                             + "data" + "/"
+                             + data_ver + "/"
+                             + "hxt2" + "/"
+                             + "hxt2" + "_"
+                             + "phase" + "_"
+                             + phase_id_lst[index_phase] + "_"
+                             + ene_band + "_"
+                             + "x1178y1175_w80.fits")
         cmd = [srt_dir + "/" + "crab" + "/"
                + "calc_flux0" + "/"
-               + "calc_flux0",
-               data_on_file,
-               phase_ratio,
+               + "calc_flux0_det2",
+               data_on_file_det1,
+               data_on_file_det2,
+               live_time_ratio_det1,
                live_time_ratio_det2,
-               "none", str(0.0), str(0.0)]
+               phase_ratio,
+               "none", "none",
+               str(0.0), str(0.0), str(0.0)]
         print(cmd)
         # subprocess.call(cmd)
         output_str = subprocess.run(
             cmd, capture_output=True, text=True).stdout
-        (flux_det2, flux_err_det2) = (
-            output_str.splitlines()[-1].split())
-        flux_det2_lst.append(flux_det2)
-        flux_err_det2_lst.append(flux_err_det2)
-
         
-    # (flux_det1 + flux_det2) / 2
-    flux_lst = []
-    for ind in range(len(flux_det1_lst)):
-        flux_ave = (float(flux_det1_lst[ind]) +
-                    float(flux_det2_lst[ind])) / 2.0
-        flux_lst.append(flux_ave)
+        (flux, flux_err) = (
+            output_str.splitlines()[-1].split())
+        flux_lst.append(flux)
+        flux_err_lst.append(flux_err)
 
     print(flux_lst)
     index_off = flux_lst.index(min(flux_lst))
@@ -287,116 +262,80 @@ for index in range(len(outdir_lst)):
 
     # calc flux0_lst, flux0_err_lst:
     # flux0 = flux_on - flux_off
-    flux0_det1_lst = []
-    flux0_det2_lst = []    
-    flux0_err_det1_lst = []
-    flux0_err_det2_lst = []    
+    flux0_lst = []
+    flux0_err_lst = []
     for index_phase in range(len(phase_id_lst)):
         phase_ratio_on = phase_ratio_lst[index_phase]
         live_time_ratio_on_det1 = (
             live_time_ratio_det1_lst[index_phase])
-        phase_ratio_off = phase_ratio_lst[index_off]
-        live_time_ratio_off_det1 = (
-            live_time_ratio_det1_lst[index_off])
-        data_on_file = (ymaeda_share_dir + "/"
-                        + "data" + "/"
-                        + data_ver + "/"
-                        + "hxt1" + "/"
-                        + "hxt1" + "_"
-                        + "phase" + "_"
-                        + phase_id_lst[index_phase] + "_"
-                        + ene_band + "_"
-                        + "x1178y1175_w80.fits")
-        data_off_file = (ymaeda_share_dir + "/"
-                         + "data" + "/"
-                         + data_ver + "/"
-                         + "hxt1" + "/"
-                         + "hxt1" + "_"
-                         + "phase" + "_"
-                         + phase_id_lst[index_off] + "_"
-                         + ene_band + "_"
-                         + "x1178y1175_w80.fits")
-        cmd = [srt_dir + "/" + "crab" + "/"
-               + "calc_flux0" + "/"
-               + "calc_flux0",
-               data_on_file,
-               phase_ratio_on,
-               live_time_ratio_on_det1,
-               data_off_file,
-               phase_ratio_off,
-               live_time_ratio_off_det1]
-        print(cmd)
-        # subprocess.call(cmd)
-        output_str = subprocess.run(
-            cmd, capture_output=True, text=True).stdout
-        (flux0_det1, flux0_err_det1) = (
-            output_str.splitlines()[-1].split())
-        flux0_det1_lst.append(flux0_det1)
-        flux0_err_det1_lst.append(flux0_err_det1)
-
-        # hxt2
-        phase_ratio_on = phase_ratio_lst[index_phase]
         live_time_ratio_on_det2 = (
             live_time_ratio_det2_lst[index_phase])
         phase_ratio_off = phase_ratio_lst[index_off]
+        live_time_ratio_off_det1 = (
+            live_time_ratio_det1_lst[index_off])
         live_time_ratio_off_det2 = (
             live_time_ratio_det2_lst[index_off])
-        data_on_file = (ymaeda_share_dir + "/"
-                        + "data" + "/"
-                        + data_ver + "/"
-                        + "hxt2" + "/"
-                        + "hxt2" + "_"
-                        + "phase" + "_"
-                        + phase_id_lst[index_phase] + "_"
-                        + ene_band + "_"
-                        + "x1178y1175_w80.fits")
-        data_off_file = (ymaeda_share_dir + "/"
-                         + "data" + "/"
-                         + data_ver + "/"
-                         + "hxt2" + "/"
-                         + "hxt2" + "_"
-                         + "phase" + "_"
-                         + phase_id_lst[index_off] + "_"
-                         + ene_band + "_"
-                         + "x1178y1175_w80.fits")
+        data_on_file_det1 = (ymaeda_share_dir + "/"
+                             + "data" + "/"
+                             + data_ver + "/"
+                             + "hxt1" + "/"
+                             + "hxt1" + "_"
+                             + "phase" + "_"
+                             + phase_id_lst[index_phase] + "_"
+                             + ene_band + "_"
+                             + "x1178y1175_w80.fits")
+        data_on_file_det2 = (ymaeda_share_dir + "/"
+                             + "data" + "/"
+                             + data_ver + "/"
+                             + "hxt2" + "/"
+                             + "hxt2" + "_"
+                             + "phase" + "_"
+                             + phase_id_lst[index_phase] + "_"
+                             + ene_band + "_"
+                             + "x1178y1175_w80.fits")        
+        data_off_file_det1 = (ymaeda_share_dir + "/"
+                              + "data" + "/"
+                              + data_ver + "/"
+                              + "hxt1" + "/"
+                              + "hxt1" + "_"
+                              + "phase" + "_"
+                              + phase_id_lst[index_off] + "_"
+                              + ene_band + "_"
+                              + "x1178y1175_w80.fits")
+        data_off_file_det2 = (ymaeda_share_dir + "/"
+                              + "data" + "/"
+                              + data_ver + "/"
+                              + "hxt2" + "/"
+                              + "hxt2" + "_"
+                              + "phase" + "_"
+                              + phase_id_lst[index_off] + "_"
+                              + ene_band + "_"
+                              + "x1178y1175_w80.fits")
         cmd = [srt_dir + "/" + "crab" + "/"
                + "calc_flux0" + "/"
-               + "calc_flux0",
-               data_on_file,
-               phase_ratio_on,
+               + "calc_flux0_det2",
+               data_on_file_det1,
+               data_on_file_det2,
+               live_time_ratio_on_det1,
                live_time_ratio_on_det2,
-               data_off_file,
-               phase_ratio_off,
-               live_time_ratio_off_det2]
+               phase_ratio_on,
+               data_off_file_det1,
+               data_off_file_det2,
+               live_time_ratio_off_det1,
+               live_time_ratio_off_det2,
+               phase_ratio_off]
         print(cmd)
         # subprocess.call(cmd)
         output_str = subprocess.run(
             cmd, capture_output=True, text=True).stdout
-        (flux0_det2, flux0_err_det2) = (
+        (flux0, flux0_err) = (
             output_str.splitlines()[-1].split())
-        flux0_det2_lst.append(flux0_det2)
-        flux0_err_det2_lst.append(flux0_err_det2)
+        flux0_lst.append(flux0)
+        flux0_err_lst.append(flux0_err)
 
-    print(flux0_det1_lst)
-    print(flux0_err_det1_lst)    
-    print(flux0_det2_lst)
-    print(flux0_err_det2_lst)
+    print(flux0_lst)
+    print(flux0_err_lst)
 
-    # (flux0_det1 + flux0_det2) / 2
-    flux0_lst = []
-    flux0_err_lst = []
-    for ind in range(len(flux0_det1_lst)):
-        flux0_ave = (float(flux0_det1_lst[ind]) +
-                     float(flux0_det2_lst[ind])) / 2.0
-        flux0_ave_err = np.sqrt(
-            float(flux0_err_det1_lst[ind]) *
-            float(flux0_err_det1_lst[ind]) +
-            float(flux0_err_det2_lst[ind]) *
-            float(flux0_err_det2_lst[ind])) / 2.0
-        
-        flux0_lst.append(flux0_ave)
-        flux0_err_lst.append(flux0_ave_err)
-    
     #
     #-----> ds9: (51, 51) --> (50, 50)
     #

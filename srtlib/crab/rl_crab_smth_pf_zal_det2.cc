@@ -144,11 +144,11 @@ void SrtlibRlCrabSmthPfZalDet2::GetSkyFluxNewArr(
     double* eff_ave_det1_arr = new double[nsky];
     double* eff_ave_det2_arr = new double[nsky];
     double* eff_ave_arr = new double[nsky];
-    double* live_time_ratio_ave_det1_arr = new double[nsky];
-    double* live_time_ratio_ave_det2_arr = new double[nsky];    
-    MibBlas::SetConstVal(nsky, live_time_ratio_ave_det1,
+    double* live_time_ratio_ave_det1_arr = new double[ndet];
+    double* live_time_ratio_ave_det2_arr = new double[ndet];    
+    MibBlas::SetConstVal(ndet, live_time_ratio_ave_det1,
                          live_time_ratio_ave_det1_arr);
-    MibBlas::SetConstVal(nsky, live_time_ratio_ave_det2,
+    MibBlas::SetConstVal(ndet, live_time_ratio_ave_det2,
                          live_time_ratio_ave_det2_arr);    
     char transa[2];
     strcpy(transa, "T");
