@@ -234,9 +234,9 @@ for index in range(len(outdir_lst)):
         # subprocess.call(cmd)
         output_str = subprocess.run(
             cmd, capture_output=True, text=True).stdout
-        (flux, flux_err) = output_str.splitlines()[-1].split()
-        flux_lst.append(flux)
-        flux_err_lst.append(flux_err)
+        (flux_str, flux_err_str) = output_str.splitlines()[-1].split()
+        flux_lst.append(float(flux_str))
+        flux_err_lst.append(float(flux_err_str))
 
     print(flux_lst)
     index_off = flux_lst.index(min(flux_lst))
@@ -284,9 +284,9 @@ for index in range(len(outdir_lst)):
         # subprocess.call(cmd)
         output_str = subprocess.run(
             cmd, capture_output=True, text=True).stdout
-        (flux0, flux0_err) = output_str.splitlines()[-1].split()
-        flux0_lst.append(flux0)
-        flux0_err_lst.append(flux0_err)
+        (flux0_str, flux0_err_str) = output_str.splitlines()[-1].split()
+        flux0_lst.append(float(flux0_str))
+        flux0_err_lst.append(float(flux0_err_str))
 
     print(flux0_lst)
     print(flux0_err_lst)    
