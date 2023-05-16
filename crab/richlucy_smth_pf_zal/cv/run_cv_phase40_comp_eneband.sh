@@ -3,7 +3,7 @@
 export LANG=C
 source ~/work/github/moriiism/mitool/setup/setup_arb01.sh
 
-work_dir=/home/morii/work/arb/ana/run/crab_richlucy_smth_pf_zal/phase40
+work_dir=/home/morii/work/arb/ana/run/crab_richlucy_smth_pf_zal/phase40_comp_eneband
 cd $work_dir
 mkdir conf
 
@@ -21,21 +21,22 @@ nominal
 EOF
 
 cat << EOF > conf/resp_ver.list
-#nominal
-lt_m0p02
-lt_m0p10
-lt_p0p02
-lt_p0p10
+nominal
 #m0p1
 #p0p1
 EOF
 
+# count ratio = 4.3e4 (30 - 70 keV) / 2.2e5 (15 - 30 keV)
+#             = 0.195 ~= 0.2
+# count ratio = 4.3e4 (30 - 70 keV) / 1.7e6 (3.6 - 15 keV)
+#             = 0.025
 cat << EOF > conf/ene_band.list
+# ene_band  ratio_fake
 #000_2047
-036_150
+036_150       0.025
 #036_300
-151_300
-301_700
+151_300       0.2
+#301_700       1.0
 #649_1150
 EOF
 
@@ -85,6 +86,10 @@ cat << EOF > conf/phase_40.list
 49  0.900  1.000  0.10  0.9-1.0
 EOF
 
+cat << EOF > conf/rand_seed_fake.list
+1
+EOF
+
 work_dir=$work_dir
 target_list=conf/target.list
 telescope_list=conf/telescope.list
@@ -101,9 +106,10 @@ nskyy=101
 ndetx=80
 ndety=80
 use_cuda=1
+rand_seed_fake_list=conf/rand_seed_fake.list
 
 srt_dir=/home/morii/work/github/moriiism/srt
-$srt_dir/crab/richlucy_smth_pf_zal/cv/run_cv.py \
+$srt_dir/crab/richlucy_smth_pf_zal/cv/run_cv_comp_eneband.py \
 $work_dir \
 $target_list \
 $telescope_list \
@@ -119,4 +125,5 @@ $nskyx \
 $nskyy \
 $ndetx \
 $ndety \
-$use_cuda
+$use_cuda \
+$rand_seed_fake_list
