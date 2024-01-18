@@ -7,6 +7,8 @@ simultaneous image reconstruction for multiple pulse phase data.
 
 # directory
 
+# _ps means probability simplex
+
 richlucy:
   Richardson-Lucy method
 richlucy_smth_pf: 
